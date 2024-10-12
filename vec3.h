@@ -19,7 +19,7 @@ class Vec3 {
         double operator[](auto i) const { return e[i]; }
         double& operator[](auto i) {return e[i]; }
 
-        Vec3 operator-() { return Vec3(-e[0], -e[1], -e[2]); }
+        Vec3 operator-() const { return Vec3(-e[0], -e[1], -e[2]); }
         
         Vec3 operator+=(const Vec3& v) {
             e[0] += v.x();
@@ -45,7 +45,7 @@ class Vec3 {
             return *this;
         }
 
-        Vec3 operator/=(const double t) {
+        Vec3 operator/=(double t) {
             if (t == 0) {
                 e[0] = std::nan("");
                 e[1] = std::nan("");
@@ -65,4 +65,51 @@ class Vec3 {
             return std::sqrt(length_squared());
         }
 }; // class Vec3
+
+inline std::ostream& operator<<(std::ostream& out, const Vec3& v) {
+    return out << v.x() << ' ' << v.y() << ' ' << v.z();
+}
+
+inline Vec3 operator+(const Vec3& u, const Vec3& v) {
+    return Vec3(u.x()+v.x(), u.y()+v.y(), u.z()+v.z());
+}
+
+inline Vec3 operator-(const Vec3& u, const Vec3& v) {
+    return Vec3(u.x()-v.x(), u.y()-v.y(), u.z()-v.z());
+}
+
+inline Vec3 operator*(const Vec3& u, const Vec3& v) {
+    return Vec3(u.x()*v.x(), u.y()*v.y(), u.z()*v.z());
+}
+
+inline Vec3 operator*(const Vec3& v, double t) {
+    return Vec3(v.x()*t, v.y()*t, v.z()*t);
+}
+
+inline Vec3 operator*(double t, const Vec3& v) {
+    return v*t;
+}
+
+inline Vec3 operator/(const Vec3& v, double t) {
+    if (t == 0) {
+        return Vec3(std::nan(""), std::nan(""), std::nan(""));
+    }
+
+    return v*(1/t);
+}
+
+inline double dot(const Vec3& u, const Vec3& v) {
+    return u.x()*v.x() + u.y()*v.y() + u.z()*v.z();
+}
+
+inline Vec3 cross(const Vec3& u, const Vec3& v) {
+    return Vec3(
+        u.y()*v.z() - u.z()*v.y(),
+        u.z()*v.x() - u.x()*v.z(),
+        u.x()*v.y() - u.y()*v.x());
+} 
+
+inline Vec3 unit_vector(const Vec3& v) {
+    return v / v.length();
+}
 #endif
