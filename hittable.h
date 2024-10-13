@@ -1,6 +1,8 @@
 #ifndef HITTABLE_H
 #define HITTABLE_H
 
+#include <memory>
+#include <vector>
 #include "ray.h"
 
 class HitRecord {
@@ -11,7 +13,7 @@ class HitRecord {
         bool front_face_val;
     
     public:
-        HitRecord() = delete;
+        HitRecord() {}
         HitRecord(const Vec3& p, const Vec3& n, double t) : point_val(p), normal_val(n), t_val(t) {}
         
         const Vec3& point() const { return point_val; }
@@ -36,4 +38,33 @@ class Hittable {
 
         virtual bool hit(const Ray& r, double ray_tmin, double ray_tmax, HitRecord& rec) const = 0;
 }; // class Hittable
+
+class HittableList : public Hittable {
+    private:
+        std::vector<std::shared_ptr<Hittable>> objects;
+    
+    public:
+        HittableList() {}
+        HittableList(std::shared_ptr<Hittable> objects) {}
+
+        void clear() { objects.clear(); }
+        void add(std::shared_ptr<Hittable> object) { objects.push_back(object); }
+        bool hit(const Ray& r, double ray_tmin, double ray_tmax, HitRecord& rec) const override;
+}; // class HitableList
+
+bool HittableList::hit(const Ray& r, double ray_tmin, double ray_tmax, HitRecord& rec) const {
+    HitRecord temp_rec;
+    bool hit_anything = false;
+    auto closest_so_far = ray_tmax;
+
+    for (const auto& obj : objects) {
+        if (obj->hit(r, ray_tmin, ray_tmax, temp_rec)) {
+            hit_anything = true;
+            closest_so_far = temp_rec.t();
+            rec = temp_rec;
+        }
+    }
+    
+    return hit_anything;
+}
 #endif
