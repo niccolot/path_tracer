@@ -25,13 +25,6 @@ class HitRecord {
         void set_face_normal(const Ray& r, const Vec3& outward_normal);
 }; // class HitRecord
 
-void HitRecord::set_face_normal(const Ray& r, const Vec3& outward_normal) {
-    // outward_normal is assumed to have unit length
-
-    front_face_val = dot(r.direction(), outward_normal) < 0;
-    normal_val = front_face_val ? outward_normal : -outward_normal;
-}
-
 class Hittable {
     public:
         virtual ~Hittable() = default;
@@ -45,26 +38,10 @@ class HittableList : public Hittable {
     
     public:
         HittableList() {}
-        HittableList(std::shared_ptr<Hittable> objects) {}
+        HittableList(std::shared_ptr<Hittable> object) { add(object); }
 
         void clear() { objects.clear(); }
         void add(std::shared_ptr<Hittable> object) { objects.push_back(object); }
         bool hit(const Ray& r, double ray_tmin, double ray_tmax, HitRecord& rec) const override;
 }; // class HitableList
-
-bool HittableList::hit(const Ray& r, double ray_tmin, double ray_tmax, HitRecord& rec) const {
-    HitRecord temp_rec;
-    bool hit_anything = false;
-    auto closest_so_far = ray_tmax;
-
-    for (const auto& obj : objects) {
-        if (obj->hit(r, ray_tmin, ray_tmax, temp_rec)) {
-            hit_anything = true;
-            closest_so_far = temp_rec.t();
-            rec = temp_rec;
-        }
-    }
-    
-    return hit_anything;
-}
 #endif

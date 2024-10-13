@@ -2,15 +2,24 @@
 #define IMAGE_H
 
 #include <iostream>
+#include <memory>
 
 #include "vec3.h"
 #include "color.h"
 #include "ray.h"
+#include "sphere.h"
+#include "hittable.h"
 
 void render_image(std::ostream& out, int img_width, double aspect_ratio) {
     // image
     int img_height = int(img_width / aspect_ratio);
     img_height = (img_height > 1) ? img_height : 1; // img_height has to be at least 1 pixel
+
+    // world
+    HittableList world;
+    world.add(std::make_shared<Sphere>(Vec3(0, -100.5, -1), 100));
+    world.add(std::make_shared<Sphere>(Vec3(0, 0, -1), 0.5));
+    
 
     // camera
     auto focal_length = 1.0;
@@ -38,7 +47,7 @@ void render_image(std::ostream& out, int img_width, double aspect_ratio) {
             auto pixel_center = pixel00_loc + (i*pixel_delta_u) + (j*pixel_delta_v);
             auto ray_direction = pixel_center - camera_center;
             Ray r(camera_center, ray_direction);
-            auto pixel_color = ray_color(r);
+            auto pixel_color = ray_color(r, world);
 
             write_color(out, pixel_color);
         }
