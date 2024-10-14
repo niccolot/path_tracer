@@ -1,1 +1,0 @@
-/usr/bin/c++ -Wall -Wextra -Wpedantic CMakeFiles/main.dir/main.cpp.o CMakeFiles/main.dir/src/camera.cpp.o CMakeFiles/main.dir/src/hittable.cpp.o CMakeFiles/main.dir/src/ray.cpp.o CMakeFiles/main.dir/src/sphere.cpp.o -o main 

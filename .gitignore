@@ -1,3 +1,5 @@
 .vscode/
 main
 *.ppm
+build
+path_tracer
