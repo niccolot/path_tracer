@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include "ray.h"
+#include "interval.h"
 
 class HitRecord {
     private:
@@ -29,7 +30,7 @@ class Hittable {
     public:
         virtual ~Hittable() = default;
 
-        virtual bool hit(const Ray& r, double ray_tmin, double ray_tmax, HitRecord& rec) const = 0;
+        virtual bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const = 0;
 }; // class Hittable
 
 class HittableList : public Hittable {
@@ -42,6 +43,6 @@ class HittableList : public Hittable {
 
         void clear() { objects.clear(); }
         void add(std::shared_ptr<Hittable> object) { objects.push_back(object); }
-        bool hit(const Ray& r, double ray_tmin, double ray_tmax, HitRecord& rec) const override;
+        bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const override;
 }; // class HitableList
 #endif

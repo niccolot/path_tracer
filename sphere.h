@@ -13,6 +13,6 @@ class Sphere : public Hittable {
         Sphere() = delete;
         Sphere(const Vec3& center, double radius) : center(center), radius(radius) {}
 
-        virtual bool hit(const Ray& r, double ray_tmin, double ray_tmax, HitRecord& rec) const override;
+        virtual bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const override;
 }; // class Sphere
 #endif

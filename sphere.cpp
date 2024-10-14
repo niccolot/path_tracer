@@ -2,7 +2,7 @@
 
 class ray;
 
-bool Sphere::hit(const Ray& r, double ray_tmin, double ray_tmax, HitRecord& rec) const {
+bool Sphere::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
     Vec3 oc = center - r.origin();
     auto a = r.direction().length_squared();  
     auto h = dot(r.direction(), oc); // h = -b/2 in 2nd order equation roots formula
@@ -17,9 +17,9 @@ bool Sphere::hit(const Ray& r, double ray_tmin, double ray_tmax, HitRecord& rec)
 
     // find the nearest root that lies in the acceptable range [ray_tmin, ray_tmax]
     auto root = (h - sqrt_delta) / a;
-    if (root <= ray_tmin || ray_tmax <= root) {
+    if (!ray_t.surrounds(root)) {
         root = (h + sqrt_delta) / a;
-        if(root <= ray_tmin || ray_tmax <= root) {
+        if(!ray_t.surrounds(root)) {
             return false;
         }
     }
