@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wall -Wextra -Wpedantic CMakeFiles/path_tracer.dir/main.cpp.o CMakeFiles/path_tracer.dir/src/camera.cpp.o CMakeFiles/path_tracer.dir/src/hittable.cpp.o CMakeFiles/path_tracer.dir/src/ray.cpp.o CMakeFiles/path_tracer.dir/src/sphere.cpp.o -o path_tracer 
