@@ -20,6 +20,15 @@ class Interval {
         double size() { return (max_val - min_val); }
         bool contains(double x) { return (min_val <= x && x <= max_val); }
         bool surrounds(double x) { return (min_val < x && x < max_val); }
+        double clamp(double x) const {
+            if (x < min_val) {
+                return min_val;
+            } else if (x > max_val) {
+                return max_val;
+            } else {
+                return x;
+            }
+        }
 }; // class Interval
 
 #endif

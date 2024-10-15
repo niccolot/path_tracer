@@ -1,8 +1,11 @@
 #include "camera.h"
+#include "utils.h"
 
 void Camera::initialize() {
     img_height_val = int(img_width_val/aspect_ratio_val);
     img_height_val = (img_height_val > 1) ? img_height_val : 1; // img_height must be at leat 1 pixel
+
+    pixel_samples_scale = 1.0 / samples_per_pixel;
 
     center = Vec3();
 
@@ -16,18 +19,38 @@ void Camera::initialize() {
     pixel_delta_u = viewport_u / img_width_val;
     pixel_delta_v = viewport_v / img_height_val;
 
-    auto viewport_upper_left = center - Vec3(0, 0, focal_length) - 0.5*(viewport_u + viewport_v);
+    auto viewport_upper_left = center - 
+                                Vec3(0, 0, focal_length) 
+                                - 0.5*(viewport_u + viewport_v);
     pixel00_loc = viewport_upper_left + 0.5*(pixel_delta_u + pixel_delta_v);
 } 
+
+Ray Camera::get_ray(int i, int j) const {
+    /**
+     * @brief construct a camera ray originated from
+     * the camera center and directed at a randomly 
+     * sampled point around pixel (i, j)
+     */
+
+    auto offset = sample_square();
+    auto pixel_sample = pixel00_loc 
+                        + ((i + offset.x()) * pixel_delta_u)
+                        + ((j + offset.y()) * pixel_delta_v);
+    
+    auto ray_direction = pixel_sample - center;
+
+    return Ray(center, ray_direction);
+}
 
 void Camera::write_color(std::ostream& out, const Color& pixel_color) {
     auto r = pixel_color.x();
     auto g = pixel_color.y();
     auto b = pixel_color.z();
 
-    int r_byte = int(255.999 * r);
-    int g_byte = int(255.999 * g);
-    int b_byte = int(255.999 * b);
+    static const Interval intensity(0.000, 0.999);
+    int r_byte = int(255.999 * intensity.clamp(r));
+    int g_byte = int(255.999 * intensity.clamp(g));
+    int b_byte = int(255.999 * intensity.clamp(b));
 
     out << r_byte << ' ' << g_byte << ' ' << b_byte << '\n';
 }
@@ -52,14 +75,16 @@ void Camera::render(const Hittable& world) {
     for (int j=0; j<img_height_val; ++j) {
         std::clog << "\rScanlines remaining: " << (img_height_val - j) << ' ' << std::flush;
         for (int i=0; i<img_width_val; ++i) {
-            auto pixel_center = pixel00_loc + (i*pixel_delta_u) + (j*pixel_delta_v);
-            auto ray_direction = pixel_center - center;
-            Ray r(center, ray_direction);
-            auto pixel_color = ray_color(r, world);
 
-            write_color(std::cout, pixel_color);
+            Color pixel_color(0, 0, 0);
+            for (int sample = 0; sample < samples_per_pixel; ++sample) {
+                Ray r = get_ray(i,j);
+                pixel_color += ray_color(r, world);
+            }
+
+            write_color(std::cout, pixel_color * pixel_samples_scale);
         }
     }
 
-    std::clog << "\rDone.       \n";
+    std::clog << "\nDone.\n";
 }
