@@ -7,7 +7,7 @@
 
 int main() {
 
-    int img_width = 1024;
+    int img_width = 512;
     double aspect_ratio = 16.0 / 9.0;
     int samples = 100;
 

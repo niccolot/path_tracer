@@ -47,6 +47,10 @@ void Camera::write_color(std::ostream& out, const Color& pixel_color) {
     auto g = pixel_color.y();
     auto b = pixel_color.z();
 
+    r = linear_to_gamma(r);
+    g = linear_to_gamma(g);
+    b = linear_to_gamma(b);
+
     static const Interval intensity(0.000, 0.999);
     int r_byte = int(255.999 * intensity.clamp(r));
     int g_byte = int(255.999 * intensity.clamp(g));
@@ -55,14 +59,25 @@ void Camera::write_color(std::ostream& out, const Color& pixel_color) {
     out << r_byte << ' ' << g_byte << ' ' << b_byte << '\n';
 }
 
-Color Camera::ray_color(const Ray& r, const Hittable& world) {
+Color Camera::ray_color(const Ray& r, int depth, const Hittable& world) {
+    if (depth <= 0) {
+        // no light returned after too many bounces
+        return Color(0, 0, 0);
+    }
+
     HitRecord rec;
-    if (world.hit(r, Interval(0, infinity), rec)) {
-        return 0.5*(rec.normal() + Color(1,1,1));
+    double reflectance = 0.7;
+    double shadow_acne_offset = 0.001;
+    
+    // ignore rays that hit the surface nearer than
+    // the offset in order to reduce shadow acne 
+    if (world.hit(r, Interval(shadow_acne_offset, infinity), rec)) {
+        Vec3 direction = rec.normal() + random_unit_vector();
+        return reflectance * ray_color(Ray(rec.point(), direction), depth-1, world);
     }
 
     Vec3 unit_direction = unit_vector(r.direction());
-    auto a = 0.5*(unit_direction.y() + 1.); // |a| in [0, 1]
+    auto a = reflectance * (unit_direction.y() + 1.); // |a| in [0, 1]
 
     return (1.0-a)*Color(1., 1., 1.) + a*Color(0.5, 0.7, 1.0);
 }
@@ -79,7 +94,7 @@ void Camera::render(const Hittable& world) {
             Color pixel_color(0, 0, 0);
             for (int sample = 0; sample < samples_per_pixel; ++sample) {
                 Ray r = get_ray(i,j);
-                pixel_color += ray_color(r, world);
+                pixel_color += ray_color(r, max_depth, world);
             }
 
             write_color(std::cout, pixel_color * pixel_samples_scale);

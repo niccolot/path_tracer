@@ -4,10 +4,18 @@
 #include <iostream>
 #include <cmath>
 
+#include "utils.h"
+
 class Vec3 {
     private:
         double e[3];
-    
+        static Vec3 random() {
+            return Vec3(random_double(), random_double(), random_double());
+        }
+        static Vec3 random(double min, double max) {
+            return Vec3(random_double(min, max), random_double(min, max), random_double(min, max));
+        }
+
     public:
         Vec3() : e{0., 0. ,0.} {}
         Vec3(double e0, double e1, double e2) : e{e0, e1, e2} {}
@@ -64,6 +72,8 @@ class Vec3 {
         double length() const {
             return std::sqrt(length_squared());
         }
+
+        friend inline Vec3 random_unit_vector();
 }; // class Vec3
 
 inline std::ostream& operator<<(std::ostream& out, const Vec3& v) {
@@ -112,4 +122,42 @@ inline Vec3 cross(const Vec3& u, const Vec3& v) {
 inline Vec3 unit_vector(const Vec3& v) {
     return v / v.length();
 }
+
+inline Vec3 sample_square() {
+    /**
+     * @brief returns a Vec3 randomly sampled in the [-0.5, 0.5] X [-0.5, 0.5]
+     * unit square
+     */
+
+    return Vec3(random_double(-0.5, 0.5), random_double(-0.5, 0.5), 0);
+}
+
+inline Vec3 random_unit_vector() {
+            /**
+             * @brief generates random vectors inside the unit square 
+             * containing the unit circle. Once a generated vector is
+             * inside the circle and not too short for numerical overlow,
+             * it is returned
+             */
+            while (true) {
+                auto v = Vec3::random(-1, 1);
+                auto lensq = v.length();
+                if (lensq > 1e-160 && lensq <= 1) {
+                    return unit_vector(v);
+                }
+            }
+        }
+
+inline Vec3 random_on_hemisphere(const Vec3& normal) {
+            /**
+             * @brief given a normal, returns a random vector going out
+             * from the surface
+             */
+            Vec3 on_unit_sphere = random_unit_vector();
+            if (dot(on_unit_sphere, normal) > 0) {
+                return on_unit_sphere;
+            } else {
+                return -on_unit_sphere;
+            }
+        }
 #endif

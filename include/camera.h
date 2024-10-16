@@ -13,6 +13,7 @@ class Camera {
         double aspect_ratio_val;
         int samples_per_pixel;
         double pixel_samples_scale;
+        int max_depth; // max number of ray bounces
 
         Vec3 center;
         Vec3 pixel00_loc;
@@ -22,15 +23,19 @@ class Camera {
         void initialize();
 
         void write_color(std::ostream& out, const Color& pixel_color);
-        Color ray_color(const Ray& r, const Hittable& world);
+        Color ray_color(const Ray& r, int depth, const Hittable& world);
         Ray get_ray(int i, int j) const;
     
     public:
-        Camera(int samples = 1) : samples_per_pixel(samples) {}
-        Camera(int width, double asp_rat, int samples = 100) : 
+        Camera(int samples = 1, int depth = 10) : 
+            samples_per_pixel(samples),
+            max_depth(depth) {}
+
+        Camera(int width, double asp_rat, int samples = 100, int depth = 50) : 
             img_width_val(width),
             aspect_ratio_val(asp_rat),
-            samples_per_pixel(samples) {} 
+            samples_per_pixel(samples),
+            max_depth(depth) {} 
 
         void render(const Hittable& world);
         void set_aspect_ratio(double aspect_ratio) { aspect_ratio_val = aspect_ratio; }

@@ -2,24 +2,26 @@
 #define UTILS_H
 
 #include <random>
+
 #include "constants.h"
-#include "vec3.h"
 
 inline double degs_to_rads(double degs) { return degs * pi / 180.0; }
 
-inline double random_double(double min, double max) {
+inline double random_double(double min = 0, double max = 1) {
     static std::uniform_real_distribution<double> distribution(min, max);
     static std::mt19937 generator;
 
     return distribution(generator);
 }
 
-inline Vec3 sample_square() {
+inline double linear_to_gamma(double linear_component) {
     /**
-     * @brief returns a Vec3 randomly sampled in the [-0.5, 0.5] X [-0.5, 0.5]
-     * unit square
+     * @brief gamma2 transform
      */
+    if (linear_component > 0) {
+        return std::sqrt(linear_component);
+    }
 
-    return Vec3(random_double(-0.5, 0.5), random_double(-0.5, 0.5), 0);
+    return 0;
 }
 #endif
