@@ -11,7 +11,30 @@ class Material {
 
         virtual bool scatter(
             const Ray& r_in, const HitRecord& rec, Color& attenuation, Ray& scattered
-        ) const { return false; }
+        ) const = 0;
 }; //class Material 
 
+
+class Lambertian : public Material {
+    private:
+        Color albedo;
+    
+    public:
+        Lambertian(const Color& albedo) : albedo(albedo) {}
+
+        bool scatter(
+            const Ray& r_in, const HitRecord& rec, Color& attenuation, Ray& scattered
+        ) const override;
+}; // class Lambertian
+
+class Metal : public Material {
+    private:
+        Color albedo;
+    
+    public: 
+        Metal(const Color& albedo) : albedo(albedo) {}
+        bool scatter(
+            const Ray& r_in, const HitRecord& rec, Color& attenuation, Ray& scattered
+        ) const override;
+}; // class Metal 
 #endif

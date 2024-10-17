@@ -1,5 +1,6 @@
 #include "camera.h"
 #include "utils.h"
+#include "material.h"
 
 void Camera::initialize() {
     img_height_val = int(img_width_val/aspect_ratio_val);
@@ -72,8 +73,13 @@ Color Camera::ray_color(const Ray& r, int depth, const Hittable& world) {
     // ignore rays that hit the surface nearer than
     // the offset in order to reduce shadow acne 
     if (world.hit(r, Interval(shadow_acne_offset, infinity), rec)) {
-        Vec3 direction = rec.normal() + random_unit_vector();
-        return reflectance * ray_color(Ray(rec.point(), direction), depth-1, world);
+        Ray scattered;
+        Color attenuation;
+        if (rec.material()->scatter(r, rec, attenuation, scattered)) {
+            return attenuation * ray_color(scattered, depth-1, world);
+        } else {
+            return Color(0, 0, 0);
+        }
     }
 
     Vec3 unit_direction = unit_vector(r.direction());

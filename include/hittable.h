@@ -23,7 +23,7 @@ class HitRecord {
         const Vec3& point() const { return point_val; }
         const Vec3& normal() const { return normal_val; }
         double t() const { return t_val; }
-        const std::shared_ptr<Material> const material() { return mat; }
+        const std::shared_ptr<Material> material() const { return mat; }
         bool front_face() const { return front_face_val; }
         void set_point(const Vec3& p) { point_val = p; }
         void set_t(double t) { t_val = t; }

@@ -14,7 +14,8 @@ class Sphere : public Hittable {
     
     public:
         Sphere() = delete;
-        Sphere(const Vec3& center, double radius) : center(center), radius(radius) {}
+        Sphere(const Vec3& center, double radius, std::shared_ptr<Material> mat) 
+        : center(center), radius(radius), mat(mat) {}
 
         virtual bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const override;
 }; // class Sphere

@@ -73,6 +73,15 @@ class Vec3 {
             return std::sqrt(length_squared());
         }
 
+        bool near_zero() const {
+            auto tol = 1e-8;
+            auto x_comp = std::fabs(e[0]) < tol;
+            auto y_comp = std::fabs(e[2]) < tol;
+            auto z_comp = std::fabs(e[2]) < tol; 
+            
+            return x_comp && y_comp && z_comp;;
+        }
+
         friend inline Vec3 random_unit_vector();
 }; // class Vec3
 
@@ -133,31 +142,42 @@ inline Vec3 sample_square() {
 }
 
 inline Vec3 random_unit_vector() {
-            /**
-             * @brief generates random vectors inside the unit square 
-             * containing the unit circle. Once a generated vector is
-             * inside the circle and not too short for numerical overlow,
-             * it is returned
-             */
-            while (true) {
-                auto v = Vec3::random(-1, 1);
-                auto lensq = v.length();
-                if (lensq > 1e-160 && lensq <= 1) {
-                    return unit_vector(v);
-                }
-            }
+    /**
+     * @brief generates random vectors inside the unit square 
+     * containing the unit circle. Once a generated vector is
+     * inside the circle and not too short for numerical overlow,
+     * it is returned
+     */
+    while (true) {
+        auto v = Vec3::random(-1, 1);
+        auto lensq = v.length();
+        if (lensq > 1e-160 && lensq <= 1) {
+            return unit_vector(v);
         }
+    }
+}
 
 inline Vec3 random_on_hemisphere(const Vec3& normal) {
-            /**
-             * @brief given a normal, returns a random vector going out
-             * from the surface
-             */
-            Vec3 on_unit_sphere = random_unit_vector();
-            if (dot(on_unit_sphere, normal) > 0) {
-                return on_unit_sphere;
-            } else {
-                return -on_unit_sphere;
-            }
-        }
+    /**
+     * @brief given a normal, returns a random vector going out
+     * from the surface
+     */
+    Vec3 on_unit_sphere = random_unit_vector();
+    if (dot(on_unit_sphere, normal) > 0) {
+        return on_unit_sphere;
+    } else {
+        return -on_unit_sphere;
+    }
+}
+
+inline Vec3 reflect(const Vec3& v, const Vec3& n) {
+    /**
+     * @brief returns the perfectly reflected vector
+     * for incidence on a surface with normal n
+     * 
+     * @param n surface normal vector, assumed to be unitary
+     */
+
+    return v - 2*dot(v,n)*n;
+}
 #endif
