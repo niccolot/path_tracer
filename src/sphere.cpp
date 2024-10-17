@@ -1,7 +1,5 @@
 #include "sphere.h"
 
-class ray;
-
 bool Sphere::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
     Vec3 oc = center - r.origin();
     auto a = r.direction().length_squared();  
@@ -29,6 +27,7 @@ bool Sphere::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
     
     Vec3 outward_normal = (rec.point() - center) / radius;
     rec.set_face_normal(r, outward_normal);
+    rec.set_material(mat);
 
     return true;
 }
