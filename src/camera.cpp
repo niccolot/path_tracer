@@ -2,27 +2,56 @@
 #include "utils.h"
 #include "material.h"
 
-void Camera::initialize() {
+Camera::Camera(
+    int width, 
+    double asp_rat, 
+     Vec3&& lookfrom,
+    Vec3&& lookat,
+    double vfov,
+    int samples, 
+    int depth) : 
+        img_width_val(width),
+        aspect_ratio_val(asp_rat),
+        lookfrom(std::move(lookfrom)),
+        lookat(std::move(lookat)),
+        vfov(vfov),
+        samples_per_pixel(samples),
+        max_depth(depth) {
+
     img_height_val = int(img_width_val/aspect_ratio_val);
     img_height_val = (img_height_val > 1) ? img_height_val : 1; // img_height must be at leat 1 pixel
 
     pixel_samples_scale = 1.0 / samples_per_pixel;
 
-    center = Vec3();
+    center = lookfrom;
+
+    // camera
+    double theta = degs_to_rads(vfov);
+    double h = std::tan(theta/2);
+    double focal_length = (lookfrom - lookat).length();
+
+    // antiparallel to the viewing direction
+    w = unit_vector(lookfrom - lookat); 
+
+    // perpendicular to viewing dir and vertical versor
+    u = unit_vector(cross(vup, w));
+
+    // camera up direction in the global frame of reference
+    v = cross(w, u);
 
     // viewport
-    auto focal_length = 1.;
-    auto viewport_height = 2.;
-    auto vieport_width = viewport_height * (double(img_width_val)/img_height_val);
-    auto viewport_u = Vec3(vieport_width, 0, 0);
-    auto viewport_v = Vec3(0, -viewport_height, 0);
+    double viewport_height = 2*h*focal_length;
+    double viewport_width = viewport_height * (double(img_width_val)/img_height_val);
+    auto viewport_u = viewport_width * u;
+    auto viewport_v = viewport_height * -v;
 
     pixel_delta_u = viewport_u / img_width_val;
     pixel_delta_v = viewport_v / img_height_val;
 
     auto viewport_upper_left = center - 
-                                Vec3(0, 0, focal_length) 
+                                focal_length * w
                                 - 0.5*(viewport_u + viewport_v);
+
     pixel00_loc = viewport_upper_left + 0.5*(pixel_delta_u + pixel_delta_v);
 } 
 
@@ -91,8 +120,6 @@ Color Camera::ray_color(const Ray& r, int depth, const Hittable& world) {
 }
 
 void Camera::render(const Hittable& world) {
-    initialize();
-
     std::cout << "P3\n" << img_width_val << ' ' << img_height_val << "\n255\n";
 
     for (int j=0; j<img_height_val; ++j) {

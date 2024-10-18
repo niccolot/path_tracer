@@ -9,7 +9,6 @@ int main() {
 
     int img_width = 512;
     double aspect_ratio = 16.0 / 9.0;
-    int samples = 100;
 
     HittableList world;
 
@@ -23,7 +22,7 @@ int main() {
     world.add(std::make_shared<Sphere>(Vec3(-1.0,    0.0, -1.0),   0.5, material_left));
     world.add(std::make_shared<Sphere>(Vec3( 1.0,    0.0, -1.0),   0.5, material_right));
 
-    Camera cam(img_width, aspect_ratio, samples);
+    Camera cam(img_width, aspect_ratio, Vec3(0,0,1), Vec3(0,0,.99), 45);
 
     cam.render(world);
 }
