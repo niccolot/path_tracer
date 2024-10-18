@@ -78,10 +78,12 @@ Color Camera::ray_color(const Ray& r, int depth, const Hittable& world) {
         if (rec.material()->scatter(r, rec, attenuation, scattered)) {
             return attenuation * ray_color(scattered, depth-1, world);
         } else {
+            // full absorption
             return Color(0, 0, 0);
         }
     }
 
+    // if no hits then render some arbitrary background
     Vec3 unit_direction = unit_vector(r.direction());
     auto a = reflectance * (unit_direction.y() + 1.); // |a| in [0, 1]
 

@@ -30,11 +30,28 @@ class Lambertian : public Material {
 class Metal : public Material {
     private:
         Color albedo;
+        double fuzz;
     
     public: 
-        Metal(const Color& albedo) : albedo(albedo) {}
+        Metal(const Color& albedo, double fuzz = 0.) : 
+        albedo(albedo), fuzz(fuzz) {}
         bool scatter(
             const Ray& r_in, const HitRecord& rec, Color& attenuation, Ray& scattered
         ) const override;
 }; // class Metal 
+
+class Dielectric : public Material {
+    private:
+        // actual refractive index if in vacumm,
+        // effective refractive index if embedded in material 
+        // eta_eff = eta_material / eta_surrounding
+        double refractive_index;
+    
+    public:
+        Dielectric(double eta) : refractive_index(eta) {}
+
+        bool scatter(
+            const Ray& r_in, const HitRecord& rec, Color& attenuation, Ray& scattered
+        ) const override;
+}; // class Dielectric
 #endif

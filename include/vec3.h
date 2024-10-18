@@ -180,4 +180,21 @@ inline Vec3 reflect(const Vec3& v, const Vec3& n) {
 
     return v - 2*dot(v,n)*n;
 }
+
+inline Vec3 refract(const Vec3& v, const Vec3& n, double etaI_over_etaT) {
+    /**
+     * @brief return the refracted vector according to snell law
+     * 
+     * @param n surface normal, assumed to be unitary
+     * @param etaI_over_etaT ration between refractive index
+     * for the incident vector and refractive index for the
+     * transmitted vector
+     */
+
+    auto cos_theta = std::fmin(dot(-v,n), 1.);
+    Vec3 r_out_perp = etaI_over_etaT * (v + cos_theta*n);
+    Vec3 r_out_par = -std::sqrt(std::fabs(1. - r_out_perp.length_squared())) * n;
+
+    return r_out_perp + r_out_par;
+}
 #endif

@@ -26,6 +26,8 @@ elif [ "$build_type" == "release" ]; then
     cmake --build . 
 fi
 
-if [ "$run_after_build" = true ]; then
-    ./path_tracer  > image.ppm
+if [ $? -eq 0 ]; then
+    if [ "$run_after_build" = true ]; then
+        ./path_tracer  > image.ppm
+    fi
 fi
