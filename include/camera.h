@@ -16,11 +16,22 @@ class Camera {
         Vec3 lookfrom; // where the camera is looking from
         Vec3 lookat; // point that the camera is looking at
         double vfov; // vertical field of view
-        int samples_per_pixel;
+
+        // in photography terms where
+        // focal length = distance from camera center to 
+        // image plane and focus distance = distance from camera 
+        // center to the plane where everything is in focus, here we
+        // set focal lenght = focus distance by placing the camera
+        // pixel grid (viewport) right in from of the focus plane
+        double focus_dist;
+        double defocus_angle; // variation angle of rays from lookfrom though pixels
+        int samples_per_pixel; // number of pixel resampling for antialiasing
         double pixel_samples_scale;
         int max_depth; // max number of ray bounces
-        Vec3 vup = Vec3(0, 1, 0); // camera-relative 'up' direction
+        Vec3 vup; // camera-relative 'up' direction
         Vec3 u, v, w; // camera frame basis vectors
+        Vec3 defocus_disk_u;
+        Vec3 defocus_disk_v;
 
         //viewport
         Vec3 center;
@@ -28,11 +39,19 @@ class Camera {
         Vec3 pixel_delta_u;
         Vec3 pixel_delta_v;
 
-        void initialize();
-
         void write_color(std::ostream& out, const Color& pixel_color);
         Color ray_color(const Ray& r, int depth, const Hittable& world);
         Ray get_ray(int i, int j) const;
+
+        //friend inline Vec3 defocus_disk_sample();
+        inline Vec3 defocus_disk_sample() const {
+            /**
+             * @brief returns a random point in the defocus disk
+             */
+
+            auto p = random_in_unit_disk();
+            return center + (p.x() * defocus_disk_u) + (p.y() * defocus_disk_v);
+        }
     
     public:
         Camera(int width, 
@@ -40,6 +59,8 @@ class Camera {
             Vec3&& lookfrom,
             Vec3&& lookat,
             double vfov = 90,
+            double focus_dist = 1,
+            double defocus_angle = 0,
             int samples = 100, 
             int depth = 50);
 
@@ -50,6 +71,8 @@ class Camera {
             Vec3(0,0,1),
             Vec3(0,0,0.99),
             45,
+            1,
+            0,
             1,
             10
         ) {}

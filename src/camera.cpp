@@ -8,13 +8,18 @@ Camera::Camera(
      Vec3&& lookfrom,
     Vec3&& lookat,
     double vfov,
+    double focus_dist,
+    double defocus_angle,
     int samples, 
     int depth) : 
+
         img_width_val(width),
         aspect_ratio_val(asp_rat),
         lookfrom(std::move(lookfrom)),
         lookat(std::move(lookat)),
         vfov(vfov),
+        focus_dist(focus_dist),
+        defocus_angle(defocus_angle),
         samples_per_pixel(samples),
         max_depth(depth) {
 
@@ -28,7 +33,7 @@ Camera::Camera(
     // camera
     double theta = degs_to_rads(vfov);
     double h = std::tan(theta/2);
-    double focal_length = (lookfrom - lookat).length();
+    vup = Vec3(0,1,0);
 
     // antiparallel to the viewing direction
     w = unit_vector(lookfrom - lookat); 
@@ -40,7 +45,7 @@ Camera::Camera(
     v = cross(w, u);
 
     // viewport
-    double viewport_height = 2*h*focal_length;
+    double viewport_height = 2*h*focus_dist;
     double viewport_width = viewport_height * (double(img_width_val)/img_height_val);
     auto viewport_u = viewport_width * u;
     auto viewport_v = viewport_height * -v;
@@ -49,10 +54,15 @@ Camera::Camera(
     pixel_delta_v = viewport_v / img_height_val;
 
     auto viewport_upper_left = center - 
-                                focal_length * w
+                                focus_dist * w
                                 - 0.5*(viewport_u + viewport_v);
 
     pixel00_loc = viewport_upper_left + 0.5*(pixel_delta_u + pixel_delta_v);
+
+    // defocus blur
+    auto defocus_radius = focus_dist * std::tan(degs_to_rads(defocus_angle/2));
+    defocus_disk_u = u * defocus_radius;
+    defocus_disk_v = v * defocus_radius;
 } 
 
 Ray Camera::get_ray(int i, int j) const {
@@ -67,9 +77,10 @@ Ray Camera::get_ray(int i, int j) const {
                         + ((i + offset.x()) * pixel_delta_u)
                         + ((j + offset.y()) * pixel_delta_v);
     
-    auto ray_direction = pixel_sample - center;
+    auto ray_origin = (defocus_angle <= 0) ? center : defocus_disk_sample();
+    auto ray_direction = pixel_sample - ray_origin;
 
-    return Ray(center, ray_direction);
+    return Ray(ray_origin, ray_direction);
 }
 
 void Camera::write_color(std::ostream& out, const Color& pixel_color) {

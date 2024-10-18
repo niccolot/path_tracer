@@ -9,12 +9,6 @@
 class Vec3 {
     private:
         double e[3];
-        static Vec3 random() {
-            return Vec3(random_double(), random_double(), random_double());
-        }
-        static Vec3 random(double min, double max) {
-            return Vec3(random_double(min, max), random_double(min, max), random_double(min, max));
-        }
 
     public:
         Vec3() : e{0., 0. ,0.} {}
@@ -65,6 +59,14 @@ class Vec3 {
             return *this *= 1/t;
         }
 
+        static Vec3 random() {
+            return Vec3(random_double(), random_double(), random_double());
+        }
+        
+        static Vec3 random(double min, double max) {
+            return Vec3(random_double(min, max), random_double(min, max), random_double(min, max));
+        }
+
         double length_squared() const {
             return e[0]*e[0] + e[1]*e[1] + e[2]*e[2];
         }
@@ -81,8 +83,6 @@ class Vec3 {
             
             return x_comp && y_comp && z_comp;;
         }
-
-        friend inline Vec3 random_unit_vector();
 }; // class Vec3
 
 inline std::ostream& operator<<(std::ostream& out, const Vec3& v) {
@@ -157,16 +157,12 @@ inline Vec3 random_unit_vector() {
     }
 }
 
-inline Vec3 random_on_hemisphere(const Vec3& normal) {
-    /**
-     * @brief given a normal, returns a random vector going out
-     * from the surface
-     */
-    Vec3 on_unit_sphere = random_unit_vector();
-    if (dot(on_unit_sphere, normal) > 0) {
-        return on_unit_sphere;
-    } else {
-        return -on_unit_sphere;
+inline Vec3 random_in_unit_disk() {
+    while (true) {
+        auto p = Vec3(random_double(-1,1), random_double(-1, 1), 0);
+        if (p.length_squared() < 1) {
+            return p;
+        }
     }
 }
 
