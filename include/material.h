@@ -46,6 +46,8 @@ class Dielectric : public Material {
         // effective refractive index if embedded in material 
         // eta_eff = eta_material / eta_surrounding
         double refractive_index;
+
+        static double reflectance(double cosine, double refractive_index);
     
     public:
         Dielectric(double eta) : refractive_index(eta) {}
