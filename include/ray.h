@@ -9,13 +9,22 @@ class Ray {
     private:
         Vec3 orig;
         Vec3 dir;
+        double time_val;
     
     public:
-        Ray() : orig(Vec3()), dir(Vec3()) {}
-        Ray(const Vec3& o, const Vec3& d) : orig(o), dir(d) {}
+        Ray(const Vec3& o, const Vec3& d, double time) : 
+            orig(o), 
+            dir(d),
+            time_val(time) {}
+
+        Ray(const Vec3& o, const Vec3& d) : 
+            Ray(o, d, 0) {}
+        
+        Ray() : Ray(Vec3(), Vec3(), 0) {}
 
         const Vec3& origin() const { return orig; }
         const Vec3& direction() const { return dir; }
+        double time() const { return time_val; }
 
         const Vec3 at(double t) const { return orig + t*dir; }
 

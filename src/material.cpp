@@ -11,7 +11,7 @@ bool Lambertian::scatter(
         scatter_direction = rec.normal();
     }
 
-    scattered = Ray(rec.point(), scatter_direction);
+    scattered = Ray(rec.point(), scatter_direction, r_in.time());
     attenuation = albedo;
 
     return true;
@@ -23,7 +23,7 @@ bool Metal::scatter(
     
     Vec3 reflected = reflect(r_in.direction(), rec.normal());
     reflected = unit_vector(reflected) + (fuzz * random_unit_vector());
-    scattered = Ray(rec.point(), reflected);
+    scattered = Ray(rec.point(), reflected, r_in.time());
     attenuation = albedo;
 
     // if due to fuzziness the incident ray is scattered below 
@@ -32,7 +32,7 @@ bool Metal::scatter(
 }
 
 double Dielectric::reflectance(double cosine, double refractive_index) {
-    // schlick apporximation for reflectance
+    // schlick apporximation 
     auto r0 = (1 - refractive_index) / (1 + refractive_index);
     r0 *= r0;
 
@@ -60,7 +60,7 @@ bool Dielectric::scatter(
         direction = refract(unit_dir, rec.normal(), ri);
     }
 
-    scattered = Ray(rec.point(), direction);
+    scattered = Ray(rec.point(), direction, r_in.time());
 
     return true;
 }
