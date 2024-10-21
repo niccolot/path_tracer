@@ -22,3 +22,9 @@ bool HittableList::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
     
     return hit_anything;
 }
+
+void HittableList::add(std::shared_ptr<Hittable> object) {
+    objects.push_back(object);
+    bbox = AxisAlignedBBox(bbox, object->bounding_box());
+}
+

@@ -5,7 +5,7 @@
 Camera::Camera(
     int width, 
     double asp_rat, 
-     Vec3&& lookfrom,
+    Vec3&& lookfrom,
     Vec3&& lookat,
     double vfov,
     double focus_dist,

@@ -11,25 +11,25 @@ class Sphere : public Hittable {
         Ray center;
         double radius;
         std::shared_ptr<Material> mat;
+        AxisAlignedBBox bbox;
     
     public:
         Sphere() = delete;
 
         // static sphere
-        Sphere(const Vec3& static_center, double radius, std::shared_ptr<Material> mat) 
-        : center(static_center, Vec3()), radius(radius), mat(mat) {}
+        Sphere(
+            const Vec3& static_center, 
+            double radius, 
+            std::shared_ptr<Material> mat);
 
         // moving sphere
         Sphere(
             const Vec3& center1,
             const Vec3& center2, 
             double radius, 
-            std::shared_ptr<Material> mat) :
+            std::shared_ptr<Material> mat);
 
-                center(center1, center2 - center1),
-                radius(radius),
-                mat(mat) {}
-
+        virtual const AxisAlignedBBox& bounding_box() const override { return bbox; }
         virtual bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const override;
 }; // class Sphere
 #endif
