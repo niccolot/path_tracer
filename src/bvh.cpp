@@ -7,7 +7,12 @@ BVHNode::BVHNode(
     size_t start, 
     size_t end) {
     
-    int axis = random_int(0,2);
+    bbox = AxisAlignedBBox::empty();
+    for (size_t object_index=start; object_index<end; ++object_index) {
+        bbox = AxisAlignedBBox(bbox, objects[object_index]->bounding_box());
+    }
+
+    int axis = bbox.longest_axis();
 
     auto comparator = (axis == 0) ? box_x_compare
                     : (axis == 1) ? box_y_compare
@@ -26,8 +31,6 @@ BVHNode::BVHNode(
         left = std::make_shared<BVHNode>(objects, start, mid);
         rigth = std::make_shared<BVHNode>(objects, mid, end);
     }
-
-    bbox = AxisAlignedBBox(left->bounding_box(), rigth->bounding_box());
 }
 
 bool BVHNode::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {

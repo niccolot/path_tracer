@@ -2,6 +2,7 @@
 #define CAMERA_H
 
 #include "vec3.h"
+#include "color.h"
 #include "hittable.h"
 #include "utils.h"
 

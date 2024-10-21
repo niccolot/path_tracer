@@ -12,7 +12,7 @@ bool Lambertian::scatter(
     }
 
     scattered = Ray(rec.point(), scatter_direction, r_in.time());
-    attenuation = albedo;
+    attenuation = tex->value(rec.u(), rec.v(), rec.point());
 
     return true;
 }

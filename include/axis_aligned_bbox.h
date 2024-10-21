@@ -20,6 +20,9 @@ class AxisAlignedBBox {
         const Interval& x_axis() const { return x; }
         const Interval& y_axis() const { return y; }
         const Interval& z_axis() const { return z; }
+        int longest_axis() const;
+        static const AxisAlignedBBox empty();
+        static const AxisAlignedBBox universe();
         bool hit(const Ray& r, Interval ray_t) const;
 }; // class AxisAlignedBbox
 #endif

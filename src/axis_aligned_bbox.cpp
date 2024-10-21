@@ -28,6 +28,14 @@ const Interval& AxisAlignedBBox::axis_interval(int n) const {
     }
 }
 
+int AxisAlignedBBox::longest_axis() const {
+    if (x.size() > y.size()) {
+        return x.size() > z.size() ? 0 : 2;
+    } else {
+        return y.size() > z.size() ? 1 : 2;
+    }
+}
+
 bool AxisAlignedBBox::hit(const Ray& r, Interval ray_t) const {
     const Vec3& ray_origin = r.origin();
     const Vec3& ray_dir = r.direction();
@@ -53,4 +61,19 @@ bool AxisAlignedBBox::hit(const Ray& r, Interval ray_t) const {
     }
 
     return true;
+}
+
+const AxisAlignedBBox AxisAlignedBBox::empty() {
+    return AxisAlignedBBox( 
+        Interval::empty(), 
+        Interval::empty(), 
+        Interval::empty());
+}
+
+const AxisAlignedBBox AxisAlignedBBox::universe() {
+    return AxisAlignedBBox(
+        Interval::universe(),
+        Interval::universe(),
+        Interval::universe()
+    );
 }

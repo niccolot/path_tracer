@@ -30,9 +30,9 @@ if [ $? -eq 0 ]; then
     if [ "$run_after_build" = true ]; then
         start_time=$(date +%s)
         ./path_tracer  > image.ppm
+        end_time=$(date +%s) 
+        elapsed_time=$((end_time - start_time))
+        echo "Execution time: $elapsed_time seconds"
     fi
 fi
 
-end_time=$(date +%s) 
-elapsed_time=$((end_time - start_time))
-echo "Execution time: $elapsed_time seconds"

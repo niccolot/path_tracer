@@ -12,6 +12,7 @@ class Sphere : public Hittable {
         double radius;
         std::shared_ptr<Material> mat;
         AxisAlignedBBox bbox;
+        static void get_sphere_uv(const Vec3& p, double& u, double& v);
     
     public:
         Sphere() = delete;

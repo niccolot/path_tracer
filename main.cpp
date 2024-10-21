@@ -5,9 +5,10 @@
 #include "sphere.h"
 #include "material.h"
 #include "bvh.h"
+#include "texture.h"
 
 int main() {
-    
+    /*
     int img_width = 512;
     double aspect_ratio = 16.0 / 9.0;
 
@@ -33,12 +34,14 @@ int main() {
     cam.render(world);
     
     
+    */
+    
      
-    /*
+    
     HittableList world;
 
-    auto ground_Material = std::make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
-    world.add(std::make_shared<Sphere>(Vec3(0,-1000,0), 1000, ground_Material));
+    auto checker = std::make_shared<CheckerTexture>(0.32, Color(.2, .3, .1), Color(.9, .9, .9));
+    world.add(std::make_shared<Sphere>(Vec3(0,-1000,0), 1000, std::make_shared<Lambertian>(checker)));
 
     for (int a = -11; a < 11; a++) {
         for (int b = -11; b < 11; b++) {
@@ -79,10 +82,10 @@ int main() {
 
     Camera cam(512, 16./9., Vec3(3,2,3), Vec3(0,0,0), 90, 10., 0.6, 100);
 
-    //world = HittableList(std::make_shared<BVHNode>(world));
+    world = HittableList(std::make_shared<BVHNode>(world));
 
     cam.render(world);
-    */
+    
     
     
 }

@@ -21,7 +21,7 @@ class Interval {
         static const Interval empty() {return Interval(); }
         static const Interval universe() { return Interval(-infinity, infinity); }
 
-        double size() { return (max_val - min_val); }
+        double size() const { return (max_val - min_val); }
         bool contains(double x) { return (min_val <= x && x <= max_val); }
         bool surrounds(double x) { return (min_val < x && x < max_val); }
         double clamp(double x) const;

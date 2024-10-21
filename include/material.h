@@ -1,9 +1,9 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
-#include "hittable.h"
-
-using Color = Vec3;
+#include "hit_record.h"
+#include "texture.h"
+#include "color.h"
 
 class Material {
     public:
@@ -17,10 +17,13 @@ class Material {
 
 class Lambertian : public Material {
     private:
-        Color albedo;
+        std::shared_ptr<Texture> tex;
     
     public:
-        Lambertian(const Color& albedo) : albedo(albedo) {}
+        Lambertian(const Color& albedo) : 
+            tex(std::make_shared<SolidColor>(albedo)) {}
+        
+        Lambertian(std::shared_ptr<Texture> tex) : tex(tex) {}
 
         bool scatter(
             const Ray& r_in, const HitRecord& rec, Color& attenuation, Ray& scattered
