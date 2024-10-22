@@ -5,11 +5,12 @@
 
 #include "color.h"
 #include "vec3.h"
+#include "perlin.h"
 
 class Texture {
     public:
         virtual ~Texture() = default;
-        virtual const Color& value(double u, double v, const Vec3& p) const = 0;
+        virtual Color value(double u, double v, const Vec3& p) = 0;
 }; // class Texture
 
 class SolidColor : public Texture {
@@ -20,10 +21,10 @@ class SolidColor : public Texture {
         SolidColor(const Color& albedo) : albedo(albedo) {}
         SolidColor(double r, double g, double b) : SolidColor(Color(r,g,b)) {}
         
-        const Color& value(
+        Color value(
             [[maybe_unused]] double u, 
             [[maybe_unused]] double v, 
-            [[maybe_unused]] const Vec3& p) const override { return albedo; }
+            [[maybe_unused]] const Vec3& p) override { return albedo; }
 }; // class SolidColor
 
 class CheckerTexture : public Texture {
@@ -50,6 +51,22 @@ class CheckerTexture : public Texture {
                     std::make_shared<SolidColor>(c1),
                     std::make_shared<SolidColor>(c2)) {}
         
-        const Color& value(double u, double v, const Vec3& p) const override;
+        Color value(double u, double v, const Vec3& p) override;
 }; // class CheckerTexture
+
+class NoiseTexture : public Texture {
+    private:
+        Perlin noise;
+            
+    public:
+        NoiseTexture() {}
+        
+        Color value(
+            [[maybe_unused]] double u, 
+            [[maybe_unused]] double v,
+            [[maybe_unused]]  const Vec3& p) override {
+
+                return Color(1,1,1) * noise.noise(p);
+            }
+}; // class NoiseTexture
 #endif

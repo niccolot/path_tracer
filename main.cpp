@@ -7,15 +7,16 @@
 #include "bvh.h"
 #include "texture.h"
 
-int main() {
-    /*
+void test() {
     int img_width = 512;
     double aspect_ratio = 16.0 / 9.0;
 
     HittableList world;
 
+    auto noise_texture = std::make_shared<NoiseTexture>();
+
     auto Material_ground = std::make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
-    auto Material_center = std::make_shared<Lambertian>(Color(0.1, 0.2, 0.5));
+    auto Material_center = std::make_shared<Lambertian>(noise_texture);
     auto Material_left   = std::make_shared<Dielectric>(1.5);
     auto Material_right  = std::make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.3);
 
@@ -23,22 +24,17 @@ int main() {
     auto center2 = center1 + Vec3(0.0, 0.25, -1.2);
 
     world.add(std::make_shared<Sphere>(Vec3( 0.0, -100.5, -1.0), 100.0, Material_ground));
-    world.add(std::make_shared<Sphere>(center1, center2, 0.5, Material_center));
+    world.add(std::make_shared<Sphere>(center1, 0.5, Material_center));
     world.add(std::make_shared<Sphere>(Vec3(-1.0,    0.0, -1.0),   0.5, Material_left));
     world.add(std::make_shared<Sphere>(Vec3( 1.0,    0.0, -1.0),   0.5, Material_right));
 
     Camera cam(img_width, aspect_ratio, Vec3(0,0,1), Vec3(0,0,.99), 45);
 
-    world = HittableList(std::make_shared<BVHNode>(world));
-
     cam.render(world);
-    
-    
-    */
-    
-     
-    
-    HittableList world;
+}
+
+void random_spheres() {
+     HittableList world;
 
     auto checker = std::make_shared<CheckerTexture>(0.32, Color(.2, .3, .1), Color(.9, .9, .9));
     world.add(std::make_shared<Sphere>(Vec3(0,-1000,0), 1000, std::make_shared<Lambertian>(checker)));
@@ -85,7 +81,9 @@ int main() {
     world = HittableList(std::make_shared<BVHNode>(world));
 
     cam.render(world);
+}
+
+int main() {
     
-    
-    
+    random_spheres();
 }

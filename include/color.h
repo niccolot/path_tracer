@@ -4,4 +4,5 @@
 #include "vec3.h"
 
 using Color = Vec3;
+
 #endif

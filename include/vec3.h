@@ -18,6 +18,10 @@ class Vec3 {
         double y() const { return e[1]; }
         double z() const { return e[2]; }
 
+        void set_x(double x) { e[0] = x; }
+        void set_y(double y) { e[1] = y; }
+        void set_z(double z) { e[2] = z; }
+
         double operator[](auto i) const { return e[i]; }
         double& operator[](auto i) {return e[i]; }
 
