@@ -57,16 +57,17 @@ class CheckerTexture : public Texture {
 class NoiseTexture : public Texture {
     private:
         Perlin noise;
+        double scale;
             
     public:
-        NoiseTexture() {}
+        NoiseTexture(double scale) : scale(scale) {}
         
         Color value(
             [[maybe_unused]] double u, 
             [[maybe_unused]] double v,
             [[maybe_unused]]  const Vec3& p) override {
 
-                return Color(1,1,1) * noise.noise(p);
+                return Color(.5,.5,.5) * (1 + std::sin(scale * p.z() * noise.turb(p,7)));
             }
 }; // class NoiseTexture
 #endif

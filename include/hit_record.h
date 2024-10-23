@@ -31,10 +31,13 @@ class HitRecord {
         const double& v() const { return _v; }
         const std::shared_ptr<Material> material() const { return mat; }
         bool front_face() const { return front_face_val; }
+
         void set_point(const Vec3& p) { point_val = p; }
         void set_t(double t) { t_val = t; }
         void set_face_normal(const Ray& r, const Vec3& outward_normal);
         void set_material(const std::shared_ptr<Material> material) { mat = material; }
+        void set_u(double u) { _u = u; }
+        void set_v(double v) { _v = v; }
 }; // class HitRecord
 
 #endif

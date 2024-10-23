@@ -6,6 +6,7 @@
 #include "material.h"
 #include "bvh.h"
 #include "texture.h"
+#include "quad.h"
 
 void test() {
     int img_width = 512;
@@ -13,22 +14,21 @@ void test() {
 
     HittableList world;
 
-    auto noise_texture = std::make_shared<NoiseTexture>();
+    auto noise_texture = std::make_shared<NoiseTexture>(4);
 
-    auto Material_ground = std::make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
-    auto Material_center = std::make_shared<Lambertian>(noise_texture);
+    auto Material_ground = std::make_shared<Lambertian>(noise_texture);
+    auto Material_center = std::make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
     auto Material_left   = std::make_shared<Dielectric>(1.5);
     auto Material_right  = std::make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.3);
 
     auto center1 = Vec3(0.0, 0.0, -1.2);
-    auto center2 = center1 + Vec3(0.0, 0.25, -1.2);
 
     world.add(std::make_shared<Sphere>(Vec3( 0.0, -100.5, -1.0), 100.0, Material_ground));
     world.add(std::make_shared<Sphere>(center1, 0.5, Material_center));
     world.add(std::make_shared<Sphere>(Vec3(-1.0,    0.0, -1.0),   0.5, Material_left));
     world.add(std::make_shared<Sphere>(Vec3( 1.0,    0.0, -1.0),   0.5, Material_right));
 
-    Camera cam(img_width, aspect_ratio, Vec3(0,0,1), Vec3(0,0,.99), 45);
+    Camera cam(img_width, aspect_ratio, Vec3(0,0,1), Vec3(0,0,.99), 90);
 
     cam.render(world);
 }
@@ -83,7 +83,33 @@ void random_spheres() {
     cam.render(world);
 }
 
+void quads() {
+
+    using std::make_shared;
+    using std::shared_ptr;
+
+    HittableList world;
+
+    // Materials
+    auto left_red     = make_shared<Lambertian>(Color(1.0, 0.2, 0.2));
+    auto back_green   = make_shared<Lambertian>(Color(0.2, 1.0, 0.2));
+    auto right_blue   = make_shared<Lambertian>(Color(0.2, 0.2, 1.0));
+    auto upper_orange = make_shared<Lambertian>(Color(1.0, 0.5, 0.0));
+    auto lower_teal   = make_shared<Lambertian>(Color(0.2, 0.8, 0.8));
+
+    // Quads
+    world.add(make_shared<Quad>(Vec3(-3,-2, 5), Vec3(0, 0,-4), Vec3(0, 4, 0), left_red));
+    world.add(make_shared<Quad>(Vec3(-2,-2, 0), Vec3(4, 0, 0), Vec3(0, 4, 0), back_green));
+    world.add(make_shared<Quad>(Vec3( 3,-2, 1), Vec3(0, 0, 4), Vec3(0, 4, 0), right_blue));
+    world.add(make_shared<Quad>(Vec3(-2, 3, 1), Vec3(4, 0, 0), Vec3(0, 0, 4), upper_orange));
+    world.add(make_shared<Quad>(Vec3(-2,-3, 5), Vec3(4, 0, 0), Vec3(0, 0,-4), lower_teal));
+
+    Camera cam(400, 1., Vec3(0,0,9), Vec3(0,0,0), 80);
+
+    cam.render(world);
+}
+
 int main() {
     
-    random_spheres();
+    quads();
 }

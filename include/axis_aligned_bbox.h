@@ -8,13 +8,16 @@
 class AxisAlignedBBox {
     private:
         Interval x, y, z;
+        void pad_to_minimums();
     
     public:
         AxisAlignedBBox() {}
         AxisAlignedBBox(const Vec3& a, const Vec3& b);
         AxisAlignedBBox(const AxisAlignedBBox& box0, const AxisAlignedBBox& box1);
         AxisAlignedBBox(const Interval& x, const Interval& y, const Interval& z) :
-            x(x), y(y), z(z) {}
+            x(x), y(y), z(z) {
+                pad_to_minimums();
+            }
         
         const Interval& axis_interval(int n) const;
         const Interval& x_axis() const { return x; }
