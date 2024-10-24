@@ -6,10 +6,16 @@ Quad::Quad(
     const Vec3& v,
     std::shared_ptr<Material> mat) 
         : Q(Q), u(u), v(v), mat(mat) {
-
-    normal = unit_vector(cross(u,v));
+    /**
+     * @details if one wants e.g. a square with bottom left corner
+     * in (0,0,-1) with edges = 1 the initial parameters are
+     * Q = Vec3(0,0,-1), u = Vec3(1,0,0), v = Vec3(0,1,0)
+     */
+    
+    auto n = cross(u,v);
+    normal = unit_vector(n);
     D = dot(normal, Q);
-    w = normal / dot(normal, normal);
+    w = n / dot(n, n);
     set_bounding_box();
 }
 

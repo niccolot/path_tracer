@@ -104,12 +104,21 @@ void quads() {
     world.add(make_shared<Quad>(Vec3(-2, 3, 1), Vec3(4, 0, 0), Vec3(0, 0, 4), upper_orange));
     world.add(make_shared<Quad>(Vec3(-2,-3, 5), Vec3(4, 0, 0), Vec3(0, 0,-4), lower_teal));
 
-    Camera cam(400, 1., Vec3(0,0,9), Vec3(0,0,0), 80);
+    Camera cam(400, 1., Vec3(0,0,3), Vec3(0,0,0), 80);
 
+    cam.render(world);
+}
+
+void debug() {
+    HittableList world;
+    auto red = std::make_shared<Lambertian>(Color(1,0,0));
+    //world.add(std::make_shared<Sphere>(Vec3(0,0,-1), 0.5, red));
+    world.add(std::make_shared<Quad>(Vec3(0,0,-1), Vec3(1,0,0), Vec3(0,1,0), red));
+    Camera cam(400, 16./9., Vec3(0.5,0.5,0.5), Vec3(0.5,0.5,-1), 80., 1.);
     cam.render(world);
 }
 
 int main() {
     
-    quads();
+    debug();
 }

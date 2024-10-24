@@ -7,8 +7,8 @@
 
 class Quad : public Hittable {
     private:
-        Vec3 Q; // one of the vertices
-        Vec3 u, v; // edges from Q to other vertex
+        Vec3 Q; // origin point
+        Vec3 u, v; // vectors spanning 2 edges
         std::shared_ptr<Material> mat;
         AxisAlignedBBox bbox;
         Vec3 normal;

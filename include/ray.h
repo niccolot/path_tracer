@@ -27,7 +27,5 @@ class Ray {
         double time() const { return time_val; }
 
         const Vec3 at(double t) const { return orig + t*dir; }
-
-        double hit_sphere(const Vec3& center, double radius) const;
 }; // class Ray
 #endif

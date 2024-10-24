@@ -60,7 +60,7 @@ class Camera {
             Vec3&& lookfrom,
             Vec3&& lookat,
             double vfov = 90,
-            double focus_dist = 1,
+            double focus_dist = 10,
             double defocus_angle = 0,
             int samples = 100, 
             int depth = 50);
@@ -68,11 +68,11 @@ class Camera {
         // constructor with standard parameters for quick demos
         Camera() : Camera(
             512,
-            16/9,
+            16./9.,
             Vec3(0,0,1),
             Vec3(0,0,0.99),
             45,
-            1,
+            10,
             0,
             1,
             10

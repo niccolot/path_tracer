@@ -82,7 +82,7 @@ class Vec3 {
         bool near_zero() const {
             auto tol = 1e-8;
             auto x_comp = std::fabs(e[0]) < tol;
-            auto y_comp = std::fabs(e[2]) < tol;
+            auto y_comp = std::fabs(e[1]) < tol;
             auto z_comp = std::fabs(e[2]) < tol; 
             
             return x_comp && y_comp && z_comp;;
@@ -153,10 +153,10 @@ inline Vec3 random_unit_vector() {
      * it is returned
      */
     while (true) {
-        auto v = Vec3::random(-1, 1);
-        auto lensq = v.length();
+        auto p = Vec3::random(-1,1);
+        auto lensq = p.length_squared();
         if (lensq > 1e-160 && lensq <= 1) {
-            return unit_vector(v);
+            return p / std::sqrt(lensq);
         }
     }
 }
