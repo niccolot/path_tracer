@@ -118,7 +118,33 @@ void debug() {
     cam.render(world);
 }
 
+void light() {
+    int img_width = 512;
+    double aspect_ratio = 16.0 / 9.0;
+
+    HittableList world;
+
+    auto noise_texture = std::make_shared<NoiseTexture>(4);
+
+    auto Material_ground = std::make_shared<Lambertian>(noise_texture);
+    auto light = std::make_shared<DiffuseLight>(Color(4,4,4));
+    auto Material_left   = std::make_shared<Dielectric>(1.5);
+    auto Material_right  = std::make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.3);
+
+    auto center1 = Vec3(0.0, 0.0, -1.2);
+
+    world.add(std::make_shared<Sphere>(Vec3( 0.0, -100.5, -1.0), 100.0, Material_ground));
+    world.add(std::make_shared<Sphere>(center1, 0.5, light));
+    world.add(std::make_shared<Sphere>(Vec3(-1.0,    0.0, -1.0),   0.5, Material_left));
+    world.add(std::make_shared<Sphere>(Vec3( 1.0,    0.0, -1.0),   0.5, Material_right));
+
+    Camera cam(img_width, aspect_ratio, Vec3(0,0,1), Vec3(0,0,.99), 90);
+    cam.set_background(Color(0,0,0));
+
+    cam.render(world);
+}
+
 int main() {
     
-    debug();
+    light();
 }

@@ -19,6 +19,7 @@ class SolidColor : public Texture {
     
     public:
         SolidColor(const Color& albedo) : albedo(albedo) {}
+        SolidColor(Color&& alb) { albedo = std::move(alb); }
         SolidColor(double r, double g, double b) : SolidColor(Color(r,g,b)) {}
         
         Color value(

@@ -33,6 +33,7 @@ class Camera {
         Vec3 u, v, w; // camera frame basis vectors
         Vec3 defocus_disk_u;
         Vec3 defocus_disk_v;
+        Color background;
 
         //viewport
         Vec3 center;
@@ -86,5 +87,7 @@ class Camera {
         void set_lookat(const Vec3& lat) { lookat = lat; }
         void set_lookfrom(Vec3&& lfrom) { lookfrom = std::move(lfrom); }
         void set_lookat(Vec3&& lat) { lookat = std::move(lat); }
+        void set_background(const Color& bg) { background = bg; }
+        void set_background(Color&& bg) { background = std::move(bg); }
 }; // class Camera
 #endif

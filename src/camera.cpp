@@ -63,6 +63,9 @@ Camera::Camera(
     auto defocus_radius = focus_dist * std::tan(degs_to_rads(defocus_angle/2));
     defocus_disk_u = u * defocus_radius;
     defocus_disk_v = v * defocus_radius;
+
+    // arbitrary default backgorund
+    background = Color(0.70, 0.80, 1.00);
 } 
 
 Ray Camera::get_ray(int i, int j) const {
@@ -108,27 +111,25 @@ Color Camera::ray_color(const Ray& r, int depth, const Hittable& world) {
     }
 
     HitRecord rec;
-    double reflectance = 0.7;
     double shadow_acne_offset = 0.001;
-    
-    // ignore rays that hit the surface nearer than
-    // the offset in order to reduce shadow acne 
-    if (world.hit(r, Interval(shadow_acne_offset, infinity), rec)) {
-        Ray scattered;
-        Color attenuation;
-        if (rec.material()->scatter(r, rec, attenuation, scattered)) {
-            return attenuation * ray_color(scattered, depth-1, world);
-        } else {
-            // full absorption
-            return Color(0, 0, 0);
-        }
+
+    // no hits
+    if (!world.hit(r, Interval(shadow_acne_offset, infinity), rec)) {
+        return background;
     }
 
-    // if no hits then render some arbitrary background
-    Vec3 unit_direction = unit_vector(r.direction());
-    auto a = reflectance * (unit_direction.y() + 1.); // |a| in [0, 1]
+    Ray scattered;
+    Color attenuation;
+    Color color_from_emission = rec.material()->emitted(rec.u(), rec.v(), rec.point());
 
-    return (1.0-a)*Color(1., 1., 1.) + a*Color(0.5, 0.7, 1.0);
+    // hit but no scattering
+    if (!rec.material()->scatter(r, rec, attenuation, scattered)) {
+        return color_from_emission;
+    }
+
+    Color color_from_scatter = attenuation * ray_color(scattered, depth-1, world);
+
+    return color_from_emission + color_from_scatter;
 }
 
 void Camera::render(const Hittable& world) {
