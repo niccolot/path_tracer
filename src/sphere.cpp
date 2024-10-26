@@ -5,7 +5,9 @@ Sphere::Sphere(
     double radius, 
     std::shared_ptr<Material> mat) : 
     
-    center(static_center, Vec3()), radius(radius), mat(mat) {
+    center(static_center, Vec3()), 
+    radius(radius), 
+    mat(mat) {
     
     auto rvec = Vec3(radius, radius, radius);
     bbox = AxisAlignedBBox(static_center - rvec, static_center + rvec);

@@ -52,9 +52,9 @@ bool Dielectric::scatter(
     Vec3 direction;
 
     // total internal reflection
-    bool cannot_reflect = sin_theta > 1.0;
+    bool cannot_refract = ri*sin_theta > 1.0;
     
-    if (cannot_reflect || reflectance(cos_theta, ri) > random_double()) {
+    if (cannot_refract || reflectance(cos_theta, ri) > random_double()) {
         direction = reflect(unit_dir, rec.normal());
     } else {
         direction = refract(unit_dir, rec.normal(), ri);

@@ -6,7 +6,7 @@
 class BVHNode : public Hittable {
     private:
         std::shared_ptr<Hittable> left;
-        std::shared_ptr<Hittable> rigth;
+        std::shared_ptr<Hittable> right;
         AxisAlignedBBox bbox;
 
         static bool box_compare(

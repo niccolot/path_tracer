@@ -110,11 +110,28 @@ void quads() {
 }
 
 void debug() {
+    int img_width = 512;
+    double aspect_ratio = 16.0 / 9.0;
+
     HittableList world;
-    auto red = std::make_shared<Lambertian>(Color(1,0,0));
-    //world.add(std::make_shared<Sphere>(Vec3(0,0,-1), 0.5, red));
-    world.add(std::make_shared<Quad>(Vec3(0,0,-1), Vec3(1,0,0), Vec3(0,1,0), red));
-    Camera cam(400, 16./9., Vec3(0.5,0.5,0.5), Vec3(0.5,0.5,-1), 80., 1.);
+
+    auto Material_ground = std::make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
+    auto Material_center = std::make_shared<Lambertian>(Color(0.1, 0.2, 0.5));
+    auto Material_left   = std::make_shared<Dielectric>(1.5);
+    auto Material_right  = std::make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.3);
+
+    auto center1 = Vec3(0.0, 0.0, -1);
+    auto center2 = center1 + Vec3(0.0, 0.25, 0);
+
+    world.add(std::make_shared<Sphere>(Vec3( 0.0, -100.5, -1.0), 100.0, Material_ground));
+    world.add(std::make_shared<Sphere>(center1, center2, 0.5, Material_center));
+    world.add(std::make_shared<Sphere>(Vec3(-1.0,    0.0, -1.0),   0.5, Material_left));
+    world.add(std::make_shared<Sphere>(Vec3( 1.0,    0.0, -1.0),   0.5, Material_right));
+
+    Camera cam(img_width, aspect_ratio, Vec3(0,0,0.25), Vec3(0,0,-1), 90, 1.);
+
+    //world = HittableList(std::make_shared<BVHNode>(world));
+
     cam.render(world);
 }
 
@@ -146,5 +163,5 @@ void light() {
 
 int main() {
     
-    light();
+    debug();
 }

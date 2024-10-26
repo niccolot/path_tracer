@@ -21,15 +21,15 @@ BVHNode::BVHNode(
     size_t object_span = end - start;
 
     if (object_span == 1) {
-        left = rigth = objects[start];
+        left = right = objects[start];
     } else if (object_span == 2) {
         left = objects[start];
-        rigth = objects[start+1];
+        right = objects[start+1];
     } else {
         std::sort(std::begin(objects) + start, std::begin(objects) + end, comparator);
         auto mid = start + 0.5*object_span;
         left = std::make_shared<BVHNode>(objects, start, mid);
-        rigth = std::make_shared<BVHNode>(objects, mid, end);
+        right = std::make_shared<BVHNode>(objects, mid, end);
     }
 }
 
@@ -39,10 +39,10 @@ bool BVHNode::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
     }
     
     bool hit_left = left->hit(r, ray_t, rec);
-    bool hit_rigth = rigth->hit(r, 
+    bool hit_right = right->hit(r, 
         Interval(ray_t.min(), hit_left ? rec.t() : ray_t.max()), rec);
 
-    return hit_left || hit_rigth;
+    return hit_left || hit_right;
 }
 
 bool BVHNode::box_compare(
