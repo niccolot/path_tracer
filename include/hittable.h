@@ -9,7 +9,6 @@
 #include "interval.h"
 #include "axis_aligned_bbox.h"
 
-//class Material;
 
 class Hittable {
     public:

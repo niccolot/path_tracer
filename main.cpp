@@ -161,7 +161,30 @@ void light() {
     cam.render(world);
 }
 
+void cornell_box() {
+    HittableList world;
+
+    auto red = std::make_shared<Lambertian>(Color(.65, .05, .05));
+    auto white = std::make_shared<Lambertian>(Color(.73, .73, .73));
+    auto green = std::make_shared<Lambertian>(Color(.12, .45, .15));
+    auto light = std::make_shared<DiffuseLight>(Color(15,15,15));
+
+    world.add(std::make_shared<Quad>(Vec3(555,0,0), Vec3(0,555,0), Vec3(0,0,555), green));
+    world.add(std::make_shared<Quad>(Vec3(0,0,0), Vec3(0,555,0), Vec3(0,0,555), red));
+    world.add(std::make_shared<Quad>(Vec3(343,554,332), Vec3(-130,0,0), Vec3(0,0,-105), light));
+    world.add(std::make_shared<Quad>(Vec3(0,0,0), Vec3(555,0,0), Vec3(0,0,555), white));
+    world.add(std::make_shared<Quad>(Vec3(555,555,555), Vec3(-555,0,0), Vec3(0,0,-555), white));
+    world.add(std::make_shared<Quad>(Vec3(0,0,555), Vec3(555,0,0), Vec3(0,555,0), white));
+
+    world.add(box(Vec3(130,0,65), Vec3(295,165,230), white));
+    world.add(box(Vec3(265,0,295), Vec3(430,330,460), white));
+
+    Camera cam(720, 1., Vec3(278,278,-800), Vec3(278,278,0), 40, 10, 0, 200);
+    cam.set_background(Color(0,0,0));
+    cam.render(world);
+}
+
 int main() {
     
-    debug();
+    cornell_box();
 }

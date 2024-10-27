@@ -65,7 +65,7 @@ Camera::Camera(
     defocus_disk_v = v * defocus_radius;
 
     // arbitrary default backgorund
-    background = Color(0.70, 0.80, 1.00);
+    background = Color(0.40, 0.50, 1.00);
 } 
 
 Ray Camera::get_ray(int i, int j) const {
@@ -74,7 +74,6 @@ Ray Camera::get_ray(int i, int j) const {
      * the camera center and directed at a randomly 
      * sampled point around pixel (i, j)
      */
-
     auto offset = sample_square();
     auto pixel_sample = pixel00_loc 
                         + ((i + offset.x()) * pixel_delta_u)
@@ -97,9 +96,9 @@ void Camera::write_color(std::ostream& out, const Color& pixel_color) {
     b = linear_to_gamma(b);
 
     static const Interval intensity(0.000, 0.999);
-    int r_byte = int(255.999 * intensity.clamp(r));
-    int g_byte = int(255.999 * intensity.clamp(g));
-    int b_byte = int(255.999 * intensity.clamp(b));
+    int r_byte = int(256 * intensity.clamp(r));
+    int g_byte = int(256 * intensity.clamp(g));
+    int b_byte = int(256 * intensity.clamp(b));
 
     out << r_byte << ' ' << g_byte << ' ' << b_byte << '\n';
 }
