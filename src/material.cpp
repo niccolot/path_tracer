@@ -65,3 +65,12 @@ bool Dielectric::scatter(
     return true;
 }
 
+bool Isotropic::scatter(
+    const Ray& r_in, const HitRecord& rec, Color& attenuation, Ray& scattered
+) const {
+    scattered = Ray(rec.point(), random_unit_vector(), r_in.time());
+    attenuation = tex->value(rec.u(), rec.v(), rec.point());
+
+    return true;
+}
+

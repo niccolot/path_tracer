@@ -34,4 +34,38 @@ class HittableList : public Hittable {
         void add(std::shared_ptr<Hittable> object);
         bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const override;
 }; // class HitableList
+
+class Translate : public Hittable {
+    private:
+        std::shared_ptr<Hittable> object;
+        Vec3 offset;
+        AxisAlignedBBox bbox;
+    
+    public:
+        Translate(
+            std::shared_ptr<Hittable> object,
+            const Vec3& offset) :
+
+                object(object), offset(offset) { 
+                    bbox = object->bounding_box() + offset; 
+        }
+
+        const AxisAlignedBBox& bounding_box() const override { return bbox; }
+
+        bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const override;
+ }; // class Translate 
+
+ class RotateY : public Hittable {
+    private:
+        std::shared_ptr<Hittable> object;
+        double sin_theta;
+        double cos_theta;
+        AxisAlignedBBox bbox;
+    
+    public:
+        RotateY(std::shared_ptr<Hittable> object, double angle);
+
+        bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const override;
+        const AxisAlignedBBox& bounding_box() const override { return bbox; }
+ }; // class RotateY
 #endif

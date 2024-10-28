@@ -28,4 +28,7 @@ class AxisAlignedBBox {
         static const AxisAlignedBBox universe();
         bool hit(const Ray& r, Interval ray_t) const;
 }; // class AxisAlignedBbox
+
+AxisAlignedBBox operator+(const AxisAlignedBBox& bbox, const Vec3& offset);
+AxisAlignedBBox operator+(const Vec3& offset, const AxisAlignedBBox& bbox);
 #endif

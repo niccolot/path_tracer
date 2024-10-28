@@ -80,7 +80,16 @@ class DiffuseLight : public Material {
             [[maybe_unused]] Ray& scattered) const override{
                 return false;
             }
-            
+
         Color emitted(double u, double v, const Vec3& p) const override { return tex->value(u,v,p); }
 }; // class DiffuseLight
+
+class Isotropic : public Material {
+    private:
+        std::shared_ptr<Texture> tex;
+    
+    public:
+        bool scatter(const Ray& r_in, const HitRecord& rec, Color& attenuation, Ray& scattered
+) const override;
+}; //class Isotropic
 #endif

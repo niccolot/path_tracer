@@ -20,3 +20,11 @@ Interval Interval::expand(double delta) const {
     
     return Interval(min_val - padding, max_val + padding); 
 }
+
+Interval operator+(const Interval& i, double delta) {
+    return Interval(i.min() + delta, i.max() + delta);
+}
+
+Interval operator+(double delta, const Interval& i) {
+    return i + delta;
+}

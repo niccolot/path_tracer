@@ -90,3 +90,14 @@ void AxisAlignedBBox::pad_to_minimums() {
     if (y.size() < delta) y = y.expand(delta);
     if (z.size() < delta) z = z.expand(delta);
 }
+
+AxisAlignedBBox operator+(const AxisAlignedBBox& bbox, const Vec3& offset) {
+    return AxisAlignedBBox(
+        bbox.x_axis() + offset.x(),
+        bbox.y_axis() + offset.y(),
+        bbox.z_axis() + offset.z());
+}
+
+AxisAlignedBBox operator+(const Vec3& offset, const AxisAlignedBBox& bbox) {
+    return bbox + offset;
+}

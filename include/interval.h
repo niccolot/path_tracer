@@ -28,4 +28,6 @@ class Interval {
         Interval expand(double delta) const;
 }; // class Interval
 
+Interval operator+(const Interval& i, double delta);
+Interval operator+(double delta, const Interval& i);
 #endif

@@ -176,8 +176,16 @@ void cornell_box() {
     world.add(std::make_shared<Quad>(Vec3(555,555,555), Vec3(-555,0,0), Vec3(0,0,-555), white));
     world.add(std::make_shared<Quad>(Vec3(0,0,555), Vec3(555,0,0), Vec3(0,555,0), white));
 
-    world.add(box(Vec3(130,0,65), Vec3(295,165,230), white));
-    world.add(box(Vec3(265,0,295), Vec3(430,330,460), white));
+    std::shared_ptr<Hittable> box1 = box(Vec3(0,0,0), Vec3(165,330,165), white);
+    std::shared_ptr<Hittable> box2 = box(Vec3(0,0,0), Vec3(165,165,165), white);
+
+    box1 = std::make_shared<RotateY>(box1, 15);
+    box1 = std::make_shared<Translate>(box1, Vec3(265,0,265));
+    box2 = std::make_shared<RotateY>(box2, -18);
+    box2 = std::make_shared<Translate>(box2, Vec3(130,0,65));
+
+    world.add(box1);
+    world.add(box2);
 
     Camera cam(720, 1., Vec3(278,278,-800), Vec3(278,278,0), 40, 10, 0, 200);
     cam.set_background(Color(0,0,0));
