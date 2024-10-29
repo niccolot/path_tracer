@@ -7,6 +7,7 @@
 #include "bvh.h"
 #include "texture.h"
 #include "quad.h"
+#include "constant_medium.h"
 
 void test() {
     int img_width = 512;
@@ -171,7 +172,7 @@ void cornell_box() {
 
     world.add(std::make_shared<Quad>(Vec3(555,0,0), Vec3(0,555,0), Vec3(0,0,555), green));
     world.add(std::make_shared<Quad>(Vec3(0,0,0), Vec3(0,555,0), Vec3(0,0,555), red));
-    world.add(std::make_shared<Quad>(Vec3(343,554,332), Vec3(-130,0,0), Vec3(0,0,-105), light));
+    world.add(std::make_shared<Quad>(Vec3(213,554,227), Vec3(130,0,0), Vec3(0,0,105), light));
     world.add(std::make_shared<Quad>(Vec3(0,0,0), Vec3(555,0,0), Vec3(0,0,555), white));
     world.add(std::make_shared<Quad>(Vec3(555,555,555), Vec3(-555,0,0), Vec3(0,0,-555), white));
     world.add(std::make_shared<Quad>(Vec3(0,0,555), Vec3(555,0,0), Vec3(0,555,0), white));
@@ -184,10 +185,11 @@ void cornell_box() {
     box2 = std::make_shared<RotateY>(box2, -18);
     box2 = std::make_shared<Translate>(box2, Vec3(130,0,65));
 
+    //world.add(std::make_shared<ConstantMedium>(box1, 0.01, Color(0,0,0)));
+    //world.add(std::make_shared<ConstantMedium>(box2, 0.01, Color(1,1,1)));
     world.add(box1);
     world.add(box2);
-
-    Camera cam(720, 1., Vec3(278,278,-800), Vec3(278,278,0), 40, 10, 0, 200);
+    Camera cam(400, 1., Vec3(278,278,-800), Vec3(278,278,0), 40, 10, 0, 64);
     cam.set_background(Color(0,0,0));
     cam.render(world);
 }

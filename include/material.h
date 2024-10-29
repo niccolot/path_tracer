@@ -89,6 +89,9 @@ class Isotropic : public Material {
         std::shared_ptr<Texture> tex;
     
     public:
+        Isotropic(const Color& albedo) : tex(std::make_shared<SolidColor>(albedo)) {}
+        Isotropic(std::shared_ptr<Texture> tex) : tex(tex) {}
+
         bool scatter(const Ray& r_in, const HitRecord& rec, Color& attenuation, Ray& scattered
 ) const override;
 }; //class Isotropic

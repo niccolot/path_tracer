@@ -145,6 +145,21 @@ inline Vec3 sample_square() {
     return Vec3(random_double(-0.5, 0.5), random_double(-0.5, 0.5), 0);
 }
 
+inline Vec3 sample_square_stratified(int s_i, int s_j, double inv_samples_sqrt) {
+    /**
+     * @brief returns the vector to a random point in the square
+     * subpixel specified by grid indices (s_i, s_j) for an 
+     * idealized unit square pixel [-0.5, -0.5] x [0.5, 0.5]
+     * 
+     * @param inv_samples_sqrt 1/(sqrt(samples per pixel))
+     */
+
+    auto px = ((s_i + random_double()) * inv_samples_sqrt) - 0.5;
+    auto py = ((s_j + random_double()) * inv_samples_sqrt) - 0.5;
+
+    return Vec3(px,py,0);
+} 
+
 inline Vec3 random_unit_vector() {
     /**
      * @brief generates random vectors inside the unit square 

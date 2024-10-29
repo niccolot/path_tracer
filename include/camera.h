@@ -34,6 +34,8 @@ class Camera {
         Vec3 defocus_disk_u;
         Vec3 defocus_disk_v;
         Color background;
+        int samples_sqrt; // square root of samples per pixel
+        double inv_samples_sqrt;
 
         //viewport
         Vec3 center;
@@ -43,7 +45,7 @@ class Camera {
 
         void write_color(std::ostream& out, const Color& pixel_color);
         Color ray_color(const Ray& r, int depth, const Hittable& world);
-        Ray get_ray(int i, int j) const;
+        Ray get_ray(int i, int j, int s_i, int s_j) const;
 
         //friend inline Vec3 defocus_disk_sample();
         inline Vec3 defocus_disk_sample() const {

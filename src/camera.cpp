@@ -28,6 +28,9 @@ Camera::Camera(
 
     pixel_samples_scale = 1.0 / samples_per_pixel;
 
+    samples_sqrt = int(std::sqrt(samples));
+    inv_samples_sqrt = 1.0/samples_sqrt;
+
     center = lookfrom;
 
     // camera
@@ -68,13 +71,14 @@ Camera::Camera(
     background = Color(0.40, 0.50, 1.00);
 } 
 
-Ray Camera::get_ray(int i, int j) const {
+Ray Camera::get_ray(int i, int j, int s_i, int s_j) const {
     /**
      * @brief construct a camera ray originated from
      * the camera center and directed at a randomly 
-     * sampled point around pixel (i, j)
+     * sampled point around pixel (i, j) for stratified
+     * sample square (s_i, s_j)
      */
-    auto offset = sample_square();
+    auto offset = sample_square_stratified(s_i, s_j, inv_samples_sqrt);
     auto pixel_sample = pixel00_loc 
                         + ((i + offset.x()) * pixel_delta_u)
                         + ((j + offset.y()) * pixel_delta_v);
@@ -138,12 +142,13 @@ void Camera::render(const Hittable& world) {
         std::clog << "\rScanlines remaining: " << (img_height_val - j) << ' ' << std::flush;
         for (int i=0; i<img_width_val; ++i) {
 
-            Color pixel_color(0, 0, 0);
-            for (int sample = 0; sample < samples_per_pixel; ++sample) {
-                Ray r = get_ray(i,j);
-                pixel_color += ray_color(r, max_depth, world);
+            Color pixel_color(0,0,0);
+            for (int s_j = 0; s_j<samples_sqrt; ++s_j) {
+                for (int s_i=0; s_i<samples_sqrt; ++s_i) {
+                    Ray r = get_ray(i,j,s_j,s_j);
+                    pixel_color += ray_color(r, max_depth, world);
+                }
             }
-
             write_color(std::cout, pixel_color * pixel_samples_scale);
         }
     }
