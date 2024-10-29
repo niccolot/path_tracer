@@ -189,7 +189,7 @@ void cornell_box() {
     //world.add(std::make_shared<ConstantMedium>(box2, 0.01, Color(1,1,1)));
     world.add(box1);
     world.add(box2);
-    Camera cam(400, 1., Vec3(278,278,-800), Vec3(278,278,0), 40, 10, 0, 64);
+    Camera cam(400, 1., Vec3(278,278,-800), Vec3(278,278,0), 40, 10, 0, 200);
     cam.set_background(Color(0,0,0));
     cam.render(world);
 }

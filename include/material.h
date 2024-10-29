@@ -4,19 +4,28 @@
 #include "hit_record.h"
 #include "texture.h"
 #include "color.h"
+#include "onb.h"
 
 class Material {
     public:
         virtual ~Material() = default;
 
         virtual bool scatter(
-            const Ray& r_in, const HitRecord& rec, Color& attenuation, Ray& scattered
-        ) const = 0;
+            const Ray& r_in, 
+            const HitRecord& rec, 
+            Color& attenuation, 
+            Ray& scattered,
+            double& pdf) const = 0;
 
         virtual Color emitted(
             [[maybe_unused]] double u,
             [[maybe_unused]] double v,
             [[maybe_unused]] const Vec3& p) const { return Color(0,0,0); }
+
+        virtual double scattering_pdf(
+            const Ray& r_in,
+            const HitRecord& rec,
+            const Ray& scattered) const = 0;
 }; //class Material 
 
 class Lambertian : public Material {
@@ -30,8 +39,17 @@ class Lambertian : public Material {
         Lambertian(std::shared_ptr<Texture> tex) : tex(tex) {}
 
         bool scatter(
-            const Ray& r_in, const HitRecord& rec, Color& attenuation, Ray& scattered
+            const Ray& r_in, 
+            const HitRecord& rec, 
+            Color& attenuation, 
+            Ray& scattered,
+            double& pdf
         ) const override;
+
+        double scattering_pdf(
+            const Ray& r_in,
+            const HitRecord& rec,
+            const Ray& scattered) const override;
 }; // class Lambertian
 
 class Metal : public Material {
@@ -42,9 +60,18 @@ class Metal : public Material {
     public: 
         Metal(const Color& albedo, double fuzz = 0.) : 
         albedo(albedo), fuzz(fuzz) {}
+
         bool scatter(
-            const Ray& r_in, const HitRecord& rec, Color& attenuation, Ray& scattered
-        ) const override;
+            const Ray& r_in, 
+            const HitRecord& rec, 
+            Color& attenuation, 
+            Ray& scattered,
+            [[maybe_unused]] double& pdf) const override;
+
+        double scattering_pdf(
+            [[maybe_unused]] const Ray& r_in,
+            [[maybe_unused]] const HitRecord& rec,
+            [[maybe_unused]] const Ray& scattered) const { return 0; }
 }; // class Metal 
 
 class Dielectric : public Material {
@@ -60,8 +87,16 @@ class Dielectric : public Material {
         Dielectric(double eta) : refractive_index(eta) {}
 
         bool scatter(
-            const Ray& r_in, const HitRecord& rec, Color& attenuation, Ray& scattered
-        ) const override;
+            const Ray& r_in, 
+            const HitRecord& rec, 
+            Color& attenuation, 
+            Ray& scattered,
+            [[maybe_unused]] double& pdf) const override;
+
+        double scattering_pdf(
+            [[maybe_unused]] const Ray& r_in,
+            [[maybe_unused]] const HitRecord& rec,
+            [[maybe_unused]] const Ray& scattered) const { return 0; }
 }; // class Dielectric
 
 class DiffuseLight : public Material {
@@ -77,11 +112,19 @@ class DiffuseLight : public Material {
             [[maybe_unused]] const Ray& r_in,
             [[maybe_unused]] const HitRecord& rec,
             [[maybe_unused]] Color& attenuation,
-            [[maybe_unused]] Ray& scattered) const override{
+            [[maybe_unused]] Ray& scattered,
+            [[maybe_unused]] double& pdf) const override {
                 return false;
             }
 
-        Color emitted(double u, double v, const Vec3& p) const override { return tex->value(u,v,p); }
+        double scattering_pdf(
+            [[maybe_unused]] const Ray& r_in,
+            [[maybe_unused]] const HitRecord& rec,
+            [[maybe_unused]] const Ray& scattered) const { return 0; }
+
+        Color emitted(double u, double v, const Vec3& p) const override { 
+            return tex->value(u,v,p); 
+        }
 }; // class DiffuseLight
 
 class Isotropic : public Material {
@@ -92,7 +135,16 @@ class Isotropic : public Material {
         Isotropic(const Color& albedo) : tex(std::make_shared<SolidColor>(albedo)) {}
         Isotropic(std::shared_ptr<Texture> tex) : tex(tex) {}
 
-        bool scatter(const Ray& r_in, const HitRecord& rec, Color& attenuation, Ray& scattered
-) const override;
+        bool scatter(
+            const Ray& r_in, 
+            const HitRecord& rec, 
+            Color& attenuation, 
+            Ray& scattered,
+            double& pdf) const override;
+
+        double scattering_pdf(
+            [[maybe_unused]] const Ray& r_in,
+            [[maybe_unused]] const HitRecord& rec,
+            [[maybe_unused]] const Ray& scattered) const override;
 }; //class Isotropic
 #endif

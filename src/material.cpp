@@ -1,25 +1,45 @@
 #include "material.h"
 
 bool Lambertian::scatter(
-    [[maybe_unused]] const Ray& r_in, const HitRecord& rec, Color& attenuation, Ray& scattered
-) const {
+    [[maybe_unused]] const Ray& r_in, 
+    const HitRecord& rec, 
+    Color& attenuation, 
+    Ray& scattered,
+    double& pfd) const {
     
-    auto scatter_direction = rec.normal() + random_unit_vector();
+    ONB uvw(rec.normal());
+    auto scatter_direction = uvw.transform(random_cosine_direction());
 
     // catch degenerate rays
     if (scatter_direction.near_zero()) {
         scatter_direction = rec.normal();
     }
 
-    scattered = Ray(rec.point(), scatter_direction, r_in.time());
+    scattered = Ray(rec.point(), unit_vector(scatter_direction), r_in.time());
     attenuation = tex->value(rec.u(), rec.v(), rec.point());
+    pfd = dot(uvw.w(), scattered.direction()) / pi;
 
     return true;
 }
 
+double Lambertian::scattering_pdf(
+    [[maybe_unused]] const Ray& r_in,
+    const HitRecord& rec,
+    const Ray& scattered) const {
+    /**
+     * @brief cosine distribution for lambertian materials
+     */
+    auto cos_theta = dot(rec.normal(), unit_vector(scattered.direction()));
+
+    return cos_theta < 0 ? 0 : cos_theta;
+}
+
 bool Metal::scatter(
-    const Ray& r_in, const HitRecord& rec, Color& attenuation, Ray& scattered
-) const {
+    const Ray& r_in, 
+    const HitRecord& rec, 
+    Color& attenuation, 
+    Ray& scattered,
+    [[maybe_unused]] double& pdf) const {
     
     Vec3 reflected = reflect(r_in.direction(), rec.normal());
     reflected = unit_vector(reflected) + (fuzz * random_unit_vector());
@@ -40,8 +60,11 @@ double Dielectric::reflectance(double cosine, double refractive_index) {
 }
 
 bool Dielectric::scatter(
-    const Ray& r_in, const HitRecord& rec, Color& attenuation, Ray& scattered
-) const {
+    const Ray& r_in, 
+    const HitRecord& rec, 
+    Color& attenuation, 
+    Ray& scattered,
+    [[maybe_unused]] double& pdf) const {
 
     attenuation = Color(1, 1, 1);
     double ri = rec.front_face() ? (1./refractive_index) : refractive_index;
@@ -66,11 +89,24 @@ bool Dielectric::scatter(
 }
 
 bool Isotropic::scatter(
-    const Ray& r_in, const HitRecord& rec, Color& attenuation, Ray& scattered
-) const {
+    const Ray& r_in, 
+    const HitRecord& rec, 
+    Color& attenuation, 
+    Ray& scattered,
+    double& pdf) const {
+
     scattered = Ray(rec.point(), random_unit_vector(), r_in.time());
     attenuation = tex->value(rec.u(), rec.v(), rec.point());
+    pdf = 1 / (4*pi);
 
     return true;
 }
+
+double Isotropic::scattering_pdf(
+    const Ray& r_in [[maybe_unused]], 
+    const HitRecord& rec [[maybe_unused]],
+    const Ray& scattered [[maybe_unused]]) const {
+
+        return 1 / (4*pi);
+    }
 

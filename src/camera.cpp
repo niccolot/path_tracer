@@ -123,14 +123,19 @@ Color Camera::ray_color(const Ray& r, int depth, const Hittable& world) {
 
     Ray scattered;
     Color attenuation;
+    double pdf_value;
     Color color_from_emission = rec.material()->emitted(rec.u(), rec.v(), rec.point());
 
     // hit but no scattering
-    if (!rec.material()->scatter(r, rec, attenuation, scattered)) {
+    if (!rec.material()->scatter(r, rec, attenuation, scattered, pdf_value)) {
         return color_from_emission;
     }
 
-    Color color_from_scatter = attenuation * ray_color(scattered, depth-1, world);
+    double scattering_pdf = rec.material()->scattering_pdf(r,rec,scattered);
+    pdf_value = scattering_pdf;
+
+    Color color_from_scatter = 
+        (attenuation * scattering_pdf * ray_color(scattered, depth-1, world))/pdf_value;
 
     return color_from_emission + color_from_scatter;
 }
