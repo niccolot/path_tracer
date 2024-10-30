@@ -32,5 +32,11 @@ class Sphere : public Hittable {
 
         virtual const AxisAlignedBBox& bounding_box() const override { return bbox; }
         virtual bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const override;
+        double pdf_value(
+            [[maybe_unused]] const Vec3& origin, 
+            [[maybe_unused]] const Vec3& direction) const override{ return 0; }
+        
+        Vec3 random(
+            [[maybe_unused]] const Vec3& origin) const override { return Vec3(1,0,0); }
 }; // class Sphere
 #endif

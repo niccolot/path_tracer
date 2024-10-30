@@ -1,6 +1,7 @@
 #include "camera.h"
 #include "utils.h"
 #include "material.h"
+#include "pdf.h"
 
 Camera::Camera(
     int width, 
@@ -107,7 +108,7 @@ void Camera::write_color(std::ostream& out, const Color& pixel_color) {
     out << r_byte << ' ' << g_byte << ' ' << b_byte << '\n';
 }
 
-Color Camera::ray_color(const Ray& r, int depth, const Hittable& world) {
+Color Camera::ray_color(const Ray& r, int depth, const Hittable& world, const Hittable& lights) {
     if (depth <= 0) {
         // no light returned after too many bounces
         return Color(0, 0, 0);
@@ -121,26 +122,31 @@ Color Camera::ray_color(const Ray& r, int depth, const Hittable& world) {
         return background;
     }
 
-    Ray scattered;
-    Color attenuation;
-    double pdf_value;
-    Color color_from_emission = rec.material()->emitted(rec.u(), rec.v(), rec.point());
+    ScatterRecord srec;
+    Color color_from_emission = 
+        rec.material()->emitted(r, rec, rec.u(), rec.v(), rec.point());
 
-    // hit but no scattering
-    if (!rec.material()->scatter(r, rec, attenuation, scattered, pdf_value)) {
+    if (!rec.material()->scatter(r,rec,srec)) {
         return color_from_emission;
     }
 
-    double scattering_pdf = rec.material()->scattering_pdf(r,rec,scattered);
-    pdf_value = scattering_pdf;
+    if (srec.skip_pdf) {
+        return srec.attenuation * ray_color(srec.skip_pdf_ray, depth-1, world, lights);
+    }
 
+    auto light_ptr = std::make_shared<HittablePDF>(lights, rec.point());
+    MixturePDF p(light_ptr, srec.pdf);
+    Ray scattered = Ray(rec.point(), p.generate(), r.time());
+    auto pdf_value = p.value(scattered.direction());
+    double scattering_pdf = rec.material()->scattering_pdf(r,rec,scattered);
+    Color sample_color = ray_color(scattered, depth-1, world, lights);
     Color color_from_scatter = 
-        (attenuation * scattering_pdf * ray_color(scattered, depth-1, world))/pdf_value;
+        (srec.attenuation * scattering_pdf * sample_color) / pdf_value;
 
     return color_from_emission + color_from_scatter;
 }
 
-void Camera::render(const Hittable& world) {
+void Camera::render(const Hittable& world, const Hittable& lights) {
     std::cout << "P3\n" << img_width_val << ' ' << img_height_val << "\n255\n";
 
     for (int j=0; j<img_height_val; ++j) {
@@ -151,7 +157,7 @@ void Camera::render(const Hittable& world) {
             for (int s_j = 0; s_j<samples_sqrt; ++s_j) {
                 for (int s_i=0; s_i<samples_sqrt; ++s_i) {
                     Ray r = get_ray(i,j,s_j,s_j);
-                    pixel_color += ray_color(r, max_depth, world);
+                    pixel_color += ray_color(r, max_depth, world, lights);
                 }
             }
             write_color(std::cout, pixel_color * pixel_samples_scale);

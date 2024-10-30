@@ -44,7 +44,7 @@ class Camera {
         Vec3 pixel_delta_v;
 
         void write_color(std::ostream& out, const Color& pixel_color);
-        Color ray_color(const Ray& r, int depth, const Hittable& world);
+        Color ray_color(const Ray& r, int depth, const Hittable& world, const Hittable& lights);
         Ray get_ray(int i, int j, int s_i, int s_j) const;
 
         //friend inline Vec3 defocus_disk_sample();
@@ -81,7 +81,7 @@ class Camera {
             10
         ) {}
 
-        void render(const Hittable& world);
+        void render(const Hittable& world, const Hittable& lights);
         void set_aspect_ratio(double aspect_ratio) { aspect_ratio_val = aspect_ratio; }
         void set_image_width(int img_width) { img_width_val = img_width; }
         void set_samples_per_pixel(int samples) { samples_per_pixel = samples; }

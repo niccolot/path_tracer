@@ -14,6 +14,7 @@ class Quad : public Hittable {
         Vec3 normal;
         double D; // plane's distance from origin
         Vec3 w;
+        double area;
         virtual bool is_interior(double a, double b, HitRecord& rec) const;
     
 
@@ -28,7 +29,8 @@ class Quad : public Hittable {
 
         virtual void set_bounding_box();
         bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const override;
-
+        double pdf_value(const Vec3& origin, const Vec3& direction) const override;
+        Vec3 random(const Vec3& origin) const override;
 }; // class Quad
 
 inline std::shared_ptr<HittableList> box(const Vec3& a, const Vec3& b, std::shared_ptr<Material> mat) {
