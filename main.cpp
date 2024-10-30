@@ -26,20 +26,27 @@ void cornell_box() {
     
     std::shared_ptr<Metal> alu = std::make_shared<Metal>(Color(0.8, 0.85, 0.88));
     std::shared_ptr<Hittable> box1 = box(Vec3(0,0,0), Vec3(165,330,165), alu);
-    std::shared_ptr<Hittable> box2 = box(Vec3(0,0,0), Vec3(165,165,165), white);
+    //std::shared_ptr<Hittable> box2 = box(Vec3(0,0,0), Vec3(165,165,165), white);
 
     box1 = std::make_shared<RotateY>(box1, 15);
     box1 = std::make_shared<Translate>(box1, Vec3(265,0,265));
-    box2 = std::make_shared<RotateY>(box2, -18);
-    box2 = std::make_shared<Translate>(box2, Vec3(130,0,65));
+    //box2 = std::make_shared<RotateY>(box2, -18);
+    //box2 = std::make_shared<Translate>(box2, Vec3(130,0,65));
 
     world.add(box1);
-    world.add(box2);
+    //world.add(box2);
 
     auto empty_mat = std::shared_ptr<Material>();
-    Quad lights(Vec3(343,554,332), Vec3(-130,0,0), Vec3(0,0,-105), empty_mat);
+    HittableList lights;
+    lights.add(
+        std::make_shared<Quad>(Vec3(343,554,332), Vec3(-130,0,0), Vec3(0,0,-105), empty_mat));
+    lights.add(std::make_shared<Sphere>(Vec3(190,90,190), 90, empty_mat));
+    //Quad light(Vec3(343,554,332), Vec3(-130,0,0), Vec3(0,0,-105), empty_mat);
 
-    Camera cam(400, 1., Vec3(278,278,-800), Vec3(278,278,0), 40, 10, 0, 50);
+    auto glass = std::make_shared<Dielectric>(1.5);
+    world.add(std::make_shared<Sphere>(Vec3(190,90,190), 90, glass));
+
+    Camera cam(400, 1., Vec3(278,278,-800), Vec3(278,278,0), 40, 10, 0, 500);
     cam.set_background(Color(0,0,0));
     cam.render(world, lights);
 }

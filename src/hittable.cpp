@@ -40,6 +40,23 @@ bool Translate::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
     return true;
 }
 
+double HittableList::pdf_value(const Vec3& origin, const Vec3& direction) const {
+    auto weight = 1.0 / objects.size();
+    auto sum = 0.0;
+
+    for (const auto& obj : objects) {
+        sum += weight * obj->pdf_value(origin, direction);
+    }
+
+    return sum;
+}
+
+Vec3 HittableList::random(const Vec3& origin) const {
+    auto int_size = int(objects.size());
+
+    return objects[random_int(0, int_size-1)]->random(origin);
+}
+
 RotateY::RotateY(std::shared_ptr<Hittable> object, double angle) : 
     object(object) {
 

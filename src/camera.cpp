@@ -96,6 +96,12 @@ void Camera::write_color(std::ostream& out, const Color& pixel_color) {
     auto g = pixel_color.y();
     auto b = pixel_color.z();
 
+    // since for every NaN, NaN != NaN
+    // this suppresses the NaNs
+    if (r != r) r = 0.;
+    if (g != g) r = 0.;
+    if (b != b) r = 0.;
+
     r = linear_to_gamma(r);
     g = linear_to_gamma(g);
     b = linear_to_gamma(b);
