@@ -146,6 +146,7 @@ Color Camera::ray_color(const Ray& r, int depth, const Hittable& world, const Hi
     auto pdf_value = p.value(scattered.direction());
     double scattering_pdf = rec.material()->scattering_pdf(r,rec,scattered);
     Color sample_color = ray_color(scattered, depth-1, world, lights);
+    
     Color color_from_scatter = 
         (srec.attenuation * scattering_pdf * sample_color) / pdf_value;
 
