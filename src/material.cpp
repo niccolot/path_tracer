@@ -4,11 +4,19 @@ bool Lambertian::scatter(
     [[maybe_unused]] const Ray& r_in, 
     const HitRecord& rec, 
     ScatterRecord& srec) const {
-
-    srec.attenuation = tex->value(rec.u(), rec.v(), rec.point());
-    srec.pdf = std::make_shared<CosinePDF>(rec.normal());
-    srec.skip_pdf = false;
-
+    
+    // reflection
+    if (random_double() < r) {
+        srec.attenuation = tex->value(rec.u(), rec.v(), rec.point()) * r;
+        srec.pdf = std::make_shared<CosinePDF>(rec.normal());
+        srec.skip_pdf = false;
+    } else {
+        // absorption
+        srec.attenuation = tex->value(rec.u(), rec.v(), rec.point()) * (1-r);
+        srec.pdf = std::make_shared<CosinePDF>(rec.normal());
+        srec.skip_pdf = false;
+    }
+    
     return true;
 }
 
@@ -106,10 +114,10 @@ bool Isotropic::scatter(
 }
 
 double Isotropic::scattering_pdf(
-    const Ray& r_in [[maybe_unused]], 
-    const HitRecord& rec [[maybe_unused]],
-    const Ray& scattered [[maybe_unused]]) const {
+    [[maybe_unused]] const Ray& r_in, 
+    [[maybe_unused]] const HitRecord& rec,
+    [[maybe_unused]] const Ray& scattered) const {
 
-        return 1 / (4*pi);
-    }
+    return 1 / (4*pi);
+}
 

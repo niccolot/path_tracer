@@ -40,18 +40,20 @@ class Material {
 class Lambertian : public Material {
     private:
         std::shared_ptr<Texture> tex;
+        double r; // reflectance, r in [0,1]
     
     public:
-        Lambertian(const Color& albedo) : 
-            tex(std::make_shared<SolidColor>(albedo)) {}
+        Lambertian(const Color& albedo, double r = 1.0) : 
+            tex(std::make_shared<SolidColor>(albedo)), r(r) {}
         
-        Lambertian(std::shared_ptr<Texture> tex) : tex(tex) {}
+        Lambertian(std::shared_ptr<Texture> tex, double r = 1.0) : tex(tex), r(r) {}
+
+        void set_reflectance(double refl) { r = refl; }
 
         bool scatter(
             const Ray& r_in, 
             const HitRecord& rec, 
-            ScatterRecord& srec
-        ) const override;
+            ScatterRecord& srec) const override;
 
         double scattering_pdf(
             const Ray& r_in,
