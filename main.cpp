@@ -54,7 +54,7 @@ void cornell_box() {
 void test() {
     HittableList world;
     auto ground = std::make_shared<Lambertian>(Color(0.8,0.5,0.0), 1);
-    auto center = std::make_shared<Lambertian>(Color(0.1,0.2,0.5), 0.99);
+    auto center = std::make_shared<Lambertian>(Color(0.2,0.3,0.8));
     auto light = std::make_shared<DiffuseLight>(Color(7,7,7));
 
     world.add(std::make_shared<Sphere>(Vec3(0,0,0), 0.5, center));

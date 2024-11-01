@@ -136,20 +136,22 @@ Color Camera::ray_color(const Ray& r, int depth, const Hittable& world, const Hi
         return color_from_emission;
     }
 
-    if (srec.skip_pdf) {
-        return srec.attenuation * ray_color(srec.skip_pdf_ray, depth-1, world, lights);
+    Color color_from_scatter = Color();
+    for (const auto& ray_t : srec.scattered_rays) {
+        if (ray_t.skip_pdf) {
+                return srec.attenuation * ray_color(ray_t.skip_pdf_ray, depth-1, world, lights);
+            }
+
+            auto light_ptr = std::make_shared<HittablePDF>(lights, rec.point());
+            MixturePDF p(light_ptr, ray_t.pdf);
+            Ray scattered = Ray(rec.point(), p.generate(), r.time());
+            auto pdf_value = p.value(scattered.direction());
+            double scattering_pdf = rec.material()->scattering_pdf(r,rec,scattered);
+            Color sample_color = ray_color(scattered, depth-1, world, lights);
+             
+            color_from_scatter += (srec.attenuation * scattering_pdf * sample_color) / pdf_value;
     }
-
-    auto light_ptr = std::make_shared<HittablePDF>(lights, rec.point());
-    MixturePDF p(light_ptr, srec.pdf);
-    Ray scattered = Ray(rec.point(), p.generate(), r.time());
-    auto pdf_value = p.value(scattered.direction());
-    double scattering_pdf = rec.material()->scattering_pdf(r,rec,scattered);
-    Color sample_color = ray_color(scattered, depth-1, world, lights);
     
-    Color color_from_scatter = 
-        (srec.attenuation * scattering_pdf * sample_color) / pdf_value;
-
     return color_from_emission + color_from_scatter;
 }
 

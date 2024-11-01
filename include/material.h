@@ -6,14 +6,7 @@
 #include "color.h"
 #include "onb.h"
 #include "pdf.h"
-
-class ScatterRecord {
-    public:
-        Color attenuation;
-        std::shared_ptr<PDF> pdf;
-        bool skip_pdf;
-        Ray skip_pdf_ray;
-}; // class ScatterRecord
+#include "scatter.h"
 
 class Material {
     public:
