@@ -1,60 +1,8 @@
 #include "quad.h"
 
-Quad::Quad(
-    const Vec3& Q,
-    const Vec3& u,
-    const Vec3& v,
-    std::shared_ptr<Material> mat) 
-        : Q(Q), u(u), v(v), mat(mat) {
-    /**
-     * @details if one wants e.g. a square with bottom left corner
-     * in (0,0,-1) with edges = 1 the initial parameters are
-     * Q = Vec3(0,0,-1), u = Vec3(1,0,0), v = Vec3(0,1,0)
-     */
-    
-    auto n = cross(u,v);
-    normal = unit_vector(n);
-    D = dot(normal, Q);
-    w = n / dot(n, n);
-    area = n.length();
-    set_bounding_box();
-}
-
-bool Quad::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
-    auto denom = dot(normal, r.direction());
-
-    // ray (almost) parallel to plane
-    if (std::fabs(denom) < 1e-8) {
-        return false;
-    }
-
-    // hitpoint outside ray interval
-    auto t = (D - dot(normal, r.origin())) / denom;
-    if (!ray_t.contains(t)) {
-        return false;
-    }
-
-    auto intersection = r.at(t);
-    Vec3 planar_hitpt_vec = intersection - Q;
-    auto alpha = dot(w, cross(planar_hitpt_vec, v));
-    auto beta = dot(w, cross(u, planar_hitpt_vec));
-
-    //hitpoint outside quadrilateral
-    if (!is_interior(alpha, beta, rec)) {
-        return false;
-    }
-
-    rec.set_t(t);
-    rec.set_point(intersection);
-    rec.set_material(mat);
-    rec.set_face_normal(r, normal);
-
-    return true;
-}
-
 void Quad::set_bounding_box() {
-    auto bbox_diagonal1 = AxisAlignedBBox(Q, Q+u+v);
-    auto bbox_diagonal2 = AxisAlignedBBox(Q+u, Q+v);
+    auto bbox_diagonal1 = AxisAlignedBBox(_Q, _Q + _u + _v);
+    auto bbox_diagonal2 = AxisAlignedBBox(_Q + _u, _Q + _v);
     bbox = AxisAlignedBBox(bbox_diagonal1, bbox_diagonal2);
 }
 
@@ -74,20 +22,37 @@ bool Quad::is_interior(double a, double b, HitRecord& rec) const {
     return true;
 }
 
-double Quad::pdf_value(const Vec3& origin, const Vec3& direction) const {
-    HitRecord rec;
-    if (!this->hit(Ray(origin, direction), Interval(0.001, infinity), rec)) {
-        return 0;
-    }
-
-    auto distance_squared = rec.t() * rec.t() * direction.length_squared();
-    auto cosine = std::fabs(dot(direction, rec.normal()) / direction.length());
-
-    return distance_squared / (cosine * area);
-}
-
 Vec3 Quad::random(const Vec3& origin) const {
-    auto p = Q + (random_double() * u) + (random_double() * v);
+    auto p = Q() + (random_double() * u()) + (random_double() * v());
 
     return p - origin;
+}
+
+std::shared_ptr<HittableList> box(const Vec3& a, const Vec3& b, std::shared_ptr<Material> mat) {
+    /**
+     * @brief returns a box with 'a' and 'b' as opposite vertices
+     */
+
+    auto sides = std::make_shared<HittableList>();
+
+    auto min_x = std::fmin(a.x(), b.x());
+    auto min_y = std::fmin(a.y(), b.y());
+    auto min_z = std::fmin(a.z(), b.z());
+    
+    auto max_x = std::fmax(a.x(), b.x());
+    auto max_y = std::fmax(a.y(), b.y());
+    auto max_z = std::fmax(a.z(), b.z());
+
+    auto dx = Vec3(max_x - min_x, 0, 0);
+    auto dy = Vec3(0, max_y - min_y, 0);
+    auto dz = Vec3(0, 0, max_z - min_z);
+
+    sides->add(std::make_shared<Quad>(Vec3(min_x, min_y, max_z), dx, dy, mat)); 
+    sides->add(std::make_shared<Quad>(Vec3(max_x, min_y, max_z), -dz, dy, mat)); 
+    sides->add(std::make_shared<Quad>(Vec3(max_x, min_y, min_z), -dx, dy, mat));
+    sides->add(std::make_shared<Quad>(Vec3(min_x, min_y, min_z), dz, dy, mat)); 
+    sides->add(std::make_shared<Quad>(Vec3(min_x, max_y, max_z), dx, -dz, mat)); 
+    sides->add(std::make_shared<Quad>(Vec3(min_x, min_y, min_z), dx, dz, mat)); 
+
+    return sides;
 }

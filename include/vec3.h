@@ -224,4 +224,20 @@ inline Vec3 refract(const Vec3& v, const Vec3& n, double etaI_over_etaT) {
 
     return r_out_perp + r_out_par;
 }
+
+inline Vec3 mean(const std::vector<Vec3>& vectors) {
+    /**
+     * @brief returns a Vec3 with each component
+     * equal to the mean of each input vector component
+     */
+    auto mean = Vec3();
+
+    for (const auto& vec : vectors) {
+        mean.set_x(mean.x() + vec.x());
+        mean.set_y(mean.y() + vec.y());
+        mean.set_z(mean.z() + vec.z());
+    }
+
+    return mean / vectors.size();
+}
 #endif

@@ -26,8 +26,8 @@ BVHNode::BVHNode(
         left = objects[start];
         right = objects[start+1];
     } else {
-        std::sort(std::begin(objects) + start, std::begin(objects) + end, comparator);
         auto mid = start + 0.5*object_span;
+        std::nth_element(objects.begin() + start, objects.begin() + mid, objects.begin() + end);
         left = std::make_shared<BVHNode>(objects, start, mid);
         right = std::make_shared<BVHNode>(objects, mid, end);
     }
