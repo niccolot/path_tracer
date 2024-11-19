@@ -37,7 +37,9 @@ Camera::Camera(
     // camera
     double theta = degs_to_rads(vfov);
     double h = std::tan(theta/2);
-    vup = Vec3(0,1,0);
+    
+    // up direction in the camera frame, change from global y direction for tiltable camera
+    vup = Vec3(0,1,0); 
 
     // antiparallel to the viewing direction
     w = unit_vector(lookfrom - lookat); 
@@ -79,13 +81,18 @@ Ray Camera::get_ray(int i, int j, int s_i, int s_j) const {
      * sampled point around pixel (i, j) for stratified
      * sample square (s_i, s_j)
      */
-    auto offset = sample_square_stratified(s_i, s_j, inv_samples_sqrt);
+    auto offset = sample_square_stratified(s_i, s_j);
     auto pixel_sample = pixel00_loc 
                         + ((i + offset.x()) * pixel_delta_u)
                         + ((j + offset.y()) * pixel_delta_v);
     
     auto ray_origin = (defocus_angle <= 0) ? center : defocus_disk_sample();
     auto ray_direction = pixel_sample - ray_origin;
+    
+    /*
+    for blurred 'moving' spheres that moves from t=0 to t=1 
+    the rays are generated at random times in [0,1) 
+    */
     auto ray_time = random_double();
 
     return Ray(ray_origin, ray_direction, ray_time);
@@ -135,23 +142,24 @@ Color Camera::ray_color(const Ray& r, int depth, const Hittable& world, const Hi
     if (!rec.material()->scatter(r,rec,srec)) {
         return color_from_emission;
     }
-
+ 
     Color color_from_scatter = Color();
     for (const auto& ray_t : srec.scattered_rays) {
-        if (ray_t.skip_pdf) {
-                return srec.attenuation * ray_color(ray_t.skip_pdf_ray, depth-1, world, lights);
-            }
-
+        if (ray_t.skip_pdf || ray_t.pdf == nullptr) {
+            //return srec.attenuation * ray_color(ray_t.skip_pdf_ray, depth-1, world, lights);
+            color_from_scatter += srec.attenuation * ray_color(ray_t.skip_pdf_ray, depth-20, world, lights);
+        } else {
             auto light_ptr = std::make_shared<HittablePDF>(lights, rec.point());
             MixturePDF p(light_ptr, ray_t.pdf);
             Ray scattered = Ray(rec.point(), p.generate(), r.time());
             auto pdf_value = p.value(scattered.direction());
             double scattering_pdf = rec.material()->scattering_pdf(r,rec,scattered);
             Color sample_color = ray_color(scattered, depth-1, world, lights);
-             
+                
             color_from_scatter += (srec.attenuation * scattering_pdf * sample_color) / pdf_value;
+        }
     }
-    
+
     return color_from_emission + color_from_scatter;
 }
 
@@ -165,7 +173,7 @@ void Camera::render(const Hittable& world, const Hittable& lights) {
             Color pixel_color(0,0,0);
             for (int s_j = 0; s_j<samples_sqrt; ++s_j) {
                 for (int s_i=0; s_i<samples_sqrt; ++s_i) {
-                    Ray r = get_ray(i,j,s_j,s_j);
+                    Ray r = get_ray(i, j, s_i, s_j);
                     pixel_color += ray_color(r, max_depth, world, lights);
                 }
             }
@@ -174,4 +182,28 @@ void Camera::render(const Hittable& world, const Hittable& lights) {
     }
 
     std::clog << "\nDone.\n";
+}
+
+Vec3 Camera::defocus_disk_sample() const {
+    /**
+     * @brief returns a random point in the defocus disk
+     */
+
+    auto p = random_in_unit_disk();
+    return center + (p.x() * defocus_disk_u) + (p.y() * defocus_disk_v);
+}
+
+Vec3 Camera::sample_square_stratified(int s_i, int s_j) const {
+    /**
+     * @brief returns the vector to a random point in the square
+     * subpixel specified by grid indices (s_i, s_j) for an 
+     * idealized unit square pixel [-0.5, -0.5] x [0.5, 0.5]
+     * 
+     * @param inv_samples_sqrt 1/(sqrt(samples per pixel))
+     */
+
+    auto px = ((s_i + random_double()) * inv_samples_sqrt) - 0.5;
+    auto py = ((s_j + random_double()) * inv_samples_sqrt) - 0.5;
+
+    return Vec3(px,py,0);
 }

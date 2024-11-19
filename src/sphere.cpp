@@ -110,7 +110,7 @@ Vec3 Sphere::random_to_sphere(double radius, double distance_squared) {
     auto z = 1 + r2*(std::sqrt(1 - radius*radius/distance_squared) - 1);
 
     auto phi = 2*pi*r1;
-    auto x = std::cos(phi) * std::sqrt(1-z*z);
+    auto x = std::cos(phi) * std::sqrt(1 - z*z);
     auto y = std::sin(phi) * std::sqrt(1 - z*z);
 
     return Vec3(x,y,z);

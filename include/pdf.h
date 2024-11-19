@@ -23,13 +23,8 @@ class MixturePDF : public PDF {
             p[1] = p1;
         }
 
-        double value(const Vec3& direction) const override {
-            return 0.5 * p[0]->value(direction) + 0.5 * p[1]->value(direction);
-        }
-
-        Vec3 generate() const override {
-            return random_double() < 0.5 ? p[0]->generate() : p[1]->generate();
-        }
+        double value(const Vec3& direction) const override;
+        Vec3 generate() const override;
 }; // class MixturePDF
 
 class SpherePDF : public PDF {

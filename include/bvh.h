@@ -8,28 +8,7 @@ class BVHNode : public Hittable {
         std::shared_ptr<Hittable> left;
         std::shared_ptr<Hittable> right;
         AxisAlignedBBox bbox;
-
-        static bool box_compare(
-            const std::shared_ptr<Hittable> a, 
-            const std::shared_ptr<Hittable> b, 
-            int axis_index
-        );
-
-        static bool box_x_compare(
-            const std::shared_ptr<Hittable> a, 
-            const std::shared_ptr<Hittable> b
-        ) { return box_compare(a,b,0); }
-
-        static bool box_y_compare(
-            const std::shared_ptr<Hittable> a, 
-            const std::shared_ptr<Hittable> b
-        ) { return box_compare(a,b,1); }
-
-        static bool box_z_compare(
-            const std::shared_ptr<Hittable> a, 
-            const std::shared_ptr<Hittable> b
-        ) { return box_compare(a,b,2); }
-
+        
     public:
         BVHNode(HittableList& list) : 
             BVHNode(list.get_objects(), 0, list.get_objects().size()) {}

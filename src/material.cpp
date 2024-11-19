@@ -101,9 +101,10 @@ bool Dielectric::scatter(
 
         reflected_ray.skip_pdf_ray = Ray(rec.point(), direction_reflect, r_in.time());
         refracted_ray.skip_pdf_ray = Ray(rec.point(), direction_refract, r_in.time());
-
+        
         srec.scattered_rays.push_back(reflected_ray);
         srec.scattered_rays.push_back(refracted_ray);
+        
     }
 
     return true;

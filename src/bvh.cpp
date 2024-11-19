@@ -12,12 +12,6 @@ BVHNode::BVHNode(
         bbox = AxisAlignedBBox(bbox, objects[object_index]->bounding_box());
     }
 
-    int axis = bbox.longest_axis();
-
-    auto comparator = (axis == 0) ? box_x_compare
-                    : (axis == 1) ? box_y_compare
-                                  : box_z_compare;
-    
     size_t object_span = end - start;
 
     if (object_span == 1) {
@@ -43,16 +37,4 @@ bool BVHNode::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
         Interval(ray_t.min(), hit_left ? rec.t() : ray_t.max()), rec);
 
     return hit_left || hit_right;
-}
-
-bool BVHNode::box_compare(
-    const std::shared_ptr<Hittable> a, 
-    const std::shared_ptr<Hittable> b, 
-    int axis_index
-) {
-
-    auto a_axis_interval = a->bounding_box().axis_interval(axis_index);
-    auto b_axis_interval = b->bounding_box().axis_interval(axis_index);
-
-    return a_axis_interval.min() < b_axis_interval.min();
 }

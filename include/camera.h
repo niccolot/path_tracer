@@ -46,16 +46,8 @@ class Camera {
         void write_color(std::ostream& out, const Color& pixel_color);
         Color ray_color(const Ray& r, int depth, const Hittable& world, const Hittable& lights);
         Ray get_ray(int i, int j, int s_i, int s_j) const;
-
-        //friend inline Vec3 defocus_disk_sample();
-        inline Vec3 defocus_disk_sample() const {
-            /**
-             * @brief returns a random point in the defocus disk
-             */
-
-            auto p = random_in_unit_disk();
-            return center + (p.x() * defocus_disk_u) + (p.y() * defocus_disk_v);
-        }
+        Vec3 defocus_disk_sample() const;
+        Vec3 sample_square_stratified(int s_i, int s_j) const;
     
     public:
         Camera(int width, 

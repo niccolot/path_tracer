@@ -66,7 +66,7 @@ class NoiseTexture : public Texture {
         Color value(
             [[maybe_unused]] double u, 
             [[maybe_unused]] double v,
-            [[maybe_unused]]  const Vec3& p) override {
+            const Vec3& p) override {
 
                 return Color(.5,.5,.5) * (1 + std::sin(scale * p.z() * noise.turb(p,7)));
             }

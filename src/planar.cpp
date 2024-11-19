@@ -30,12 +30,10 @@ bool Planar::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
 
     auto intersection = r.at(t);
     Vec3 planar_hitpt_vec = intersection - _Q;
-    double alpha, beta;
+    double alpha{};
+    double beta{};
 
     muller_trumbore_intersect(alpha, beta, planar_hitpt_vec);
-
-    //auto alpha = dot(w, cross(planar_hitpt_vec, _v));
-    //auto beta = dot(w, cross(_u, planar_hitpt_vec));
 
     //hitpoint outside the actual figure
     if (!is_interior(alpha, beta, rec)) {
@@ -75,7 +73,7 @@ void Planar::muller_trumbore_intersect(double& alpha, double& beta, const Vec3& 
         alpha = (planar_hitpt_vec.x() * _v.y() - planar_hitpt_vec.y() * _v.x()) / delta;
         beta = (planar_hitpt_vec.y() * _u.x() - planar_hitpt_vec.x() * _u.y()) / delta;
 
-    } else if ((delta = _u.x() * _v.y() - _u.z() * _v.x()) != 0) {
+    } else if ((delta = _u.x() * _v.z() - _u.z() * _v.x()) != 0) {
 
         alpha = (planar_hitpt_vec.x() * _v.z() - planar_hitpt_vec.z() * _v.x()) / delta;
         beta = (planar_hitpt_vec.z() * _u.x() - planar_hitpt_vec.x() * _u.z()) / delta;
