@@ -4,14 +4,37 @@ Planar::Planar(
     const Vec3& Q,
     const Vec3& u,
     const Vec3& v,
-    std::shared_ptr<Material> mat) 
-        : _Q(Q), _u(u), _v(v), mat(mat) {
+    std::shared_ptr<Material> mat,
+    bool verts) {
+    
+    /**
+     * @brief constructor for either a triangle or coplanar quad
+     * @details if verts flag is true one must use the vertices of
+     * the figure as inputs (for the quad the last vertex will be given by
+     * vector sum), if it is false one must input Q as origin vertex and u,v 
+     * the axis spanning from Q 
+     */
+    
+    _Q = Q;
+    _mat = mat;
+    vertices.emplace_back(Q);
+    if (!verts) {
+        _u = u;
+        _v = v;
+        
+        vertices.emplace_back(Q+u);
+        vertices.emplace_back(Q+v);
+    } else {
+        _u = u-Q;
+        _v = v-Q;
+        vertices.push_back(u);
+        vertices.push_back(v);
+    }
 
     auto n = cross(_u, _v);
     _normal = unit_vector(n);
     D = dot(_normal, _Q);
     w = n / dot(n,n);
-    area = n.length();
 }
 
 bool Planar::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
@@ -42,7 +65,7 @@ bool Planar::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
 
     rec.set_t(t);
     rec.set_point(intersection);
-    rec.set_material(mat);
+    rec.set_material(_mat);
     rec.set_face_normal(r, _normal);
 
     return true;

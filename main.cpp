@@ -35,7 +35,7 @@ void triangle()
 {
     HittableList world;
     auto triangle = std::make_shared<Lambertian>(Color(0.1, 0.3, 0.8));
-    world.add(std::make_shared<Triangle>(Vec3(0, 0, 0), Vec3(1, 0, 0), Vec3(0, -1, 0), triangle));
+    world.add(std::make_shared<Triangle>(Vec3(0, 0, 0), Vec3(1, 0, 0), Vec3(0, -1, 0), triangle, true));
     auto light = std::make_shared<DiffuseLight>(Color(20, 20, 20));
     world.add(std::make_shared<Quad>(Vec3(0.5, 20, 0.5), Vec3(-0.5, 0, 0), Vec3(0, 0, -0.5), light));
     HittableList lights;
@@ -169,28 +169,25 @@ void cornell_box()
 void test2()
 {
     HittableList world;
-    auto ground = std::make_shared<Lambertian>(Color(0.8, 0.5, 0.0), 1);
-    auto center = std::make_shared<Dielectric>(1.5);
-    auto light = std::make_shared<DiffuseLight>(Color(20, 20, 20));
-
-    world.add(std::make_shared<Sphere>(Vec3(0, 0, 0), 0.5, center));
-    world.add(std::make_shared<Sphere>(Vec3(0, -100.5, -1), 100, ground));
-    world.add(std::make_shared<Quad>(Vec3(0.5, 1, 0.5), Vec3(-0.5, 0, 0), Vec3(0, 0, -0.5), light));
-
-    HittableList lights;
+    auto red = std::make_shared<Lambertian>(Color(1, 0.2, 0.4));
+    auto blue = std::make_shared<Lambertian>(Color(0.2, 0.2, 1));
     auto empty = std::shared_ptr<Material>();
-    lights.add(std::make_shared<Quad>(Vec3(0.5, 1, 0.5), Vec3(-0.5, 0, 0), Vec3(0, 0, -0.5), empty));
-    lights.add(std::make_shared<Sphere>(Vec3(0, 0, 0), 0.5, empty));
-    lights.add(std::make_shared<Sphere>(Vec3(0, -100.5, -1), 100, empty));
-
-    Camera cam(400, 16. / 9., Vec3(0, 1, 3), Vec3(0, 0, 0), 90, 10, 0, 500);
-    auto bg = Color(0, 0, 0);
-    cam.set_background(bg);
+    auto light = std::make_shared<DiffuseLight>(Color(10,10,10));
+    auto quad = std::make_shared<Quad>(Vec3(0,10,0), Vec3(1,0,0), Vec3(0,0,1), light);
+    auto triAxis = std::make_shared<Triangle>(Vec3(), Vec3(1,0,0), Vec3(0,1,0), red);
+    auto triVerts = std::make_shared<Triangle>(Vec3(0,1,0), Vec3(1,1,0), Vec3(0,2,0), blue, true);
+    world.add(triVerts);
+    world.add(triAxis);
+    world.add(quad);
+    HittableList lights;
+    auto lightsource = std::make_shared<Quad>(Vec3(0,10,0), Vec3(1,0,0), Vec3(0,0,1), empty);
+    lights.add(lightsource);
+    Camera cam(400, 16./9., Vec3(0,0,-3), Vec3(0,1,0));
     cam.render(world, lights);
 }
 
 int main()
 {
 
-    cornell_box();
+    test2();
 }

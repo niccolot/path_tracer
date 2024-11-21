@@ -1,17 +1,20 @@
 #ifndef PLANAR_H
 #define PLANAR_H
 
+#include <vector>
+
 #include "hittable.h"
 
 class Planar : public Hittable {
     protected:
         Vec3 _Q; // origin point
         Vec3 _u, _v; // vectors spanning the planar figure
-        std::shared_ptr<Material> mat;
+        std::shared_ptr<Material> _mat;
         AxisAlignedBBox bbox;
         Vec3 _normal;
         double D; // figure's plane distance from origin
         Vec3 w;
+        std::vector<Vec3> vertices;
         double area;
         void muller_trumbore_intersect(double& alpha, double& beta, const Vec3& planar_hitpt_vec) const;
         virtual bool is_interior(double a, double b, HitRecord& rec) const = 0;
@@ -21,7 +24,8 @@ class Planar : public Hittable {
             const Vec3& Q,
             const Vec3& u,
             const Vec3& v,
-            std::shared_ptr<Material> mat);
+            std::shared_ptr<Material> mat,
+            bool verts = false);
 
         const Vec3& Q() const { return _Q; }
         const Vec3& u() const { return _u; }

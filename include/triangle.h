@@ -17,7 +17,8 @@ class Triangle : public Planar {
             const Vec3& Q,
             const Vec3& u,
             const Vec3& v,
-            std::shared_ptr<Material> mat) : Planar(Q,u,v,mat) { set_bounding_box(); }
+            std::shared_ptr<Material> mat,
+            bool verts = false);
 
         void set_bounding_box() override { bbox = AxisAlignedBBox(_Q + _u, _Q + _v); };
 

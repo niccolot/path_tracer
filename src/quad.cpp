@@ -1,5 +1,35 @@
 #include "quad.h"
 
+Quad::Quad(
+    const Vec3& Q,
+    const Vec3& u,
+    const Vec3& v,
+    std::shared_ptr<Material> mat,
+    bool verts) : Planar(Q,u,v,mat,verts) {
+    /**
+     * @details if one wants e.g. a square with bottom left corner
+     * in (0,0,-1) with edges = 1 the initial parameters are
+     * Q = Vec3(0,0,-1) 
+     * u = Vec3(1,0,0) 
+     * v = Vec3(0,1,0)
+     * with verts flag false, 
+     * 
+     * Q = Vec3(0,0,-1)
+     * u = Vec3(1,0,-1)
+     * v = Vec3(0,1,-1)
+     * with verts flag true
+     */
+        
+    area = _normal.length();
+    set_bounding_box();
+    if (!verts) {
+        vertices.emplace_back(Q+u+v);
+    } else {
+        vertices.emplace_back(u+v);
+    }
+     
+}
+
 void Quad::set_bounding_box() {
     auto bbox_diagonal1 = AxisAlignedBBox(_Q, _Q + _u + _v);
     auto bbox_diagonal2 = AxisAlignedBBox(_Q + _u, _Q + _v);

@@ -1,5 +1,16 @@
 #include "triangle.h"
 
+Triangle::Triangle(
+    const Vec3& Q,
+    const Vec3& u,
+    const Vec3& v,
+    std::shared_ptr<Material> mat,
+    bool verts) : Planar(Q,u,v,mat,verts) {
+    
+    set_bounding_box();
+    area = _normal.length() * 0.5;
+}
+
 bool Triangle::is_interior(double a, double b, HitRecord& rec) const {
     Interval unit_interval = Interval(0,1);
     
