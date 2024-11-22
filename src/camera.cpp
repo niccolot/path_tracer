@@ -146,8 +146,7 @@ Color Camera::ray_color(const Ray& r, int depth, const Hittable& world, const Hi
     Color color_from_scatter = Color();
     for (const auto& ray_t : srec.scattered_rays) {
         if (ray_t.skip_pdf || ray_t.pdf == nullptr) {
-            //return srec.attenuation * ray_color(ray_t.skip_pdf_ray, depth-1, world, lights);
-            color_from_scatter += srec.attenuation * ray_color(ray_t.skip_pdf_ray, depth-20, world, lights);
+            color_from_scatter += srec.attenuation * ray_color(ray_t.skip_pdf_ray, depth-10, world, lights);
         } else {
             auto light_ptr = std::make_shared<HittablePDF>(lights, rec.point());
             MixturePDF p(light_ptr, ray_t.pdf);
