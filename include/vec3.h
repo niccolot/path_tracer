@@ -121,6 +121,10 @@ inline Vec3 operator/(const Vec3& v, double t) {
     return v*(1/t);
 }
 
+inline void printvec(Vec3 v, std::ostream &out) {
+    out << "(" << v.x() << v.y() << v.z() << ")\n" << std::flush;
+}
+
 inline double dot(const Vec3& u, const Vec3& v) {
     return u.x()*v.x() + u.y()*v.y() + u.z()*v.z();
 }

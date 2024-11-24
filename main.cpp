@@ -203,15 +203,18 @@ void test_mesh() {
     auto quad_light = std::make_shared<Quad>(Vec3(0,10,0), Vec3(1,0,0), Vec3(0,0,1), light);
    
 
-    auto mesh = std::make_shared<Mesh>(1, face_index, vertex_index, points, normals, red);
-    //auto mesh = Mesh(1, face_index, vertex_index, points, normals, red);
+    //auto mesh = std::make_shared<Mesh>(1, face_index, vertex_index, points, normals, red);
+    auto mesh = Mesh(1, face_index, vertex_index, points, normals, red);
+    auto tris = mesh.get_triangles();
     HittableList lights;
     auto empty = std::shared_ptr<Material>();
     auto lightsource = std::make_shared<Quad>(Vec3(0,10,0), Vec3(1,0,0), Vec3(0,0,1), empty);
-    world.add(mesh);
-    //lights.add(lightsource);
-    //Camera cam(400, 16./9., Vec3(0,0.5,-1), Vec3(0,0.5,0));
-    //cam.render(world, lights);   
+    //world.add(mesh);
+    auto objects = world.get_objects();
+    //world.add(quad);
+    lights.add(lightsource);
+    Camera cam(400, 16./9., Vec3(0,0.5,-1), Vec3(0,0.5,0));
+    cam.render(mesh, lights);   
 }
 
 int main()

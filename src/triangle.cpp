@@ -44,6 +44,11 @@ Vec3 Triangle::random(const Vec3& origin) const {
     return p - origin;
 }
 
+std::vector<Vec3> Triangle::get_verts() {
+    auto verts = std::vector<Vec3>{_Q, _u, _v};
+    return verts;
+}
+
 std::shared_ptr<HittableList> quad_pyramid(const Quad& base, double h, std::shared_ptr<Material> mat) {
     return pyramid<Quad>(base, h, mat);
 }
