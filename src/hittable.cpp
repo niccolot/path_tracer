@@ -1,4 +1,7 @@
+#include <typeinfo>
+
 #include "hittable.h"
+#include "mesh.h"
 
 bool HittableList::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
     HitRecord temp_rec;
@@ -17,8 +20,17 @@ bool HittableList::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
 }
 
 void HittableList::add(std::shared_ptr<Hittable> object) {
-    objects.push_back(object);
-    bbox = AxisAlignedBBox(bbox, object->bounding_box());
+    
+    if (auto hittable_list_ptr = std::dynamic_pointer_cast<Mesh>(object)) {
+        auto objs = hittable_list_ptr->get_objects();
+        for (const auto& obj : objs) {
+            objects.push_back(obj);
+            bbox = AxisAlignedBBox(bbox, obj->bounding_box());
+        }
+    } else {
+        objects.push_back(object);
+        bbox = AxisAlignedBBox(bbox, object->bounding_box());
+    }
 }
 
 bool Translate::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {

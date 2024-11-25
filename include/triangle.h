@@ -21,7 +21,6 @@ class Triangle : public Planar {
             bool verts = false);
 
         void set_bounding_box() override { bbox = AxisAlignedBBox(_Q + _u, _Q + _v); };
-        std::vector<Vec3> get_verts();
         Vec3 random(const Vec3& origin) const override; 
 }; // class Triangle
 

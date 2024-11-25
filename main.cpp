@@ -191,34 +191,34 @@ void test_mesh() {
     HittableList world;
     auto v0 = Vec3();
     auto v1 = Vec3(1,0,0);
-    auto v2 = Vec3(0,1,0);
-    auto v3 = Vec3(1,1,0);
-    auto points = std::vector<Vec3>{v0,v1,v2,v3};
-    auto face_index = std::vector<int>{4};
-    auto vertex_index = std::vector<int>{0,1,2,3};
-    auto normals = std::vector<Vec3>{cross(v1,v2)};
-    auto red = std::make_shared<Lambertian>(Color(1, 0.2, 0.4));
-    auto quad = std::make_shared<Quad>(v0,v1,v2,red,true);
+    auto v3 = Vec3(0,1,0);
+    auto v2 = Vec3(1,1,0);
+    auto v4 = Vec3(0,0,1);
+    auto v5 = Vec3(1,0,1);
+    auto points = std::vector<Vec3>{v0,v1,v2,v3,v4,v5};
+    auto face_index = std::vector<int>{4,4};
+    auto vertex_index = std::vector<int>{0,1,2,3,0,4,5,1};
+    auto normals = std::vector<Vec3>{cross(v1,v2), cross(v1,v4)};
+    auto red = std::make_shared<Lambertian>(Color(1, 0, 0));
+    auto quad1 = std::make_shared<Quad>(v0,v1,v2,red,true);
+    auto blue = std::make_shared<Lambertian>(Color(0, 0, 1));
+    auto quad2 = std::make_shared<Quad>(v0,v1,v4,blue,true);
     auto light = std::make_shared<DiffuseLight>(Color(10,10,10));
     auto quad_light = std::make_shared<Quad>(Vec3(0,10,0), Vec3(1,0,0), Vec3(0,0,1), light);
    
-
-    //auto mesh = std::make_shared<Mesh>(1, face_index, vertex_index, points, normals, red);
-    auto mesh = Mesh(1, face_index, vertex_index, points, normals, red);
-    auto tris = mesh.get_triangles();
+    auto mesh = Mesh(2, face_index, vertex_index, points, normals, red);
     HittableList lights;
     auto empty = std::shared_ptr<Material>();
     auto lightsource = std::make_shared<Quad>(Vec3(0,10,0), Vec3(1,0,0), Vec3(0,0,1), empty);
-    //world.add(mesh);
-    auto objects = world.get_objects();
-    //world.add(quad);
+    world.add(std::make_shared<Mesh>(mesh));
+    //world.add(quad1);
+    //world.add(quad2);
     lights.add(lightsource);
-    Camera cam(400, 16./9., Vec3(0,0.5,-1), Vec3(0,0.5,0));
-    cam.render(mesh, lights);   
+    Camera cam(400, 16./9., Vec3(0.5,0.5,2), Vec3(0,0,0));
+    cam.render(world, lights);   
 }
 
 int main()
 {
-
     test_mesh();
 }

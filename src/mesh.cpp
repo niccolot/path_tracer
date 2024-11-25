@@ -31,10 +31,6 @@ Mesh::Mesh(
          * are the indices of the vertices composing the second face and so on
          */
     
-    // in the polygon arrays, especially when loaded from 
-    // a file, sometimes there are more vertices than needed so 
-    // it is better to explicitly calculate these values
-    _vert_arr_size = std::reduce(fi.begin(), fi.end());
     _max_vert_idx = *std::max_element(vi.begin(), vi.end()) + 1;
     
     _ntris = _max_vert_idx - 2;
@@ -50,34 +46,16 @@ Mesh::Mesh(
         }
         k += _face_index[i];
     }
-    
-    for (int i=0; i<_ntris; ++i) {
-        auto v0 = _P[i];
-        auto v1 = _P[i+1];
-        auto v2 = _P[i+2];
+
+    auto range = _tris_index.size();
+    for (size_t i=0; i<range; i+=3) {
+        auto v0 = _P[_tris_index[i]];
+        auto v1 = _P[_tris_index[i+1]];
+        auto v2 = _P[_tris_index[i+2]];
         Color col = Vec3::random();
-        auto random_mat = std::make_shared<Lambertian>(col);
-        add(std::make_shared<Triangle>(v0, v1, v2, random_mat, true));   
+        auto random_mat = std::make_shared<Lambertian>(col); // to be deleted just before merge
+        auto triangle = std::make_shared<Triangle>(v0, v1, v2, random_mat, true);
+        _triangles.push_back(triangle);
+        _bbox = AxisAlignedBBox(_bbox, triangle->bounding_box());
     }
-}
-
-void Mesh::add(std::shared_ptr<Triangle> triangle) {
-    _triangles.push_back(triangle);
-    _bbox = AxisAlignedBBox(_bbox, triangle->bounding_box());
-}
-
-bool Mesh::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
-    HitRecord temp_rec;
-    bool hit_anything = false;
-    auto closest_so_far = ray_t.max();
-
-    for (const auto& tri : _triangles) {
-        if (tri->hit(r, Interval(ray_t.min(), closest_so_far), temp_rec)) {
-            hit_anything = true;
-            closest_so_far = temp_rec.t();
-            rec = temp_rec;
-        }
-    }
-    
-    return hit_anything;
 }

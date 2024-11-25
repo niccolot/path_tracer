@@ -14,12 +14,11 @@ class Mesh : public HittableList {
         std::vector<Vec3> _normals;
         std::shared_ptr<Material> _mat;
 
-         // vector of size 3*_ntris that stores the 3 vertices for each triangle
+        // vector of size 3*_ntris that stores the 3 vertices for each triangle in cc ordering
         std::vector<int> _tris_index;
 
-        std::vector<std::shared_ptr<Triangle>> _triangles;
+        std::vector<std::shared_ptr<Hittable>> _triangles;
         AxisAlignedBBox _bbox;
-        int _vert_arr_size;
         int _max_vert_idx;
         int _ntris; // number of triangles in mesh
 
@@ -32,9 +31,7 @@ class Mesh : public HittableList {
             const std::vector<Vec3>& normals,
             std::shared_ptr<Material> mat);
 
-        bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const override;
-        void add(std::shared_ptr<Triangle> triangle);
         const AxisAlignedBBox& bounding_box() const override { return _bbox; };
-        const std::vector<std::shared_ptr<Triangle>>& get_triangles() { return _triangles; }
+        std::vector<std::shared_ptr<Hittable>>& get_objects() { return _triangles; }
 }; // class Mesh
 #endif

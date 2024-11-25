@@ -17,6 +17,7 @@ class Quad : public Planar {
 
         void set_bounding_box() override;
         Vec3 random(const Vec3& origin) const override;
+        //const std::vector<std::shared_ptr<Hittable>>& get_objects() {};
 }; // class Quad
 
 std::shared_ptr<HittableList> box(const Vec3& a, const Vec3& b, std::shared_ptr<Material> mat);

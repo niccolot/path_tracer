@@ -37,5 +37,6 @@ class Planar : public Hittable {
         bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const;
         double pdf_value(const Vec3& origin, const Vec3& direction) const;
         virtual Vec3 random(const Vec3& origin) const = 0;
+        //virtual const std::vector<std::shared_ptr<Hittable>>& get_objects() const = 0;
 }; // class Planar
 #endif
