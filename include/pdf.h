@@ -9,7 +9,7 @@ class PDF {
     public:
         virtual ~PDF() {}
 
-        virtual double value(const Vec3& direction) const = 0;
+        virtual double value(const Vec3& direction, const Vec3& r_out) const = 0;
         virtual Vec3 generate() const = 0;
 }; // class PDF
 
@@ -23,7 +23,10 @@ class MixturePDF : public PDF {
             p[1] = p1;
         }
 
-        double value(const Vec3& direction) const override;
+        double value(
+            const Vec3& direction, 
+            [[maybe_unused]] const Vec3& r_out) const override;
+        
         Vec3 generate() const override;
 }; // class MixturePDF
 
@@ -31,7 +34,9 @@ class SpherePDF : public PDF {
     public:
         SpherePDF() {}
 
-        double value([[maybe_unused]] const Vec3& direction) const override {
+        double value(
+            [[maybe_unused]] const Vec3& direction, 
+            [[maybe_unused]] const Vec3& r_out) const override {
             return 1 / (4*pi);
         }
 
@@ -47,7 +52,10 @@ class CosinePDF : public PDF {
     public:
         CosinePDF(const Vec3& w) : uvw(w) {}
 
-        double value(const Vec3& direction) const override {
+        double value(
+            const Vec3& direction, 
+            [[maybe_unused]] const Vec3& r_out) const override {
+
             auto cos_theta = dot(unit_vector(direction), uvw.w());
             
             return std::fmax(0, cos_theta/pi);
@@ -67,7 +75,9 @@ class HittablePDF : public PDF {
         HittablePDF(const Hittable& objects, const Vec3& origin) 
             : objects(objects), origin(origin) {}
         
-        double value(const Vec3& direction) const override {
+        double value(
+            const Vec3& direction,
+            [[maybe_unused]] const Vec3& r_out = Vec3()) const override {
             return objects.pdf_value(origin, direction);
         }
 
@@ -75,4 +85,18 @@ class HittablePDF : public PDF {
             return objects.random(origin);
         }
 }; // class HittablePDF
+
+class PhongPDF : public PDF {
+    private:
+        ONB uvw;
+    
+    public:
+        PhongPDF(const Vec3& w) : uvw(w) {}
+
+        double value(
+            const Vec3& direction,
+            const Vec3& r_out) const override;
+        
+        Vec3 generate() const override;
+}; // class PhongPDF
 #endif

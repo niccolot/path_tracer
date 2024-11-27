@@ -84,7 +84,8 @@ class Dielectric : public Material {
         static double reflectance(double cosine, double eta);
     
     public:
-        Dielectric(double eta, Color color = Color(1,1,1)) : eta(eta), _color(color) {}
+        Dielectric(double eta, const Color& color = Color(1,1,1)) : eta(eta), _color(color) {}
+        //Dielectric(double eta, Color&& color = Color(1,1,1)) : eta(eta), _color(std::move(color)) {}
 
         bool scatter(
             const Ray& r_in, 
@@ -145,4 +146,33 @@ class Isotropic : public Material {
             [[maybe_unused]] const HitRecord& rec,
             [[maybe_unused]] const Ray& scattered) const override;
 }; //class Isotropic
+
+class Phong : public Material {
+    private:
+        double _kd = 0.8; // phong model diffuse constant
+        double _ks = 0.2; // phong model specular constant
+        int _n = 10; // phong model exponent
+        Color _color;
+
+    public:
+        Phong(const Color& color) : _color(color) {}
+
+        friend class PhongPDF;
+        
+        void set_n(int n) {_n = n; }
+        void set_kd(double kd) { 
+            _kd = kd;
+            _ks = 1 - kd;  
+        }
+
+        bool scatter(
+            const Ray& r_in, 
+            const HitRecord& rec, 
+            scatter_record_t& srec) const override;
+
+        double scattering_pdf(
+            [[maybe_unused]] const Ray& r_in,
+            [[maybe_unused]] const HitRecord& rec,
+            [[maybe_unused]] const Ray& scattered) const override;        
+}; // class Phong
 #endif

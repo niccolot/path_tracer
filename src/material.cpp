@@ -7,15 +7,14 @@ bool Lambertian::scatter(
     
     scattered_rays_t scattered_ray;
 
-    // reflection
+    // more reflection
     if (random_double() < r) {
-        
         scattered_ray.pdf = std::make_shared<CosinePDF>(rec.normal());
         scattered_ray.skip_pdf = false;
         scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.point()) * r;
         srec.scattered_rays.push_back(scattered_ray);
     } else {
-        // absorption
+        // more absorption
         scattered_ray.pdf = std::make_shared<CosinePDF>(rec.normal());
         scattered_ray.skip_pdf = false;
         scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.point()) * (1-r);
@@ -90,6 +89,7 @@ bool Dielectric::scatter(
 
         // fresnel formulas
         double cos_theta_out = std::fmin(1., dot(rec.normal(), direction_reflect));
+
         double fr_perp = cos_theta_out - eta*cos_theta / (cos_theta_out + eta*cos_theta);
         fr_perp *= fr_perp;
 
@@ -115,6 +115,7 @@ bool Dielectric::scatter(
 
         // fresnel formulas
         double cos_theta_out = std::fmin(1., dot(rec.normal(), direction_reflect));
+
         double fr_perp = cos_theta_out - eta*cos_theta / (cos_theta_out + eta*cos_theta);
         fr_perp *= fr_perp;
 
@@ -170,4 +171,3 @@ double Isotropic::scattering_pdf(
 
     return 1 / (4*pi);
 }
-

@@ -1,15 +1,17 @@
 #include "pdf.h"
 
-double MixturePDF::value(const Vec3& direction) const {
+double MixturePDF::value(
+    const Vec3& direction,
+    [[maybe_unused]] const Vec3& r_out) const {
     double v0{};
     double v1{};
     
     if (p[0] != nullptr) {
-        v0 = p[0]->value(direction);
+        v0 = p[0]->value(direction, r_out);
     }
 
     if (p[1] != nullptr) {
-        v1 = p[1]->value(direction);
+        v1 = p[1]->value(direction, r_out);
     } 
 
     return 0.5 * v0 + 0.5 * v1;
@@ -35,3 +37,10 @@ Vec3 MixturePDF::generate() const {
             return random_double() < 0.5 ? p[0]->generate() : p[1]->generate();
         } 
 }
+
+double PhongPDF::value(
+    const Vec3& direction,
+    const Vec3& r_out) const {
+    
+    
+}  

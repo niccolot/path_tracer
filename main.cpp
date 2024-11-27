@@ -151,7 +151,7 @@ void cornell_box()
     world.add(box1);
     // world.add(box2);
 
-    auto glass = std::make_shared<Dielectric>(1.5, 0.9);
+    auto glass = std::make_shared<Dielectric>(1.5, Color(0,0,1));
     world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, glass));
 
     auto empty_mat = std::shared_ptr<Material>();
