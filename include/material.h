@@ -80,11 +80,11 @@ class Dielectric : public Material {
         // effective refractive index if embedded in material 
         // eta_eff = eta_material / eta_surrounding
         double eta;
-        double r; // reflectance, r in [0,1]
+        Color _color; 
         static double reflectance(double cosine, double eta);
     
     public:
-        Dielectric(double eta, double r=1.) : eta(eta), r(std::fmin(r,1.)) {}
+        Dielectric(double eta, Color color = Color(1,1,1)) : eta(eta), _color(color) {}
 
         bool scatter(
             const Ray& r_in, 

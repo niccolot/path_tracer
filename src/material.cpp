@@ -68,8 +68,6 @@ bool Dielectric::scatter(
     const HitRecord& rec, 
     scatter_record_t& srec) const {
 
-    auto white = Color(1,1,1);
-
     double ri = rec.front_face() ? (1./eta) : eta;
     Vec3 unit_dir = unit_vector(r_in.direction());
 
@@ -100,7 +98,7 @@ bool Dielectric::scatter(
 
         double fr = 0.5*(fr_par + fr_perp);
 
-        reflected_ray.attenuation = white * fr;
+        reflected_ray.attenuation = _color * fr;
         srec.scattered_rays.push_back(reflected_ray);
     } else {
         Vec3 direction_reflect, direction_refract;
@@ -126,8 +124,8 @@ bool Dielectric::scatter(
         double fr = 0.5*(fr_par + fr_perp);
         double ft = 1 - fr;
 
-        reflected_ray.attenuation = white * fr;
-        refracted_ray.attenuation = white * ft;
+        reflected_ray.attenuation = _color * fr;
+        refracted_ray.attenuation = _color * ft;
         
         srec.scattered_rays.push_back(reflected_ray);
         srec.scattered_rays.push_back(refracted_ray);
