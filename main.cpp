@@ -151,7 +151,7 @@ void cornell_box()
     world.add(box1);
     // world.add(box2);
 
-    auto glass = std::make_shared<Dielectric>(1.5);
+    auto glass = std::make_shared<Dielectric>(1.5, 0.9);
     world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, glass));
 
     auto empty_mat = std::shared_ptr<Material>();
@@ -161,7 +161,7 @@ void cornell_box()
     lights.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, empty_mat));
     // Quad light(Vec3(343,554,332), Vec3(-130,0,0), Vec3(0,0,-105), empty_mat);
 
-    Camera cam(400, 1., Vec3(278, 278, -800), Vec3(278, 278, 0), 40, 10, 0, 500);
+    Camera cam(400, 1., Vec3(278, 278, -800), Vec3(278, 278, 0), 40, 10, 0, 500, 50);
     cam.set_background(Color(0, 0, 0));
     cam.render(world, lights);
 }

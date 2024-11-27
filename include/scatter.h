@@ -11,11 +11,10 @@ typedef struct ScatteredRays {
     std::shared_ptr<PDF> pdf;
     bool skip_pdf;
     Ray skip_pdf_ray;
+    Color attenuation;
 } scattered_rays_t; // scattered_rays_t
 
-class ScatterRecord {
-    public:
-        Color attenuation;
-        std::vector<scattered_rays_t> scattered_rays;
-}; // class ScatterRecord
+typedef struct ScatterRecord {
+    std::vector<scattered_rays_t> scattered_rays;
+} scatter_record_t; // scatter_record_t
 #endif

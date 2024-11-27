@@ -1,3 +1,5 @@
+#include <omp.h>
+
 #include "camera.h"
 #include "utils.h"
 #include "material.h"
@@ -33,6 +35,8 @@ Camera::Camera(
     inv_samples_sqrt = 1.0/samples_sqrt;
 
     center = lookfrom;
+
+    depth_cutoff = int(max_depth/5);
 
     // camera
     double theta = degs_to_rads(vfov);
@@ -146,7 +150,7 @@ Color Camera::ray_color(const Ray& r, int depth, const Hittable& world, const Hi
     Color color_from_scatter = Color();
     for (const auto& ray_t : srec.scattered_rays) {
         if (ray_t.skip_pdf || ray_t.pdf == nullptr) {
-            color_from_scatter += srec.attenuation * ray_color(ray_t.skip_pdf_ray, depth-10, world, lights);
+            color_from_scatter += ray_t.attenuation * ray_color(ray_t.skip_pdf_ray, depth-depth_cutoff, world, lights);
         } else {
             auto light_ptr = std::make_shared<HittablePDF>(lights, rec.point());
             MixturePDF p(light_ptr, ray_t.pdf);
@@ -155,7 +159,7 @@ Color Camera::ray_color(const Ray& r, int depth, const Hittable& world, const Hi
             double scattering_pdf = rec.material()->scattering_pdf(r,rec,scattered);
             Color sample_color = ray_color(scattered, depth-1, world, lights);
                 
-            color_from_scatter += (srec.attenuation * scattering_pdf * sample_color) / pdf_value;
+            color_from_scatter += (ray_t.attenuation * scattering_pdf * sample_color) / pdf_value;
         }
     }
 
@@ -168,8 +172,8 @@ void Camera::render(const Hittable& world, const Hittable& lights) {
     for (int j=0; j<img_height_val; ++j) {
         std::clog << "\rScanlines remaining: " << (img_height_val - j) << ' ' << std::flush;
         for (int i=0; i<img_width_val; ++i) {
-
             Color pixel_color(0,0,0);
+            #pragma omp parallel for
             for (int s_j = 0; s_j<samples_sqrt; ++s_j) {
                 for (int s_i=0; s_i<samples_sqrt; ++s_i) {
                     Ray r = get_ray(i, j, s_i, s_j);

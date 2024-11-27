@@ -15,7 +15,7 @@ class Material {
         virtual bool scatter(
             const Ray& r_in, 
             const HitRecord& rec, 
-            ScatterRecord& srec) const = 0;
+            scatter_record_t& srec) const = 0;
 
         virtual Color emitted(
             [[maybe_unused]] const Ray& r_int,
@@ -37,16 +37,16 @@ class Lambertian : public Material {
     
     public:
         Lambertian(const Color& albedo, double r = 1.0) : 
-            tex(std::make_shared<SolidColor>(albedo)), r(r) {}
+            tex(std::make_shared<SolidColor>(albedo)), r(std::fmin(r,1.)) {}
         
-        Lambertian(std::shared_ptr<Texture> tex, double r = 1.0) : tex(tex), r(r) {}
+        Lambertian(std::shared_ptr<Texture> tex, double r = 1.0) : tex(tex), r(std::fmin(r,1.)) {}
 
-        void set_reflectance(double refl) { r = refl; }
+        void set_reflectance(double refl) { r = std::fmin(refl,1.); }
 
         bool scatter(
             const Ray& r_in, 
             const HitRecord& rec, 
-            ScatterRecord& srec) const override;
+            scatter_record_t& srec) const override;
 
         double scattering_pdf(
             const Ray& r_in,
@@ -66,7 +66,7 @@ class Metal : public Material {
         bool scatter(
             const Ray& r_in, 
             const HitRecord& rec, 
-            ScatterRecord& srec) const override;
+            scatter_record_t& srec) const override;
 
         double scattering_pdf(
             [[maybe_unused]] const Ray& r_in,
@@ -79,16 +79,17 @@ class Dielectric : public Material {
         // actual refractive index if in vacumm,
         // effective refractive index if embedded in material 
         // eta_eff = eta_material / eta_surrounding
-        double refractive_index;
-        static double reflectance(double cosine, double refractive_index);
+        double eta;
+        double r; // reflectance, r in [0,1]
+        static double reflectance(double cosine, double eta);
     
     public:
-        Dielectric(double eta) : refractive_index(eta) {}
+        Dielectric(double eta, double r=1.) : eta(eta), r(std::fmin(r,1.)) {}
 
         bool scatter(
             const Ray& r_in, 
             const HitRecord& rec, 
-            ScatterRecord& srec) const override;
+            scatter_record_t& srec) const override;
 
         double scattering_pdf(
             [[maybe_unused]] const Ray& r_in,
@@ -109,7 +110,7 @@ class DiffuseLight : public Material {
         bool scatter(
             [[maybe_unused]] const Ray& r_in,
             [[maybe_unused]] const HitRecord& rec,
-            [[maybe_unused]] ScatterRecord& srec) const override {
+            [[maybe_unused]] scatter_record_t& srec) const override {
                 return false;
             }
 
@@ -126,8 +127,6 @@ class DiffuseLight : public Material {
             const Vec3& p) const override;
 }; // class DiffuseLight
 
-
-
 class Isotropic : public Material {
     private:
         std::shared_ptr<Texture> tex;
@@ -139,7 +138,7 @@ class Isotropic : public Material {
         bool scatter(
             const Ray& r_in, 
             const HitRecord& rec, 
-            ScatterRecord& srec) const override;
+            scatter_record_t& srec) const override;
 
         double scattering_pdf(
             [[maybe_unused]] const Ray& r_in,

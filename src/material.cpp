@@ -3,7 +3,7 @@
 bool Lambertian::scatter(
     [[maybe_unused]] const Ray& r_in, 
     const HitRecord& rec, 
-    ScatterRecord& srec) const {
+    scatter_record_t& srec) const {
     
     scattered_rays_t scattered_ray;
 
@@ -12,13 +12,13 @@ bool Lambertian::scatter(
         
         scattered_ray.pdf = std::make_shared<CosinePDF>(rec.normal());
         scattered_ray.skip_pdf = false;
+        scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.point()) * r;
         srec.scattered_rays.push_back(scattered_ray);
-        srec.attenuation = tex->value(rec.u(), rec.v(), rec.point()) * r;
     } else {
         // absorption
-        srec.attenuation = tex->value(rec.u(), rec.v(), rec.point()) * (1-r);
         scattered_ray.pdf = std::make_shared<CosinePDF>(rec.normal());
         scattered_ray.skip_pdf = false;
+        scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.point()) * (1-r);
         srec.scattered_rays.push_back(scattered_ray);
     }
     
@@ -40,7 +40,7 @@ double Lambertian::scattering_pdf(
 bool Metal::scatter(
     const Ray& r_in, 
     const HitRecord& rec, 
-    ScatterRecord& srec) const {
+    scatter_record_t& srec) const {
     
     Vec3 reflected = reflect(r_in.direction(), rec.normal());
     reflected = unit_vector(reflected) + (fuzz * random_unit_vector());
@@ -49,15 +49,15 @@ bool Metal::scatter(
     scattered_ray.pdf = nullptr;
     scattered_ray.skip_pdf = true;
     scattered_ray.skip_pdf_ray = Ray(rec.point(), reflected, r_in.time());
+    scattered_ray.attenuation = albedo;
     srec.scattered_rays.push_back(scattered_ray);
-    srec.attenuation = albedo;
 
     return true;
 }
 
-double Dielectric::reflectance(double cosine, double refractive_index) {
+double Dielectric::reflectance(double cosine, double eta) {
     // schlick apporximation 
-    auto r0 = (1 - refractive_index) / (1 + refractive_index);
+    auto r0 = (1 - eta) / (1 + eta);
     r0 *= r0;
 
     return r0 + (1-r0)*std::pow((1 - cosine), 5);
@@ -66,11 +66,11 @@ double Dielectric::reflectance(double cosine, double refractive_index) {
 bool Dielectric::scatter(
     const Ray& r_in, 
     const HitRecord& rec, 
-    ScatterRecord& srec) const {
+    scatter_record_t& srec) const {
 
-    srec.attenuation = Color(1, 1, 1);
+    auto white = Color(1,1,1);
 
-    double ri = rec.front_face() ? (1./refractive_index) : refractive_index;
+    double ri = rec.front_face() ? (1./eta) : eta;
     Vec3 unit_dir = unit_vector(r_in.direction());
 
     double cos_theta = std::fmin(dot(-unit_dir, rec.normal()), 1.);
@@ -79,6 +79,7 @@ bool Dielectric::scatter(
     // total internal reflection
     bool cannot_refract = ri*sin_theta > 1.0;
     
+    // no transmission
     if (cannot_refract || reflectance(cos_theta, ri) > random_double()) {
         Vec3 direction_reflect;
         scattered_rays_t reflected_ray;
@@ -88,23 +89,48 @@ bool Dielectric::scatter(
         reflected_ray.pdf = nullptr;
         reflected_ray.skip_pdf = true;
         reflected_ray.skip_pdf_ray = Ray(rec.point(), direction_reflect, r_in.time());
+
+        // fresnel formulas
+        double cos_theta_out = std::fmin(1., dot(rec.normal(), direction_reflect));
+        double fr_perp = cos_theta_out - eta*cos_theta / (cos_theta_out + eta*cos_theta);
+        fr_perp *= fr_perp;
+
+        double fr_par = eta*cos_theta - cos_theta_out / (eta*cos_theta + cos_theta_out);
+        fr_par *= fr_par;
+
+        double fr = 0.5*(fr_par + fr_perp);
+
+        reflected_ray.attenuation = white * fr;
         srec.scattered_rays.push_back(reflected_ray);
     } else {
         Vec3 direction_reflect, direction_refract;
         scattered_rays_t reflected_ray, refracted_ray;
 
-        direction_refract = refract(unit_dir, rec.normal(), ri);
         direction_reflect = reflect(unit_dir, rec.normal());
+        direction_refract = refract(unit_dir, rec.normal(), ri);
 
         reflected_ray.skip_pdf = true;
         refracted_ray.skip_pdf = true;
 
         reflected_ray.skip_pdf_ray = Ray(rec.point(), direction_reflect, r_in.time());
         refracted_ray.skip_pdf_ray = Ray(rec.point(), direction_refract, r_in.time());
+
+        // fresnel formulas
+        double cos_theta_out = std::fmin(1., dot(rec.normal(), direction_reflect));
+        double fr_perp = cos_theta_out - eta*cos_theta / (cos_theta_out + eta*cos_theta);
+        fr_perp *= fr_perp;
+
+        double fr_par = eta*cos_theta - cos_theta_out / (eta*cos_theta + cos_theta_out);
+        fr_par *= fr_par;
+
+        double fr = 0.5*(fr_par + fr_perp);
+        double ft = 1 - fr;
+
+        reflected_ray.attenuation = white * fr;
+        refracted_ray.attenuation = white * ft;
         
         srec.scattered_rays.push_back(reflected_ray);
         srec.scattered_rays.push_back(refracted_ray);
-        
     }
 
     return true;
@@ -128,13 +154,12 @@ Color DiffuseLight::emitted(
 bool Isotropic::scatter(
     [[maybe_unused]] const Ray& r_in, 
     const HitRecord& rec, 
-    ScatterRecord& srec) const {
-
-    srec.attenuation = tex->value(rec.u(), rec.v(), rec.normal());
+    scatter_record_t& srec) const {
 
     scattered_rays_t scattered_ray;
     scattered_ray.pdf = std::make_shared<SpherePDF>();
     scattered_ray.skip_pdf = false;
+    scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.normal());
     srec.scattered_rays.push_back(scattered_ray);
 
     return true;
