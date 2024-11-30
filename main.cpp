@@ -151,7 +151,7 @@ void cornell_box()
     world.add(box1);
     // world.add(box2);
 
-    auto glass = std::make_shared<Dielectric>(1.5, 0.9);
+    auto glass = std::make_shared<Dielectric>(1.5);
     world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, glass));
 
     auto empty_mat = std::shared_ptr<Material>();
@@ -175,11 +175,11 @@ void test2()
 
     world.add(std::make_shared<Sphere>(Vec3(0, 0, 0), 0.5, center));
     world.add(std::make_shared<Sphere>(Vec3(0, -100.5, -1), 100, ground));
-    world.add(std::make_shared<Quad>(Vec3(0.5, 1, 0.5), Vec3(-0.5, 0, 0), Vec3(0, 0, -0.5), light));
+    world.add(std::make_shared<Quad>(Vec3(0.5, 4, 0.5), Vec3(-0.5, 0, 0), Vec3(0, 0, -0.5), light));
 
     HittableList lights;
     auto empty = std::shared_ptr<Material>();
-    lights.add(std::make_shared<Quad>(Vec3(0.5, 1, 0.5), Vec3(-0.5, 0, 0), Vec3(0, 0, -0.5), empty));
+    lights.add(std::make_shared<Quad>(Vec3(0.5, 4, 0.5), Vec3(-0.5, 0, 0), Vec3(0, 0, -0.5), empty));
     lights.add(std::make_shared<Sphere>(Vec3(0, 0, 0), 0.5, empty));
     lights.add(std::make_shared<Sphere>(Vec3(0, -100.5, -1), 100, empty));
 
@@ -189,8 +189,10 @@ void test2()
     cam.render(world, lights);
 }
 
+
+
 int main()
 {
 
-    cornell_box();
+    test2();
 }
