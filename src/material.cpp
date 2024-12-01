@@ -173,16 +173,25 @@ double Isotropic::scattering_pdf(
 }
 
 bool Phong::scatter(
-    const Ray& r_in, 
+    [[maybe_unused]] const Ray& r_in, 
     const HitRecord& rec, 
     scatter_record_t& srec) const {
     
     scattered_rays_t scattered_ray;
-    Vec3 reflected = reflect(r_in.direction(), rec.normal());
     scattered_ray.pdf = std::make_shared<PhongPDF>(rec.normal(), _kd, _ks, _n);
     scattered_ray.skip_pdf = false;
     scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.normal());
     srec.scattered_rays.push_back(scattered_ray);
 
     return true;
+}
+
+double Phong::scattering_pdf(
+    [[maybe_unused]] const Ray& r_in,
+    [[maybe_unused]] const HitRecord& rec,
+    [[maybe_unused]] const Ray& scattered) const {
+
+    auto cos_theta = dot(rec.normal(), unit_vector(scattered.direction()));
+
+    return cos_theta < 0 ? 0 : cos_theta/pi;
 }

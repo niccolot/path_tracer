@@ -148,20 +148,34 @@ class Isotropic : public Material {
 
 class Phong : public Material {
     private:
-        double _kd = 0.8; // phong model diffuse constant
-        double _ks = 0.2; // phong model specular constant
-        int _n = 10; // phong model exponent
-        //Color _color;
         std::shared_ptr<Texture> tex;
 
+        // kd+ks <= 1
+        double _kd; // phong model diffuse constant
+        double _ks; // phong model specular constant
+        int _n; // phong model exponent
+        
     public:
-        Phong(const Color& albedo) : tex(std::make_shared<SolidColor>(albedo)) {}
-        Phong(std::shared_ptr<Texture> tex) : tex(tex) {}
+        Phong(
+            std::shared_ptr<Texture> tex,
+            double kd = 0.2,
+            double ks = 0.8,
+            int n = 10) : 
+                tex(tex),
+                _kd(kd),
+                _ks(ks),
+                _n(n) {}
+
+        Phong(
+            const Color& albedo,
+            double kd = 0.2,
+            double ks = 0.8,
+            int n = 10) : Phong(std::make_shared<SolidColor>(albedo), kd, ks, n) {}
         
         void set_n(int n) {_n = n; }
         void set_kd(double kd) { 
             _kd = kd;
-            _ks = 1 - kd;  
+            _ks = 1. - kd;  
         }
 
         bool scatter(

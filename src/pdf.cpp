@@ -49,3 +49,17 @@ double PhongPDF::value(
 
     return _ks*specular + _kd*reflection;
 }  
+
+Vec3 PhongPDF::generate() const {
+    /*
+    auto r = random_double();
+    if (r < _kd) {
+        return uvw.transform(random_cosine_direction());
+    } else if (_kd <= r && r < _kd+_ks) {
+        return uvw.transform(random_phong_direction(_n));
+    } else {
+        return Vec3();
+    }
+    */
+    return uvw.transform(random_cosine_direction());
+}
