@@ -171,3 +171,18 @@ double Isotropic::scattering_pdf(
 
     return 1 / (4*pi);
 }
+
+bool Phong::scatter(
+    const Ray& r_in, 
+    const HitRecord& rec, 
+    scatter_record_t& srec) const {
+    
+    scattered_rays_t scattered_ray;
+    Vec3 reflected = reflect(r_in.direction(), rec.normal());
+    scattered_ray.pdf = std::make_shared<PhongPDF>(rec.normal(), _kd, _ks, _n);
+    scattered_ray.skip_pdf = false;
+    scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.normal());
+    srec.scattered_rays.push_back(scattered_ray);
+
+    return true;
+}

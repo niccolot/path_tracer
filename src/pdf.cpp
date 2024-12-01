@@ -1,17 +1,17 @@
 #include "pdf.h"
 
 double MixturePDF::value(
-    const Vec3& direction,
-    [[maybe_unused]] const Vec3& r_out) const {
+    const Vec3& direction_out,
+    [[maybe_unused]] const Vec3& direction_in) const {
     double v0{};
     double v1{};
     
     if (p[0] != nullptr) {
-        v0 = p[0]->value(direction, r_out);
+        v0 = p[0]->value(direction_out, direction_in);
     }
 
     if (p[1] != nullptr) {
-        v1 = p[1]->value(direction, r_out);
+        v1 = p[1]->value(direction_out, direction_in);
     } 
 
     return 0.5 * v0 + 0.5 * v1;
@@ -39,8 +39,13 @@ Vec3 MixturePDF::generate() const {
 }
 
 double PhongPDF::value(
-    const Vec3& direction,
-    const Vec3& r_out) const {
+    const Vec3& direction_out,
+    const Vec3& direction_in) const {
     
-    
+    auto cos_theta = dot(unit_vector(direction_out), uvw.w());
+    auto reflection = std::fmax(0, cos_theta/pi);
+    auto R = reflect(direction_in, uvw.w());
+    auto specular = std::pow(dot(R, direction_in), _n);
+
+    return _ks*specular + _kd*reflection;
 }  

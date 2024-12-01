@@ -155,7 +155,7 @@ Color Camera::ray_color(const Ray& r, int depth, const Hittable& world, const Hi
             auto light_ptr = std::make_shared<HittablePDF>(lights, rec.point());
             MixturePDF p(light_ptr, ray_t.pdf);
             Ray scattered = Ray(rec.point(), p.generate(), r.time());
-            auto pdf_value = p.value(scattered.direction());
+            auto pdf_value = p.value(scattered.direction(), r.direction());
             double scattering_pdf = rec.material()->scattering_pdf(r,rec,scattered);
             Color sample_color = ray_color(scattered, depth-1, world, lights);
                 

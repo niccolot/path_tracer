@@ -182,6 +182,10 @@ inline Vec3 random_cosine_direction() {
     return Vec3(x,y,z);
 }
 
+inline Vec3 random_phong_direction(int n) {
+    
+}
+
 inline Vec3 reflect(const Vec3& v, const Vec3& n) {
     /**
      * @brief returns the perfectly reflected vector

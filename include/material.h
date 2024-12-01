@@ -85,7 +85,6 @@ class Dielectric : public Material {
     
     public:
         Dielectric(double eta, const Color& color = Color(1,1,1)) : eta(eta), _color(color) {}
-        //Dielectric(double eta, Color&& color = Color(1,1,1)) : eta(eta), _color(std::move(color)) {}
 
         bool scatter(
             const Ray& r_in, 
@@ -152,12 +151,12 @@ class Phong : public Material {
         double _kd = 0.8; // phong model diffuse constant
         double _ks = 0.2; // phong model specular constant
         int _n = 10; // phong model exponent
-        Color _color;
+        //Color _color;
+        std::shared_ptr<Texture> tex;
 
     public:
-        Phong(const Color& color) : _color(color) {}
-
-        friend class PhongPDF;
+        Phong(const Color& albedo) : tex(std::make_shared<SolidColor>(albedo)) {}
+        Phong(std::shared_ptr<Texture> tex) : tex(tex) {}
         
         void set_n(int n) {_n = n; }
         void set_kd(double kd) { 
