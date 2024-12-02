@@ -30,6 +30,7 @@ class Camera {
         double pixel_samples_scale;
         int max_depth; // max number of ray bounces
         int depth_cutoff; // for limiting the amount of splitted refrected/reflected rays
+        Vec3 vdir; // view direction
         Vec3 vup; // camera-relative 'up' direction
         Vec3 u, v, w; // camera frame basis vectors
         Vec3 defocus_disk_u;

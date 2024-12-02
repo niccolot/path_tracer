@@ -9,7 +9,10 @@ class PDF {
     public:
         virtual ~PDF() {}
 
-        virtual double value(const Vec3& direction_out, const Vec3& direction_in) const = 0;
+        virtual double value(
+            const Vec3& direction_out, 
+            const Vec3& direction_in,
+            const Vec3& direction_view) const = 0;
         virtual Vec3 generate() const = 0;
 }; // class PDF
 
@@ -25,7 +28,8 @@ class MixturePDF : public PDF {
 
         double value(
             const Vec3& direction_out, 
-            [[maybe_unused]] const Vec3& direction_in) const override;
+            [[maybe_unused]] const Vec3& direction_in,
+            [[maybe_unused]] const Vec3& direction_view) const override;
         
         Vec3 generate() const override;
 }; // class MixturePDF
@@ -36,7 +40,8 @@ class SpherePDF : public PDF {
 
         double value(
             [[maybe_unused]] const Vec3& direction_out, 
-            [[maybe_unused]] const Vec3& direction_in) const override {
+            [[maybe_unused]] const Vec3& direction_in,
+            [[maybe_unused]] const Vec3& direction_view) const override {
             return 1 / (4*pi);
         }
 
@@ -54,7 +59,8 @@ class CosinePDF : public PDF {
 
         double value(
             const Vec3& direction_out, 
-            [[maybe_unused]] const Vec3& direction_in) const override {
+            [[maybe_unused]] const Vec3& direction_in,
+            [[maybe_unused]] const Vec3& direction_view) const override {
 
             auto cos_theta = dot(unit_vector(direction_out), uvw.w());
             
@@ -77,7 +83,9 @@ class HittablePDF : public PDF {
         
         double value(
             const Vec3& direction_out,
-            [[maybe_unused]] const Vec3& direction_in = Vec3()) const override {
+            [[maybe_unused]] const Vec3& direction_in,
+            [[maybe_unused]] const Vec3& direction_view) const override {
+
             return objects.pdf_value(origin, direction_out);
         }
 
@@ -98,7 +106,8 @@ class PhongPDF : public PDF {
 
         double value(
             const Vec3& direction_out,
-            const Vec3& direction_in) const override;
+            const Vec3& direction_in,
+            const Vec3& direction_view) const override;
         
         Vec3 generate() const override;
 }; // class PhongPDF

@@ -2,16 +2,18 @@
 
 double MixturePDF::value(
     const Vec3& direction_out,
-    [[maybe_unused]] const Vec3& direction_in) const {
+    const Vec3& direction_in,
+    const Vec3& direction_view) const {
+    
     double v0{};
     double v1{};
     
     if (p[0] != nullptr) {
-        v0 = p[0]->value(direction_out, direction_in);
+        v0 = p[0]->value(direction_out, direction_in, direction_view);
     }
 
     if (p[1] != nullptr) {
-        v1 = p[1]->value(direction_out, direction_in);
+        v1 = p[1]->value(direction_out, direction_in, direction_view);
     } 
 
     return 0.5 * v0 + 0.5 * v1;
@@ -40,26 +42,24 @@ Vec3 MixturePDF::generate() const {
 
 double PhongPDF::value(
     const Vec3& direction_out,
-    const Vec3& direction_in) const {
+    const Vec3& direction_in,
+    const Vec3& direction_view) const {
     
     auto cos_theta = dot(unit_vector(direction_out), uvw.w());
     auto reflection = std::fmax(0, cos_theta/pi);
     auto R = reflect(direction_in, uvw.w());
-    auto specular = std::pow(dot(R, direction_in), _n);
+    auto specular = std::pow(dot(-R, -direction_view), _n);
 
     return _ks*specular + _kd*reflection;
 }  
 
 Vec3 PhongPDF::generate() const {
-    /*
     auto r = random_double();
     if (r < _kd) {
         return uvw.transform(random_cosine_direction());
-    } else if (_kd <= r && r < _kd+_ks) {
+    } else if (_kd <= r && r < _kd + _ks) {
         return uvw.transform(random_phong_direction(_n));
     } else {
         return Vec3();
     }
-    */
-    return uvw.transform(random_cosine_direction());
 }

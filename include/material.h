@@ -27,7 +27,8 @@ class Material {
         virtual double scattering_pdf(
             const Ray& r_in,
             const HitRecord& rec,
-            const Ray& scattered) const = 0;
+            const Ray& scattered,
+            const Vec3& vdir) const = 0;
 }; //class Material 
 
 class Lambertian : public Material {
@@ -51,7 +52,8 @@ class Lambertian : public Material {
         double scattering_pdf(
             const Ray& r_in,
             const HitRecord& rec,
-            const Ray& scattered) const override;
+            const Ray& scattered,
+            [[maybe_unused]] const Vec3& vdir) const override;
 }; // class Lambertian
 
 class Metal : public Material {
@@ -71,7 +73,8 @@ class Metal : public Material {
         double scattering_pdf(
             [[maybe_unused]] const Ray& r_in,
             [[maybe_unused]] const HitRecord& rec,
-            [[maybe_unused]] const Ray& scattered) const { return 0; }
+            [[maybe_unused]] const Ray& scattered,
+            [[maybe_unused]] const Vec3& vdir) const { return 0; }
 }; // class Metal 
 
 class Dielectric : public Material {
@@ -94,7 +97,8 @@ class Dielectric : public Material {
         double scattering_pdf(
             [[maybe_unused]] const Ray& r_in,
             [[maybe_unused]] const HitRecord& rec,
-            [[maybe_unused]] const Ray& scattered) const { return 0; }
+            [[maybe_unused]] const Ray& scattered,
+            [[maybe_unused]] const Vec3& vdir) const { return 0; }
 }; // class Dielectric
 
 
@@ -117,7 +121,8 @@ class DiffuseLight : public Material {
         double scattering_pdf(
             [[maybe_unused]] const Ray& r_in,
             [[maybe_unused]] const HitRecord& rec,
-            [[maybe_unused]] const Ray& scattered) const { return 0; }
+            [[maybe_unused]] const Ray& scattered,
+            [[maybe_unused]] const Vec3& vdir) const { return 0; }
 
         Color emitted(
             [[maybe_unused]] const Ray& r_int,
@@ -143,7 +148,8 @@ class Isotropic : public Material {
         double scattering_pdf(
             [[maybe_unused]] const Ray& r_in,
             [[maybe_unused]] const HitRecord& rec,
-            [[maybe_unused]] const Ray& scattered) const override;
+            [[maybe_unused]] const Ray& scattered,
+            [[maybe_unused]] const Vec3& vdir) const override;
 }; //class Isotropic
 
 class Phong : public Material {
@@ -184,8 +190,9 @@ class Phong : public Material {
             scatter_record_t& srec) const override;
 
         double scattering_pdf(
-            [[maybe_unused]] const Ray& r_in,
-            [[maybe_unused]] const HitRecord& rec,
-            [[maybe_unused]] const Ray& scattered) const override;        
+            const Ray& r_in,
+            const HitRecord& rec,
+            const Ray& scattered,
+            const Vec3& vdir) const override;        
 }; // class Phong
 #endif

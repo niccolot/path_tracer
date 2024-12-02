@@ -27,7 +27,8 @@ bool Lambertian::scatter(
 double Lambertian::scattering_pdf(
     [[maybe_unused]] const Ray& r_in,
     const HitRecord& rec,
-    const Ray& scattered) const {
+    const Ray& scattered,
+    [[maybe_unused]] const Vec3& vdir) const {
     /**
      * @brief cosine distribution for lambertian materials
      */
@@ -167,7 +168,8 @@ bool Isotropic::scatter(
 double Isotropic::scattering_pdf(
     [[maybe_unused]] const Ray& r_in, 
     [[maybe_unused]] const HitRecord& rec,
-    [[maybe_unused]] const Ray& scattered) const {
+    [[maybe_unused]] const Ray& scattered,
+    [[maybe_unused]] const Vec3& vdir) const {
 
     return 1 / (4*pi);
 }
@@ -187,11 +189,15 @@ bool Phong::scatter(
 }
 
 double Phong::scattering_pdf(
-    [[maybe_unused]] const Ray& r_in,
-    [[maybe_unused]] const HitRecord& rec,
-    [[maybe_unused]] const Ray& scattered) const {
+    const Ray& r_in,
+    const HitRecord& rec,
+    const Ray& scattered,
+    const Vec3& vdir) const {
 
     auto cos_theta = dot(rec.normal(), unit_vector(scattered.direction()));
+    auto reflection = std::fmax(0, cos_theta/pi);
+    auto R = reflect(r_in.direction(), rec.normal());
+    auto specular = std::pow(dot(-R, -vdir), _n);
 
-    return cos_theta < 0 ? 0 : cos_theta/pi;
+    return _ks*specular + _kd*reflection;
 }
