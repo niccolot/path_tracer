@@ -180,9 +180,10 @@ bool Phong::scatter(
     scatter_record_t& srec) const {
     
     scattered_rays_t scattered_ray;
-    scattered_ray.pdf = std::make_shared<PhongPDF>(rec.normal(), _kd, _ks, _n);
+    //scattered_ray.pdf = std::make_shared<PhongPDF>(rec.normal(), _kd, _ks, _n);
+    scattered_ray.pdf = std::make_shared<CosinePDF>(rec.normal());
     scattered_ray.skip_pdf = false;
-    scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.normal());
+    scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.point());
     srec.scattered_rays.push_back(scattered_ray);
 
     return true;
@@ -199,5 +200,6 @@ double Phong::scattering_pdf(
     auto R = reflect(r_in.direction(), rec.normal());
     auto specular = std::pow(dot(-R, -vdir), _n);
 
-    return _ks*specular + _kd*reflection;
+    //return _ks*specular + _kd*reflection;
+    return reflection;
 }

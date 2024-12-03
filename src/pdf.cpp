@@ -44,16 +44,20 @@ double PhongPDF::value(
     const Vec3& direction_out,
     const Vec3& direction_in,
     const Vec3& direction_view) const {
-    
+    /*
     auto cos_theta = dot(unit_vector(direction_out), uvw.w());
     auto reflection = std::fmax(0, cos_theta/pi);
     auto R = reflect(direction_in, uvw.w());
     auto specular = std::pow(dot(-R, -direction_view), _n);
 
     return _ks*specular + _kd*reflection;
+    */
+    auto cos_theta = dot(unit_vector(direction_out), uvw.w());
+    return std::fmax(0, cos_theta/pi);
 }  
 
 Vec3 PhongPDF::generate() const {
+    /*
     auto r = random_double();
     if (r < _kd) {
         return uvw.transform(random_cosine_direction());
@@ -62,4 +66,6 @@ Vec3 PhongPDF::generate() const {
     } else {
         return Vec3();
     }
+    */
+    return uvw.transform(random_cosine_direction());
 }

@@ -156,7 +156,7 @@ class Phong : public Material {
     private:
         std::shared_ptr<Texture> tex;
 
-        // kd+ks <= 1
+        // must have kd+ks <= 1
         double _kd; // phong model diffuse constant
         double _ks; // phong model specular constant
         int _n; // phong model exponent
