@@ -6,7 +6,7 @@ Sphere::Sphere(
     std::shared_ptr<Material> mat) : 
     
     center(static_center, Vec3()), 
-    radius(radius), 
+    radius(std::fmax(0., radius)), 
     mat(mat) {
     
     auto rvec = Vec3(radius, radius, radius);
@@ -20,7 +20,7 @@ Sphere::Sphere(
     std::shared_ptr<Material> mat) :
 
     center(center1, center2 - center1),
-    radius(radius),
+    radius(std::fmax(0., radius)),
     mat(mat) {
 
     auto rvec = Vec3(radius, radius, radius);

@@ -1,5 +1,3 @@
-#include <omp.h>
-
 #include "camera.h"
 #include "utils.h"
 #include "material.h"
@@ -36,13 +34,11 @@ Camera::Camera(
 
     center = lookfrom;
 
-    vdir = lookat - lookfrom;
-
     depth_cutoff = int(max_depth/5);
 
     // camera
     double theta = degs_to_rads(vfov);
-    double h = std::tan(theta/2);
+    double h = std::tan(theta * 0.5);
     
     // up direction in the camera frame, change from global y direction for tiltable camera
     vup = Vec3(0,1,0); 
@@ -72,7 +68,7 @@ Camera::Camera(
     pixel00_loc = viewport_upper_left + 0.5*(pixel_delta_u + pixel_delta_v);
 
     // defocus blur
-    auto defocus_radius = focus_dist * std::tan(degs_to_rads(defocus_angle/2));
+    auto defocus_radius = focus_dist * std::tan(degs_to_rads(defocus_angle * 0.5));
     defocus_disk_u = u * defocus_radius;
     defocus_disk_v = v * defocus_radius;
 
@@ -112,8 +108,8 @@ void Camera::write_color(std::ostream& out, const Color& pixel_color) {
     // since for every NaN, NaN != NaN
     // this suppresses the NaNs
     if (r != r) r = 0.;
-    if (g != g) r = 0.;
-    if (b != b) r = 0.;
+    if (g != g) g = 0.;
+    if (b != b) b = 0.;
 
     r = linear_to_gamma(r);
     g = linear_to_gamma(g);
@@ -127,7 +123,7 @@ void Camera::write_color(std::ostream& out, const Color& pixel_color) {
     out << r_byte << ' ' << g_byte << ' ' << b_byte << '\n';
 }
 
-Color Camera::ray_color(const Ray& r, int depth, const Hittable& world, const Hittable& lights) {
+Color Camera::ray_color(const Ray& r, int depth, const Hittable& world, const Hittable& lights) const {
     if (depth <= 0) {
         // no light returned after too many bounces
         return Color(0, 0, 0);
@@ -157,8 +153,9 @@ Color Camera::ray_color(const Ray& r, int depth, const Hittable& world, const Hi
             auto light_ptr = std::make_shared<HittablePDF>(lights, rec.point());
             MixturePDF p(light_ptr, ray_t.pdf);
             Ray scattered = Ray(rec.point(), p.generate(), r.time());
-            auto pdf_value = p.value(scattered.direction(), r.direction(), vdir);
-            double scattering_pdf = rec.material()->scattering_pdf(r,rec,scattered, vdir);
+            double pdf_value = p.value(scattered.direction(), r.direction(), -w);
+            //std::cerr << pdf_value << '\n';
+            double scattering_pdf = rec.material()->scattering_pdf(r, rec, scattered, -w);
             Color sample_color = ray_color(scattered, depth-1, world, lights);
                 
             color_from_scatter += (ray_t.attenuation * scattering_pdf * sample_color) / pdf_value;
@@ -175,7 +172,6 @@ void Camera::render(const Hittable& world, const Hittable& lights) {
         std::clog << "\rScanlines remaining: " << (img_height_val - j) << ' ' << std::flush;
         for (int i=0; i<img_width_val; ++i) {
             Color pixel_color(0,0,0);
-            #pragma omp parallel for
             for (int s_j = 0; s_j<samples_sqrt; ++s_j) {
                 for (int s_i=0; s_i<samples_sqrt; ++s_i) {
                     Ray r = get_ray(i, j, s_i, s_j);
@@ -202,9 +198,7 @@ Vec3 Camera::sample_square_stratified(int s_i, int s_j) const {
     /**
      * @brief returns the vector to a random point in the square
      * subpixel specified by grid indices (s_i, s_j) for an 
-     * idealized unit square pixel [-0.5, -0.5] x [0.5, 0.5]
-     * 
-     * @param inv_samples_sqrt 1/(sqrt(samples per pixel))
+     * idealized unit square pixel [-0.5, -0.5] x [0.5, 0.5] 
      */
 
     auto px = ((s_i + random_double()) * inv_samples_sqrt) - 0.5;

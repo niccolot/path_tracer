@@ -6,18 +6,18 @@ bool Lambertian::scatter(
     scatter_record_t& srec) const {
     
     scattered_rays_t scattered_ray;
-
+    
     // more reflection
     if (random_double() < r) {
+        scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.point()) * r;
         scattered_ray.pdf = std::make_shared<CosinePDF>(rec.normal());
         scattered_ray.skip_pdf = false;
-        scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.point()) * r;
         srec.scattered_rays.push_back(scattered_ray);
     } else {
         // more absorption
+        scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.point()) * (1-r);
         scattered_ray.pdf = std::make_shared<CosinePDF>(rec.normal());
         scattered_ray.skip_pdf = false;
-        scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.point()) * (1-r);
         srec.scattered_rays.push_back(scattered_ray);
     }
     
@@ -180,8 +180,7 @@ bool Phong::scatter(
     scatter_record_t& srec) const {
     
     scattered_rays_t scattered_ray;
-    //scattered_ray.pdf = std::make_shared<PhongPDF>(rec.normal(), _kd, _ks, _n);
-    scattered_ray.pdf = std::make_shared<CosinePDF>(rec.normal());
+    scattered_ray.pdf = std::make_shared<PhongPDF>(rec.normal(), _kd, _ks, _n);
     scattered_ray.skip_pdf = false;
     scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.point());
     srec.scattered_rays.push_back(scattered_ray);
@@ -197,9 +196,8 @@ double Phong::scattering_pdf(
 
     auto cos_theta = dot(rec.normal(), unit_vector(scattered.direction()));
     auto reflection = std::fmax(0, cos_theta/pi);
-    auto R = reflect(r_in.direction(), rec.normal());
-    auto specular = std::pow(dot(-R, -vdir), _n);
+    auto R = reflect(unit_vector(r_in.direction()), rec.normal());
+    auto specular = std::pow(dot(unit_vector(-R), unit_vector(-vdir)), _n);
 
-    //return _ks*specular + _kd*reflection;
-    return reflection;
+    return _ks*specular + _kd*reflection;
 }

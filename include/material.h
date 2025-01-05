@@ -45,12 +45,12 @@ class Lambertian : public Material {
         void set_reflectance(double refl) { r = std::fmin(refl,1.); }
 
         bool scatter(
-            const Ray& r_in, 
+            [[maybe_unused]] const Ray& r_in, 
             const HitRecord& rec, 
             scatter_record_t& srec) const override;
 
         double scattering_pdf(
-            const Ray& r_in,
+            [[maybe_unused]] const Ray& r_in,
             const HitRecord& rec,
             const Ray& scattered,
             [[maybe_unused]] const Vec3& vdir) const override;

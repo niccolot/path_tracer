@@ -13,6 +13,7 @@ class PDF {
             const Vec3& direction_out, 
             const Vec3& direction_in,
             const Vec3& direction_view) const = 0;
+            
         virtual Vec3 generate() const = 0;
 }; // class PDF
 
@@ -42,6 +43,7 @@ class SpherePDF : public PDF {
             [[maybe_unused]] const Vec3& direction_out, 
             [[maybe_unused]] const Vec3& direction_in,
             [[maybe_unused]] const Vec3& direction_view) const override {
+                
             return 1 / (4*pi);
         }
 

@@ -14,20 +14,21 @@ void test()
 {
     HittableList world;
     auto ground = std::make_shared<Lambertian>(Color(0.8, 0.5, 0.0), 1);
+    //auto ground = std::make_shared<Dielectric>(1.5, Color(0.8, 0.5, 0.0));
     auto center = std::make_shared<Dielectric>(1.5);
     auto light = std::make_shared<DiffuseLight>(Color(20, 20, 20));
 
     world.add(std::make_shared<Sphere>(Vec3(0, 0, 0), 0.5, center));
-    world.add(std::make_shared<Sphere>(Vec3(0, -100.5, 3), 1000, ground));
+    world.add(std::make_shared<Sphere>(Vec3(0, -100.5, 3), 100, ground));
     world.add(std::make_shared<Quad>(Vec3(0.5, 5, 0.5), Vec3(-0.5, 0, 0), Vec3(0, 0, -0.5), light));
 
     HittableList lights;
     auto empty = std::shared_ptr<Material>();
     lights.add(std::make_shared<Quad>(Vec3(0.5, 5, 0.5), Vec3(-0.5, 0, 0), Vec3(0, 0, -0.5), empty));
     lights.add(std::make_shared<Sphere>(Vec3(0, 0, 0), 0.5, empty));
-    lights.add(std::make_shared<Sphere>(Vec3(0, -100.5, -1), 1000, empty));
+    lights.add(std::make_shared<Sphere>(Vec3(0, -100.5, -1), 100, empty));
 
-    Camera cam(400, 16. / 9., Vec3(0, 2, 3), Vec3(0, 0, 0), 90, 10, 0, 500);
+    Camera cam(400, 16. / 9., Vec3(0, 0, 1), Vec3(0, 0, 0), 90, 10, 0, 50);
     cam.render(world, lights);
 }
 
@@ -70,7 +71,7 @@ void testpir()
     // Image
     const int image_width = 400;
     const double aspect_ratio = 16.0 / 9.0;
-    const int samples_per_pixel = 50;
+    const int samples_per_pixel = 500;
     const int max_depth = 50;
 
     // World setup
@@ -93,12 +94,17 @@ void testpir()
     auto pyramid_t = triangle_pyramid(pyramid_base_t, pyramid_height, pyramid_material);
     auto pyramid_q = quad_pyramid(pyramid_base_q, pyramid_height, pyramid_material);
 
-    world.add(pyramid_q);
-    // world.add(pyramid_q);
-    //  Lights (can be added here if needed)
+    //world.add(pyramid_q);
+    auto center = std::make_shared<Lambertian>(Color(0.8, 0.1, 0.1));
+    world.add(std::make_shared<Sphere>(Vec3(0, 1, 0), 0.5, center));
+    world.add(std::make_shared<Sphere>(Vec3(0, -100, 3), 100, ground_material));
+   
     HittableList lights;
+    auto light = std::make_shared<DiffuseLight>(Color(20, 20, 20));
+    world.add(std::make_shared<Quad>(Vec3(0.5, 5, 0.5), Vec3(-0.5, 0, 0), Vec3(0, 0, -0.5), light));
     auto empty = std::shared_ptr<Material>();
-    lights.add(std::make_shared<Triangle>(Vec3(0.5, 20, 0.5), Vec3(-0.5, 0, 0), Vec3(0, 0, -0.5), empty));
+    lights.add(std::make_shared<Quad>(Vec3(0.5, 5, 0.5), Vec3(-0.5, 0, 0), Vec3(0, 0, -0.5), empty));
+    lights.add(std::make_shared<Sphere>(Vec3(0, 1, 0), 0.5, empty));
 
     // Camera setup
     Vec3 lookfrom(5.5, 1, -2.5); // Camera position
@@ -145,23 +151,24 @@ void cornell_box()
 
     box1 = std::make_shared<RotateY>(box1, 15);
     box1 = std::make_shared<Translate>(box1, Vec3(265, 0, 265));
-    // box2 = std::make_shared<RotateY>(box2, -18);
-    // box2 = std::make_shared<Translate>(box2, Vec3(130,0,65));
+    box2 = std::make_shared<RotateY>(box2, -18);
+    box2 = std::make_shared<Translate>(box2, Vec3(130,0,65));
 
     world.add(box1);
-    // world.add(box2);
+    //world.add(box2);
 
-    auto glass = std::make_shared<Dielectric>(1.5, Color(0,0,1));
-    world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, glass));
+    auto glass = std::make_shared<Dielectric>(1.5);
+    //world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, glass));
+    auto phong = std::make_shared<Lambertian>(Color(0.8, 0.3, 0.4));
+    world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, phong));
+    //world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, white));
 
     auto empty_mat = std::shared_ptr<Material>();
     HittableList lights;
-    lights.add(
-        std::make_shared<Quad>(Vec3(213, 554, 227), Vec3(130, 0, 0), Vec3(0, 0, 105), empty_mat));
+    lights.add(std::make_shared<Quad>(Vec3(213, 554, 227), Vec3(130, 0, 0), Vec3(0, 0, 105), empty_mat));
     lights.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, empty_mat));
-    // Quad light(Vec3(343,554,332), Vec3(-130,0,0), Vec3(0,0,-105), empty_mat);
 
-    Camera cam(400, 1., Vec3(278, 278, -800), Vec3(278, 278, 0), 40, 10, 0, 500, 50);
+    Camera cam(400, 1., Vec3(278, 278, -800), Vec3(278, 278, 0), 40, 10, 0, 1000, 50);
     cam.set_background(Color(0, 0, 0));
     cam.render(world, lights);
 }
@@ -170,7 +177,7 @@ void test2()
 {
     HittableList world;
     auto ground = std::make_shared<Lambertian>(Color(0.8, 0.5, 0.0));
-    auto center = std::make_shared<Lambertian>(Color(0.8,0.1,0.2));
+    auto center = std::make_shared<Phong>(Color(0.8,0.1,0.2), 0.5, 0.5, 5);
     //auto center = std::make_shared<Dielectric>(1.5);
     auto light = std::make_shared<DiffuseLight>(Color(20, 20, 20));
 
@@ -181,10 +188,10 @@ void test2()
     HittableList lights;
     auto empty = std::shared_ptr<Material>();
     lights.add(std::make_shared<Quad>(Vec3(0.5, 1, 0.5), Vec3(-0.5, 0, 0), Vec3(0, 0, -0.5), empty));
-    lights.add(std::make_shared<Sphere>(Vec3(0, 0, 0), 0.5, empty));
+    //lights.add(std::make_shared<Sphere>(Vec3(0, 0, 0), 0.5, empty));
     lights.add(std::make_shared<Sphere>(Vec3(0, -100.5, -1), 100, empty));
 
-    Camera cam(400, 16. / 9., Vec3(0, 1, 3), Vec3(0, 0, 0), 90, 10, 0, 1000);
+    Camera cam(400, 16. / 9., Vec3(0, 1, 3), Vec3(0, 0, 0), 90, 10, 0, 500);
     auto bg = Color(0, 0, 0);
     cam.set_background(bg);
     cam.render(world, lights);
@@ -193,5 +200,5 @@ void test2()
 int main()
 {
 
-    test2();
+    cornell_box();
 }

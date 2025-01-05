@@ -30,7 +30,6 @@ class Camera {
         double pixel_samples_scale;
         int max_depth; // max number of ray bounces
         int depth_cutoff; // for limiting the amount of splitted refrected/reflected rays
-        Vec3 vdir; // view direction
         Vec3 vup; // camera-relative 'up' direction
         Vec3 u, v, w; // camera frame basis vectors
         Vec3 defocus_disk_u;
@@ -46,7 +45,7 @@ class Camera {
         Vec3 pixel_delta_v;
 
         void write_color(std::ostream& out, const Color& pixel_color);
-        Color ray_color(const Ray& r, int depth, const Hittable& world, const Hittable& lights);
+        Color ray_color(const Ray& r, int depth, const Hittable& world, const Hittable& lights) const;
         Ray get_ray(int i, int j, int s_i, int s_j) const;
         Vec3 defocus_disk_sample() const;
         Vec3 sample_square_stratified(int s_i, int s_j) const;

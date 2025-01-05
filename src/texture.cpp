@@ -1,6 +1,6 @@
 #include "texture.h"
 
-Color CheckerTexture::value(double u, double v, const Vec3& p) {
+Color CheckerTexture::value(double u, double v, const Vec3& p) const {
     auto x_int = int(std::floor(inv_scale * p.x()));
     auto y_int = int(std::floor(inv_scale * p.y()));
     auto z_int = int(std::floor(inv_scale * p.z()));
