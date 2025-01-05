@@ -154,7 +154,6 @@ Color Camera::ray_color(const Ray& r, int depth, const Hittable& world, const Hi
             MixturePDF p(light_ptr, ray_t.pdf);
             Ray scattered = Ray(rec.point(), p.generate(), r.time());
             double pdf_value = p.value(scattered.direction(), r.direction(), -w);
-            //std::cerr << pdf_value << '\n';
             double scattering_pdf = rec.material()->scattering_pdf(r, rec, scattered, -w);
             Color sample_color = ray_color(scattered, depth-1, world, lights);
                 

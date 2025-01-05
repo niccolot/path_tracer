@@ -194,10 +194,10 @@ double Phong::scattering_pdf(
     const Ray& scattered,
     const Vec3& vdir) const {
 
-    auto cos_theta = dot(rec.normal(), unit_vector(scattered.direction()));
-    auto reflection = std::fmax(0, cos_theta/pi);
+    auto cos_theta = dot(rec.normal(), -r_in.direction());
+    auto diffuse = std::fmax(0, cos_theta);
     auto R = reflect(unit_vector(r_in.direction()), rec.normal());
-    auto specular = std::pow(dot(unit_vector(-R), unit_vector(-vdir)), _n);
+    auto specular = std::pow(dot(R, unit_vector(-vdir)), _n);
 
-    return _ks*specular + _kd*reflection;
+    return _ks*specular + _kd*diffuse;
 }

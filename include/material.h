@@ -179,9 +179,9 @@ class Phong : public Material {
             int n = 10) : Phong(std::make_shared<SolidColor>(albedo), kd, ks, n) {}
         
         void set_n(int n) {_n = n; }
-        void set_kd(double kd) { 
-            _kd = kd;
-            _ks = 1. - kd;  
+        void set_ks(double ks) { 
+            _ks = ks;
+            _kd = 1. - ks;  
         }
 
         bool scatter(

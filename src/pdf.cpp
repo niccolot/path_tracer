@@ -21,12 +21,12 @@ double PhongPDF::value(
     const Vec3& direction_in,
     const Vec3& direction_view) const {
     
-    auto cos_theta = dot(unit_vector(direction_out), uvw.w());
-    auto reflection = std::fmax(0, cos_theta/pi);
+    auto cos_theta = dot(-direction_in, uvw.w());
+    auto diffuse = std::fmax(0, cos_theta);
     auto R = reflect(unit_vector(direction_in), uvw.w());
-    auto specular = std::pow(dot(R, unit_vector(-direction_view)), _n);
+    auto specular = std::pow(dot(unit_vector(R), unit_vector(-direction_view)), _n);
 
-    return _ks*specular + _kd*reflection;
+    return _ks*specular + _kd*diffuse;
 }  
 
 Vec3 PhongPDF::generate() const {
