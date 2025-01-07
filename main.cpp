@@ -187,13 +187,8 @@ void test2()
 
     HittableList lights;
     auto empty = std::shared_ptr<Material>();
-<<<<<<< HEAD
     lights.add(std::make_shared<Quad>(Vec3(0.5, 4, 0.5), Vec3(-0.5, 0, 0), Vec3(0, 0, -0.5), empty));
     lights.add(std::make_shared<Sphere>(Vec3(0, 0, 0), 0.5, empty));
-=======
-    lights.add(std::make_shared<Quad>(Vec3(0.5, 1, 0.5), Vec3(-0.5, 0, 0), Vec3(0, 0, -0.5), empty));
-    //lights.add(std::make_shared<Sphere>(Vec3(0, 0, 0), 0.5, empty));
->>>>>>> phong
     lights.add(std::make_shared<Sphere>(Vec3(0, -100.5, -1), 100, empty));
 
     Camera cam(400, 16. / 9., Vec3(0, 1, 3), Vec3(0, 0, 0), 90, 10, 0, 500);
