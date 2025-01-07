@@ -9,7 +9,11 @@ class PDF {
     public:
         virtual ~PDF() {}
 
-        virtual double value(const Vec3& direction) const = 0;
+        virtual double value(
+            const Vec3& direction_out, 
+            const Vec3& direction_in,
+            const Vec3& direction_view) const = 0;
+            
         virtual Vec3 generate() const = 0;
 }; // class PDF
 
@@ -23,7 +27,11 @@ class MixturePDF : public PDF {
             p[1] = p1;
         }
 
-        double value(const Vec3& direction) const override;
+        double value(
+            const Vec3& direction_out, 
+            [[maybe_unused]] const Vec3& direction_in,
+            [[maybe_unused]] const Vec3& direction_view) const override;
+        
         Vec3 generate() const override;
 }; // class MixturePDF
 
@@ -31,7 +39,11 @@ class SpherePDF : public PDF {
     public:
         SpherePDF() {}
 
-        double value([[maybe_unused]] const Vec3& direction) const override {
+        double value(
+            [[maybe_unused]] const Vec3& direction_out, 
+            [[maybe_unused]] const Vec3& direction_in,
+            [[maybe_unused]] const Vec3& direction_view) const override {
+                
             return 1 / (4*pi);
         }
 
@@ -47,8 +59,12 @@ class CosinePDF : public PDF {
     public:
         CosinePDF(const Vec3& w) : uvw(w) {}
 
-        double value(const Vec3& direction) const override {
-            auto cos_theta = dot(unit_vector(direction), uvw.w());
+        double value(
+            const Vec3& direction_out, 
+            [[maybe_unused]] const Vec3& direction_in,
+            [[maybe_unused]] const Vec3& direction_view) const override {
+
+            auto cos_theta = dot(unit_vector(direction_out), uvw.w());
             
             return std::fmax(0, cos_theta/pi);
         }
@@ -67,12 +83,34 @@ class HittablePDF : public PDF {
         HittablePDF(const Hittable& objects, const Vec3& origin) 
             : objects(objects), origin(origin) {}
         
-        double value(const Vec3& direction) const override {
-            return objects.pdf_value(origin, direction);
+        double value(
+            const Vec3& direction_out,
+            [[maybe_unused]] const Vec3& direction_in,
+            [[maybe_unused]] const Vec3& direction_view) const override {
+
+            return objects.pdf_value(origin, direction_out);
         }
 
         Vec3 generate() const override {
             return objects.random(origin);
         }
 }; // class HittablePDF
+
+class PhongPDF : public PDF {
+    private:
+        ONB uvw;
+        double _kd;
+        double _ks;
+        int _n;
+    
+    public:
+        PhongPDF(const Vec3& w, double kd, double ks, int n) : uvw(w), _kd(kd), _ks(ks), _n(n) {}
+
+        double value(
+            const Vec3& direction_out,
+            const Vec3& direction_in,
+            const Vec3& direction_view) const override;
+        
+        Vec3 generate() const override;
+}; // class PhongPDF
 #endif

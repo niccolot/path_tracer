@@ -21,21 +21,9 @@ void HittableList::add(std::shared_ptr<Hittable> object) {
     bbox = AxisAlignedBBox(bbox, object->bounding_box());
 }
 
-bool Translate::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
-    Ray offset_r(r.origin() - offset, r.direction(), r.time());
-
-    if(!object->hit(offset_r ,ray_t, rec)) {
-        return false;
-    }
-
-    rec.set_point(rec.point() + offset);
-
-    return true;
-}
-
 double HittableList::pdf_value(const Vec3& origin, const Vec3& direction) const {
     auto weight = 1.0 / objects.size();
-    auto sum = 0.0;
+    double sum{};
 
     for (const auto& obj : objects) {
         sum += weight * obj->pdf_value(origin, direction);
@@ -50,38 +38,49 @@ Vec3 HittableList::random(const Vec3& origin) const {
     return objects[random_int(0, int_size-1)]->random(origin);
 }
 
-RotateY::RotateY(std::shared_ptr<Hittable> object, double angle) : 
-    object(object) {
+bool Translate::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
+    Ray offset_r(r.origin() - offset, r.direction(), r.time());
 
-        auto rads = degs_to_rads(angle);
-        sin_theta = std::sin(rads);
-        cos_theta = std::cos(rads);
-        bbox = object->bounding_box();
+    if(!object->hit(offset_r ,ray_t, rec)) {
+        return false;
+    }
 
-        Vec3 min(infinity, infinity, infinity);
-        Vec3 max(-infinity, -infinity, -infinity);
+    rec.set_point(rec.point() + offset);
 
-        for (int i=0; i<2; ++i) {
-            for (int j=0; j<2; ++j) {
-                for (int k=0; k<2; ++k) {
-                    auto x = i*bbox.x_axis().max() + (1-i)*bbox.x_axis().min();
-                    auto y = j*bbox.y_axis().max() + (1-j)*bbox.y_axis().min();
-                    auto z = k*bbox.z_axis().max() + (1-k)*bbox.z_axis().min();
+    return true;
+}
 
-                    auto newx = cos_theta*x + sin_theta*z;
-                    auto newz = -sin_theta*x + cos_theta*z;
+RotateY::RotateY(std::shared_ptr<Hittable> object, double angle) : object(object) {
 
-                    Vec3 tester(newx, y, newz);
+    auto rads = degs_to_rads(angle);
+    sin_theta = std::sin(rads);
+    cos_theta = std::cos(rads);
+    bbox = object->bounding_box();
 
-                    for (int c=0; c<3; ++c) {
-                        min[c] = std::fmin(min[c], tester[c]);
-                        max[c] = std::fmax(max[c], tester[c]);
-                    }
+    Vec3 min(infinity, infinity, infinity);
+    Vec3 max(-infinity, -infinity, -infinity);
+
+    for (int i=0; i<2; ++i) {
+        for (int j=0; j<2; ++j) {
+            for (int k=0; k<2; ++k) {
+                auto x = i*bbox.x_axis().max() + (1-i)*bbox.x_axis().min();
+                auto y = j*bbox.y_axis().max() + (1-j)*bbox.y_axis().min();
+                auto z = k*bbox.z_axis().max() + (1-k)*bbox.z_axis().min();
+
+                auto newx = cos_theta*x + sin_theta*z;
+                auto newz = -sin_theta*x + cos_theta*z;
+
+                Vec3 tester(newx, y, newz);
+
+                for (int c=0; c<3; ++c) {
+                    min[c] = std::fmin(min[c], tester[c]);
+                    max[c] = std::fmax(max[c], tester[c]);
                 }
             }
         }
+    }
 
-        bbox = AxisAlignedBBox(min, max);
+    bbox = AxisAlignedBBox(min, max);
 }
 
 bool RotateY::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {

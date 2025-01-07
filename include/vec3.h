@@ -182,6 +182,21 @@ inline Vec3 random_cosine_direction() {
     return Vec3(x,y,z);
 }
 
+inline Vec3 random_phong_direction(int n) {
+    auto r1 = random_double();
+    auto r2 = random_double();
+
+    auto phi = 2*pi*r2;
+    auto r1_1 = std::pow(r1, 2./(1+n));
+    auto r1_2 = std::pow(r1, 1./(1+n));
+
+    auto x = std::cos(phi)*std::sqrt(1-r1_1);
+    auto y = std::sin(phi)*std::sqrt(1-r1_1);
+    auto z = r1_2;
+
+    return Vec3(x,y,z);
+}
+
 inline Vec3 reflect(const Vec3& v, const Vec3& n) {
     /**
      * @brief returns the perfectly reflected vector

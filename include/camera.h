@@ -45,7 +45,7 @@ class Camera {
         Vec3 pixel_delta_v;
 
         void write_color(std::ostream& out, const Color& pixel_color);
-        Color ray_color(const Ray& r, int depth, const Hittable& world, const Hittable& lights);
+        Color ray_color(const Ray& r, int depth, const Hittable& world, const Hittable& lights) const;
         Ray get_ray(int i, int j, int s_i, int s_j) const;
         Vec3 defocus_disk_sample() const;
         Vec3 sample_square_stratified(int s_i, int s_j) const;

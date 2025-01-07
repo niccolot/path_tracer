@@ -10,7 +10,7 @@
 class Texture {
     public:
         virtual ~Texture() = default;
-        virtual Color value(double u, double v, const Vec3& p) = 0;
+        virtual Color value(double u, double v, const Vec3& p) const = 0;
 }; // class Texture
 
 class SolidColor : public Texture {
@@ -25,7 +25,7 @@ class SolidColor : public Texture {
         Color value(
             [[maybe_unused]] double u, 
             [[maybe_unused]] double v, 
-            [[maybe_unused]] const Vec3& p) override { return albedo; }
+            [[maybe_unused]] const Vec3& p) const override { return albedo; }
 }; // class SolidColor
 
 class CheckerTexture : public Texture {
@@ -52,7 +52,7 @@ class CheckerTexture : public Texture {
                     std::make_shared<SolidColor>(c1),
                     std::make_shared<SolidColor>(c2)) {}
         
-        Color value(double u, double v, const Vec3& p) override;
+        Color value(double u, double v, const Vec3& p) const override;
 }; // class CheckerTexture
 
 class NoiseTexture : public Texture {
@@ -66,7 +66,7 @@ class NoiseTexture : public Texture {
         Color value(
             [[maybe_unused]] double u, 
             [[maybe_unused]] double v,
-            const Vec3& p) override {
+            const Vec3& p) const override {
 
                 return Color(.5,.5,.5) * (1 + std::sin(scale * p.z() * noise.turb(p,7)));
             }

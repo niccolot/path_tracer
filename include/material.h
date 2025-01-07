@@ -27,7 +27,8 @@ class Material {
         virtual double scattering_pdf(
             const Ray& r_in,
             const HitRecord& rec,
-            const Ray& scattered) const = 0;
+            const Ray& scattered,
+            const Vec3& vdir) const = 0;
 }; //class Material 
 
 class Lambertian : public Material {
@@ -44,14 +45,15 @@ class Lambertian : public Material {
         void set_reflectance(double refl) { r = std::fmin(refl,1.); }
 
         bool scatter(
-            const Ray& r_in, 
+            [[maybe_unused]] const Ray& r_in, 
             const HitRecord& rec, 
             scatter_record_t& srec) const override;
 
         double scattering_pdf(
-            const Ray& r_in,
+            [[maybe_unused]] const Ray& r_in,
             const HitRecord& rec,
-            const Ray& scattered) const override;
+            const Ray& scattered,
+            [[maybe_unused]] const Vec3& vdir) const override;
 }; // class Lambertian
 
 class Metal : public Material {
@@ -71,7 +73,8 @@ class Metal : public Material {
         double scattering_pdf(
             [[maybe_unused]] const Ray& r_in,
             [[maybe_unused]] const HitRecord& rec,
-            [[maybe_unused]] const Ray& scattered) const { return 0; }
+            [[maybe_unused]] const Ray& scattered,
+            [[maybe_unused]] const Vec3& vdir) const { return 0; }
 }; // class Metal 
 
 class Dielectric : public Material {
@@ -84,7 +87,7 @@ class Dielectric : public Material {
         static double reflectance(double cosine, double eta);
     
     public:
-        Dielectric(double eta, Color color = Color(1,1,1)) : eta(eta), _color(color) {}
+        Dielectric(double eta, const Color& color = Color(1,1,1)) : eta(eta), _color(color) {}
 
         bool scatter(
             const Ray& r_in, 
@@ -94,7 +97,8 @@ class Dielectric : public Material {
         double scattering_pdf(
             [[maybe_unused]] const Ray& r_in,
             [[maybe_unused]] const HitRecord& rec,
-            [[maybe_unused]] const Ray& scattered) const { return 0; }
+            [[maybe_unused]] const Ray& scattered,
+            [[maybe_unused]] const Vec3& vdir) const { return 0; }
 }; // class Dielectric
 
 
@@ -117,7 +121,8 @@ class DiffuseLight : public Material {
         double scattering_pdf(
             [[maybe_unused]] const Ray& r_in,
             [[maybe_unused]] const HitRecord& rec,
-            [[maybe_unused]] const Ray& scattered) const { return 0; }
+            [[maybe_unused]] const Ray& scattered,
+            [[maybe_unused]] const Vec3& vdir) const { return 0; }
 
         Color emitted(
             [[maybe_unused]] const Ray& r_int,
@@ -143,6 +148,51 @@ class Isotropic : public Material {
         double scattering_pdf(
             [[maybe_unused]] const Ray& r_in,
             [[maybe_unused]] const HitRecord& rec,
-            [[maybe_unused]] const Ray& scattered) const override;
+            [[maybe_unused]] const Ray& scattered,
+            [[maybe_unused]] const Vec3& vdir) const override;
 }; //class Isotropic
+
+class Phong : public Material {
+    private:
+        std::shared_ptr<Texture> tex;
+
+        // must have kd+ks <= 1
+        double _kd; // phong model diffuse constant
+        double _ks; // phong model specular constant
+        int _n; // phong model exponent
+        
+    public:
+        Phong(
+            std::shared_ptr<Texture> tex,
+            double kd = 0.2,
+            double ks = 0.8,
+            int n = 10) : 
+                tex(tex),
+                _kd(kd),
+                _ks(ks),
+                _n(n) {}
+
+        Phong(
+            const Color& albedo,
+            double kd = 0.2,
+            double ks = 0.8,
+            int n = 10) : Phong(std::make_shared<SolidColor>(albedo), kd, ks, n) {}
+        
+        void set_n(int n) {_n = n; }
+        void set_ks(double ks) { 
+            _ks = ks;
+            _kd = 1. - ks;  
+        }
+
+        bool scatter(
+            const Ray& r_in, 
+            const HitRecord& rec, 
+            scatter_record_t& srec) const override;
+
+        double scattering_pdf(
+            const Ray& r_in,
+            const HitRecord& rec,
+            const Ray& scattered,
+            const Vec3& vdir) const override;        
+}; // class Phong
 #endif

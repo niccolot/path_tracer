@@ -6,19 +6,18 @@ bool Lambertian::scatter(
     scatter_record_t& srec) const {
     
     scattered_rays_t scattered_ray;
-
-    // reflection
+    
+    // more reflection
     if (random_double() < r) {
-        
+        scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.point()) * r;
         scattered_ray.pdf = std::make_shared<CosinePDF>(rec.normal());
         scattered_ray.skip_pdf = false;
-        scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.point()) * r;
         srec.scattered_rays.push_back(scattered_ray);
     } else {
-        // absorption
+        // more absorption
+        scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.point()) * (1-r);
         scattered_ray.pdf = std::make_shared<CosinePDF>(rec.normal());
         scattered_ray.skip_pdf = false;
-        scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.point()) * (1-r);
         srec.scattered_rays.push_back(scattered_ray);
     }
     
@@ -28,7 +27,8 @@ bool Lambertian::scatter(
 double Lambertian::scattering_pdf(
     [[maybe_unused]] const Ray& r_in,
     const HitRecord& rec,
-    const Ray& scattered) const {
+    const Ray& scattered,
+    [[maybe_unused]] const Vec3& vdir) const {
     /**
      * @brief cosine distribution for lambertian materials
      */
@@ -90,6 +90,7 @@ bool Dielectric::scatter(
 
         // fresnel formulas
         double cos_theta_out = std::fmin(1., dot(rec.normal(), direction_reflect));
+
         double fr_perp = cos_theta_out - eta*cos_theta / (cos_theta_out + eta*cos_theta);
         fr_perp *= fr_perp;
 
@@ -115,6 +116,7 @@ bool Dielectric::scatter(
 
         // fresnel formulas
         double cos_theta_out = std::fmin(1., dot(rec.normal(), direction_reflect));
+
         double fr_perp = cos_theta_out - eta*cos_theta / (cos_theta_out + eta*cos_theta);
         fr_perp *= fr_perp;
 
@@ -166,8 +168,36 @@ bool Isotropic::scatter(
 double Isotropic::scattering_pdf(
     [[maybe_unused]] const Ray& r_in, 
     [[maybe_unused]] const HitRecord& rec,
-    [[maybe_unused]] const Ray& scattered) const {
+    [[maybe_unused]] const Ray& scattered,
+    [[maybe_unused]] const Vec3& vdir) const {
 
     return 1 / (4*pi);
 }
 
+bool Phong::scatter(
+    [[maybe_unused]] const Ray& r_in, 
+    const HitRecord& rec, 
+    scatter_record_t& srec) const {
+    
+    scattered_rays_t scattered_ray;
+    scattered_ray.pdf = std::make_shared<PhongPDF>(rec.normal(), _kd, _ks, _n);
+    scattered_ray.skip_pdf = false;
+    scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.point());
+    srec.scattered_rays.push_back(scattered_ray);
+
+    return true;
+}
+
+double Phong::scattering_pdf(
+    const Ray& r_in,
+    const HitRecord& rec,
+    const Ray& scattered,
+    const Vec3& vdir) const {
+
+    auto cos_theta = dot(rec.normal(), -r_in.direction());
+    auto diffuse = std::fmax(0, cos_theta);
+    auto R = reflect(unit_vector(r_in.direction()), rec.normal());
+    auto specular = std::pow(dot(R, unit_vector(-vdir)), _n);
+
+    return _ks*specular + _kd*diffuse;
+}
