@@ -25,6 +25,14 @@ class Vec3 {
         double operator[](auto i) const { return e[i]; }
         double& operator[](auto i) {return e[i]; }
 
+        Vec3 operator=(const Vec3& v) {
+            e[0] = v.x();
+            e[1] = v.y();
+            e[2] = v.z();
+
+            return *this;
+        }
+
         Vec3 operator-() const { return Vec3(-e[0], -e[1], -e[2]); }
         
         Vec3 operator+=(const Vec3& v) {
@@ -86,6 +94,10 @@ class Vec3 {
             auto z_comp = std::fabs(e[2]) < tol; 
             
             return x_comp && y_comp && z_comp;;
+        }
+
+        bool is_nan() const {
+            return std::isnan(e[0]) || std::isnan(e[1]) || std::isnan(e[2]);
         }
 }; // class Vec3
 
@@ -174,27 +186,37 @@ inline Vec3 random_cosine_direction() {
     auto r1 = random_double();
     auto r2 = random_double();
 
-    auto phi = 2*pi*r1;
-    auto x = std::cos(phi) * std::sqrt(r2);
-    auto y = std::sin(phi) * std::sqrt(r2);
-    auto z = std::sqrt(1-r2);
+    auto phi = 2*pi*r2;
+    auto x = std::cos(phi) * std::sqrt(1 - r1);
+    auto y = std::sin(phi) * std::sqrt(1 - r1);
+    auto z = std::sqrt(r1);
 
     return Vec3(x,y,z);
 }
 
 inline Vec3 random_phong_direction(int n) {
+    /**
+     * @param n phong specular exponent
+     */
     auto r1 = random_double();
     auto r2 = random_double();
 
-    auto phi = 2*pi*r2;
+    auto phi = 2*pi*r1;
+    /*
     auto r1_1 = std::pow(r1, 2./(1+n));
     auto r1_2 = std::pow(r1, 1./(1+n));
 
     auto x = std::cos(phi)*std::sqrt(1-r1_1);
     auto y = std::sin(phi)*std::sqrt(1-r1_1);
     auto z = r1_2;
+    */
+    double cos_theta = std::pow(r2, 1. / (n + 1));
+    double sin_theta = std::sqrt(1. - cos_theta * cos_theta);
 
-    return Vec3(x,y,z);
+    double x = std::cos(phi) * sin_theta;
+    double y = std::sin(phi) * sin_theta; 
+
+    return Vec3(x,y,cos_theta);
 }
 
 inline Vec3 reflect(const Vec3& v, const Vec3& n) {

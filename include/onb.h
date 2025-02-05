@@ -8,7 +8,10 @@ class ONB {
         Vec3 axis[3];
 
     public:
+        ONB() = default;
         ONB(const Vec3& n);
+
+        ONB& operator=(const ONB& base);
 
         const Vec3& u() const { return axis[0]; }
         const Vec3& v() const { return axis[1]; }

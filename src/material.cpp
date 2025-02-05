@@ -34,7 +34,7 @@ double Lambertian::scattering_pdf(
      */
     auto cos_theta = dot(rec.normal(), unit_vector(scattered.direction()));
 
-    return cos_theta < 0 ? 0 : cos_theta/pi;
+    return std::fmax(cos_theta/pi, 0.);
 }
 
 bool Metal::scatter(
@@ -193,11 +193,23 @@ double Phong::scattering_pdf(
     const HitRecord& rec,
     const Ray& scattered,
     const Vec3& vdir) const {
+    
+    /*
+    auto cos_theta = dot(rec.normal(), unit_vector(-r_in.direction()));
+    auto diffuse = std::fmax(0., cos_theta/pi);
+    auto R = reflect(unit_vector(-vdir), rec.normal());
+    auto specular = std::pow(dot(R, unit_vector(r_in.direction())), _n);
 
-    auto cos_theta = dot(rec.normal(), -r_in.direction());
-    auto diffuse = std::fmax(0, cos_theta);
-    auto R = reflect(unit_vector(r_in.direction()), rec.normal());
-    auto specular = std::pow(dot(R, unit_vector(-vdir)), _n);
+    return _kd*diffuse + _ks*specular;
+    */
+    
+    Vec3 reflect_dir = unit_vector(reflect(unit_vector(r_in.direction()), rec.normal()));
+    double spec_angle = std::fmax(dot(reflect_dir, r_in.direction()), 0.);
+    double specular = _ks * ((_n + 2) / (2. * pi)) * std::pow(spec_angle, _n);
 
-    return _ks*specular + _kd*diffuse;
+    double diffuse = _kd / pi;
+
+    return diffuse + specular;
+    
+    
 }

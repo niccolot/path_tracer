@@ -98,13 +98,18 @@ class HittablePDF : public PDF {
 
 class PhongPDF : public PDF {
     private:
-        ONB uvw;
+        ONB uvw_normal;
+        mutable ONB uvw_reflection;
         double _kd;
         double _ks;
         int _n;
     
     public:
-        PhongPDF(const Vec3& w, double kd, double ks, int n) : uvw(w), _kd(kd), _ks(ks), _n(n) {}
+        PhongPDF(const Vec3& w, double kd, double ks, int n) :
+            uvw_normal(w),
+            _kd(kd),
+            _ks(ks),
+            _n(n) {}
 
         double value(
             const Vec3& direction_out,

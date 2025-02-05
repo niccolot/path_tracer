@@ -6,3 +6,11 @@ ONB::ONB(const Vec3& n) {
     axis[1] = unit_vector(cross(axis[2], a));
     axis[0] = cross(axis[2], axis[1]);
 }
+
+ONB& ONB::operator=(const ONB& base) {
+    axis[0] = base.u();
+    axis[1] = base.v();
+    axis[2] = base.w();
+
+    return *this;
+}

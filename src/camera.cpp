@@ -105,11 +105,9 @@ void Camera::write_color(std::ostream& out, const Color& pixel_color) {
     auto g = pixel_color.y();
     auto b = pixel_color.z();
 
-    // since for every NaN, NaN != NaN
-    // this suppresses the NaNs
-    if (r != r) r = 0.;
-    if (g != g) g = 0.;
-    if (b != b) b = 0.;
+    if (std::isnan(r)) r = 0.;
+    if (std::isnan(g)) g = 0.;
+    if (std::isnan(b)) b = 0.;
 
     r = linear_to_gamma(r);
     g = linear_to_gamma(g);
@@ -148,7 +146,7 @@ Color Camera::ray_color(const Ray& r, int depth, const Hittable& world, const Hi
     Color color_from_scatter = Color();
     for (const auto& ray_t : srec.scattered_rays) {
         if (ray_t.skip_pdf || ray_t.pdf == nullptr) {
-            color_from_scatter += ray_t.attenuation * ray_color(ray_t.skip_pdf_ray, depth-depth_cutoff, world, lights);
+            color_from_scatter += ray_t.attenuation * ray_color(ray_t.skip_pdf_ray, depth-1, world, lights);
         } else {
             auto light_ptr = std::make_shared<HittablePDF>(lights, rec.point());
             MixturePDF p(light_ptr, ray_t.pdf);

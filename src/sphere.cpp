@@ -1,3 +1,4 @@
+#include <cmath>
 #include "sphere.h"
 
 Sphere::Sphere(
@@ -74,14 +75,18 @@ double Sphere::pdf_value(const Vec3& origin, const Vec3& direction) const {
     auto cos_theta_max = std::sqrt(1 - radius*radius/dist_squared);
     auto solid_angle = 2*pi*(1 - cos_theta_max);
 
-    return 1 / solid_angle;
+    if (std::isnan(solid_angle) || std::fabs(solid_angle) < 1e-3) {
+        return 0;
+    } else {
+        return 1 / solid_angle;
+    }
 }
 
 Vec3 Sphere::random(const Vec3& origin) const {
     Vec3 direction = center.at(0) - origin;
-    auto distance_squared = direction.length_squared();
+    double distance_squared = direction.length_squared();
     ONB uvw(direction);
-
+    
     return uvw.transform(random_to_sphere(radius, distance_squared));
 }
 

@@ -135,7 +135,7 @@ void cornell_box()
     auto red = std::make_shared<Lambertian>(Color(.65, .05, .05), 1);
     auto white = std::make_shared<Lambertian>(Color(.73, .73, .73), 1);
     auto green = std::make_shared<Lambertian>(Color(.12, .45, .15), 1);
-    auto light = std::make_shared<DiffuseLight>(Color(10, 10, 10));
+    auto light = std::make_shared<DiffuseLight>(Color(15, 15, 15));
 
     world.add(std::make_shared<Quad>(Vec3(343, 554, 332), Vec3(-130, 0, 0), Vec3(0, 0, -105), light));
 
@@ -157,18 +157,20 @@ void cornell_box()
     world.add(box1);
     //world.add(box2);
 
-    auto phong = std::make_shared<Phong>(Color(0.8, 0.3, 0.4), 0.2, 0.8, 2000);
+    auto phong = std::make_shared<Phong>(Color(0.8, 0.3, 0.4), 0.7, 0.3, 2);
+    auto lamb = std::make_shared<Lambertian>(Color(0.8, 0.3, 0.4));
+    auto glass = std::make_shared<Dielectric>(1.5);
 
-    world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, phong));
+    world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, lamb));
     //world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, glass));
     //world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, white));
 
     auto empty_mat = std::shared_ptr<Material>();
     HittableList lights;
     lights.add(std::make_shared<Quad>(Vec3(213, 554, 227), Vec3(130, 0, 0), Vec3(0, 0, 105), empty_mat));
-    //lights.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, empty_mat));
+    lights.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, empty_mat));
 
-    Camera cam(400, 1., Vec3(278, 278, -800), Vec3(278, 278, 0), 40, 10, 0, 3000, 25);
+    Camera cam(400, 1., Vec3(278, 278, -800), Vec3(278, 278, 0), 40, 10, 0, 1000, 10);
     cam.set_background(Color(0, 0, 0));
     cam.render(world, lights);
 }

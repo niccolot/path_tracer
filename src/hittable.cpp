@@ -30,12 +30,18 @@ double HittableList::pdf_value(const Vec3& origin, const Vec3& direction) const 
     }
 
     return sum;
+    //return objects[1]->pdf_value(origin, direction);
 }
 
 Vec3 HittableList::random(const Vec3& origin) const {
     auto int_size = int(objects.size());
+    auto vec = objects[random_int(0, int_size-1)]->random(origin);
 
-    return objects[random_int(0, int_size-1)]->random(origin);
+    //while (vec.is_nan()) {
+    //    vec = objects[random_int(0, int_size-1)]->random(origin);
+    //}
+
+    return vec;
 }
 
 bool Translate::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {

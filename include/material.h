@@ -22,7 +22,7 @@ class Material {
             [[maybe_unused]] const HitRecord& rec,
             [[maybe_unused]] double u,
             [[maybe_unused]] double v,
-            [[maybe_unused]] const Vec3& p) const { return Color(0,0,0); }
+            [[maybe_unused]] const Vec3& p) const = 0;//{ return Color(0,0,0); }
 
         virtual double scattering_pdf(
             const Ray& r_in,
@@ -54,6 +54,13 @@ class Lambertian : public Material {
             const HitRecord& rec,
             const Ray& scattered,
             [[maybe_unused]] const Vec3& vdir) const override;
+
+        Color emitted(
+            [[maybe_unused]] const Ray& r_int,
+            [[maybe_unused]] const HitRecord& rec,
+            [[maybe_unused]] double u,
+            [[maybe_unused]] double v,
+            [[maybe_unused]] const Vec3& p) const { return Color(0,0,0); }        
 }; // class Lambertian
 
 class Metal : public Material {
@@ -75,6 +82,13 @@ class Metal : public Material {
             [[maybe_unused]] const HitRecord& rec,
             [[maybe_unused]] const Ray& scattered,
             [[maybe_unused]] const Vec3& vdir) const { return 0; }
+
+        Color emitted(
+            [[maybe_unused]] const Ray& r_int,
+            [[maybe_unused]] const HitRecord& rec,
+            [[maybe_unused]] double u,
+            [[maybe_unused]] double v,
+            [[maybe_unused]] const Vec3& p) const { return Color(0,0,0); }   
 }; // class Metal 
 
 class Dielectric : public Material {
@@ -99,6 +113,13 @@ class Dielectric : public Material {
             [[maybe_unused]] const HitRecord& rec,
             [[maybe_unused]] const Ray& scattered,
             [[maybe_unused]] const Vec3& vdir) const { return 0; }
+        
+        Color emitted(
+            [[maybe_unused]] const Ray& r_int,
+            [[maybe_unused]] const HitRecord& rec,
+            [[maybe_unused]] double u,
+            [[maybe_unused]] double v,
+            [[maybe_unused]] const Vec3& p) const { return Color(0,0,0); }
 }; // class Dielectric
 
 
@@ -150,6 +171,13 @@ class Isotropic : public Material {
             [[maybe_unused]] const HitRecord& rec,
             [[maybe_unused]] const Ray& scattered,
             [[maybe_unused]] const Vec3& vdir) const override;
+
+        Color emitted(
+            [[maybe_unused]] const Ray& r_int,
+            [[maybe_unused]] const HitRecord& rec,
+            [[maybe_unused]] double u,
+            [[maybe_unused]] double v,
+            [[maybe_unused]] const Vec3& p) const { return Color(0,0,0); }
 }; //class Isotropic
 
 class Phong : public Material {
@@ -164,9 +192,9 @@ class Phong : public Material {
     public:
         Phong(
             std::shared_ptr<Texture> tex,
-            double kd = 0.2,
-            double ks = 0.8,
-            int n = 10) : 
+            double kd ,
+            double ks,
+            int n) : 
                 tex(tex),
                 _kd(kd),
                 _ks(ks),
@@ -174,15 +202,9 @@ class Phong : public Material {
 
         Phong(
             const Color& albedo,
-            double kd = 0.2,
-            double ks = 0.8,
-            int n = 10) : Phong(std::make_shared<SolidColor>(albedo), kd, ks, n) {}
-        
-        void set_n(int n) {_n = n; }
-        void set_ks(double ks) { 
-            _ks = ks;
-            _kd = 1. - ks;  
-        }
+            double kd,
+            double ks,
+            int n) : Phong(std::make_shared<SolidColor>(albedo), kd, ks, n) {}
 
         bool scatter(
             const Ray& r_in, 
@@ -193,6 +215,13 @@ class Phong : public Material {
             const Ray& r_in,
             const HitRecord& rec,
             const Ray& scattered,
-            const Vec3& vdir) const override;        
+            const Vec3& vdir) const override;
+
+        Color emitted(
+            [[maybe_unused]] const Ray& r_int,
+            [[maybe_unused]] const HitRecord& rec,
+            [[maybe_unused]] double u,
+            [[maybe_unused]] double v,
+            [[maybe_unused]] const Vec3& p) const { return Color(0,0,0); }    
 }; // class Phong
 #endif
