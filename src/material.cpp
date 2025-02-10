@@ -32,7 +32,7 @@ double Lambertian::scattering_pdf(
     /**
      * @brief cosine distribution for lambertian materials
      */
-    auto cos_theta = dot(rec.normal(), unit_vector(scattered.direction()));
+    double cos_theta = dot(rec.normal(), unit_vector(scattered.direction()));
 
     return std::fmax(cos_theta/pi, 0.);
 }
@@ -175,12 +175,12 @@ double Isotropic::scattering_pdf(
 }
 
 bool Phong::scatter(
-    [[maybe_unused]] const Ray& r_in, 
+    const Ray& r_in, 
     const HitRecord& rec, 
     scatter_record_t& srec) const {
     
     scattered_rays_t scattered_ray;
-    scattered_ray.pdf = std::make_shared<PhongPDF>(rec.normal(), _kd, _ks, _n);
+    scattered_ray.pdf = std::make_shared<PhongPDF>(rec.normal(), r_in, _kd, _ks, _n);
     scattered_ray.skip_pdf = false;
     scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.point());
     srec.scattered_rays.push_back(scattered_ray);
@@ -194,22 +194,12 @@ double Phong::scattering_pdf(
     const Ray& scattered,
     const Vec3& vdir) const {
     
-    /*
+    Vec3 reflect_dir = reflect(unit_vector(r_in.direction()), rec.normal());
+    double spec_angle = std::fmax(dot(reflect_dir, unit_vector(vdir)), 0.);
+    double specular = _ks * ((_n + 1) / (2. * pi)) * std::pow(spec_angle, _n);
+
     auto cos_theta = dot(rec.normal(), unit_vector(-r_in.direction()));
-    auto diffuse = std::fmax(0., cos_theta/pi);
-    auto R = reflect(unit_vector(-vdir), rec.normal());
-    auto specular = std::pow(dot(R, unit_vector(r_in.direction())), _n);
-
-    return _kd*diffuse + _ks*specular;
-    */
-    
-    Vec3 reflect_dir = unit_vector(reflect(unit_vector(r_in.direction()), rec.normal()));
-    double spec_angle = std::fmax(dot(reflect_dir, r_in.direction()), 0.);
-    double specular = _ks * ((_n + 2) / (2. * pi)) * std::pow(spec_angle, _n);
-
-    double diffuse = _kd / pi;
+    auto diffuse = _kd * std::fmax(0., cos_theta/pi);
 
     return diffuse + specular;
-    
-    
 }

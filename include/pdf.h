@@ -64,7 +64,7 @@ class CosinePDF : public PDF {
             [[maybe_unused]] const Vec3& direction_in,
             [[maybe_unused]] const Vec3& direction_view) const override {
 
-            auto cos_theta = dot(unit_vector(direction_out), uvw.w());
+            double cos_theta = dot(unit_vector(direction_out), uvw.w());
             
             return std::fmax(0, cos_theta/pi);
         }
@@ -99,17 +99,20 @@ class HittablePDF : public PDF {
 class PhongPDF : public PDF {
     private:
         ONB uvw_normal;
-        mutable ONB uvw_reflection;
+        ONB uvw_reflection;
         double _kd;
         double _ks;
         int _n;
     
     public:
-        PhongPDF(const Vec3& w, double kd, double ks, int n) :
-            uvw_normal(w),
+        PhongPDF(const Vec3& normal, const Ray& r_in, double kd, double ks, int n) :
+            uvw_normal(normal),
             _kd(kd),
             _ks(ks),
-            _n(n) {}
+            _n(n) {
+                Vec3 reflect_dir = reflect(unit_vector(r_in.direction()), normal);
+                uvw_reflection = ONB(reflect_dir);
+            }
 
         double value(
             const Vec3& direction_out,

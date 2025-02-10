@@ -10,6 +10,7 @@ Sphere::Sphere(
     radius(std::fmax(0., radius)), 
     mat(mat) {
     
+    // stationary sphere
     auto rvec = Vec3(radius, radius, radius);
     bbox = AxisAlignedBBox(static_center - rvec, static_center + rvec);
 }
@@ -23,7 +24,8 @@ Sphere::Sphere(
     center(center1, center2 - center1),
     radius(std::fmax(0., radius)),
     mat(mat) {
-
+    
+    // moving sphere
     auto rvec = Vec3(radius, radius, radius);
     AxisAlignedBBox box1(center.at(0) - rvec, center.at(0) + rvec);
     AxisAlignedBBox box2(center.at(1) - rvec, center.at(1) + rvec);
@@ -66,14 +68,18 @@ bool Sphere::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
 }
 
 double Sphere::pdf_value(const Vec3& origin, const Vec3& direction) const {
+    /**
+     * @brief sampling for just the exposed part of the sphere
+     * @details this method only works for stationary spheres
+     */
     HitRecord rec;
     if (!this->hit(Ray(origin, direction), Interval(0.001, infinity), rec)) {
         return 0;
     }
 
-    auto dist_squared = (center.at(0) - origin).length_squared();
-    auto cos_theta_max = std::sqrt(1 - radius*radius/dist_squared);
-    auto solid_angle = 2*pi*(1 - cos_theta_max);
+    double dist_squared = (center.at(0) - origin).length_squared();
+    double cos_theta_max = std::sqrt(1 - radius*radius/dist_squared);
+    double solid_angle = 2*pi*(1 - cos_theta_max);
 
     if (std::isnan(solid_angle) || std::fabs(solid_angle) < 1e-3) {
         return 0;

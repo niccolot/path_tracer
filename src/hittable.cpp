@@ -37,9 +37,9 @@ Vec3 HittableList::random(const Vec3& origin) const {
     auto int_size = int(objects.size());
     auto vec = objects[random_int(0, int_size-1)]->random(origin);
 
-    //while (vec.is_nan()) {
-    //    vec = objects[random_int(0, int_size-1)]->random(origin);
-    //}
+    while (vec.is_nan()) {
+        vec = objects[random_int(0, int_size-1)]->random(origin);
+    }
 
     return vec;
 }
