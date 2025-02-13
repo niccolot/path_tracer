@@ -1,3 +1,5 @@
+#include <thread>
+
 #include "camera.h"
 #include "utils.h"
 #include "material.h"
@@ -75,6 +77,28 @@ Camera::Camera(
     // arbitrary default backgorund
     background = Color(0.40, 0.50, 1.00);
 } 
+
+Vec3 Camera::defocus_disk_sample() const {
+    /**
+     * @brief returns a random point in the defocus disk
+     */
+
+    auto p = random_in_unit_disk();
+    return center + (p.x() * defocus_disk_u) + (p.y() * defocus_disk_v);
+}
+
+Vec3 Camera::sample_square_stratified(int s_i, int s_j) const {
+    /**
+     * @brief returns the vector to a random point in the square
+     * subpixel specified by grid indices (s_i, s_j) for an 
+     * idealized unit square pixel [-0.5, -0.5] x [0.5, 0.5] 
+     */
+
+    auto px = ((s_i + random_double()) * inv_samples_sqrt) - 0.5;
+    auto py = ((s_j + random_double()) * inv_samples_sqrt) - 0.5;
+
+    return Vec3(px,py,0);
+}
 
 Ray Camera::get_ray(int i, int j, int s_i, int s_j) const {
     /**
@@ -163,7 +187,40 @@ Color Camera::ray_color(const Ray& r, int depth, const Hittable& world, const Hi
 }
 
 void Camera::render(const Hittable& world, const Hittable& lights) {
-    std::cout << "P3\n" << img_width_val << ' ' << img_height_val << "\n255\n";
+    //std::cout << "P3\n" << img_width_val << ' ' << img_height_val << "\n255\n";
+    unsigned int n_threads = std::thread::hardware_concurrency();
+    unsigned int rows_per_job = 10;
+    unsigned int n_jobs = img_height_val / rows_per_job;
+    unsigned int leftover = img_height_val % rows_per_job;
+
+    for (unsigned int i = 0; i < n_jobs; ++i) {
+        auto future = std::async([this, rows_per_job, i, leftover, n_jobs, &world, &lights]() {
+
+            block_job_t job;
+            job.row_start = i * rows_per_job;
+            job.row_end = job.row_start + rows_per_job;
+            if (i == n_jobs - 1) {
+                job.row_end = job.row_start + rows_per_job + leftover;
+            }
+
+            job.row_size = img_width_val;
+
+            for (unsigned int j = job.row_start; j < job.row_end; ++j) {
+                for (unsigned int ii = 0; ii < job.row_size; ++ii) {
+                    Color pixel_color(0,0,0);
+                    for (int s_j = 0; s_j<samples_sqrt; ++s_j) {
+                        for (int s_i = 0; s_i<samples_sqrt; ++s_i) {
+                            Ray r = get_ray(ii, j, s_i, s_j);
+                            pixel_color += ray_color(r, max_depth, world, lights);
+                        }
+                    }
+
+                    pixel_color *= pixel_samples_scale;
+                    
+                }
+            }
+        });
+    } 
 
     for (int j=0; j<img_height_val; ++j) {
         std::clog << "\rScanlines remaining: " << (img_height_val - j) << ' ' << std::flush;
@@ -180,26 +237,4 @@ void Camera::render(const Hittable& world, const Hittable& lights) {
     }
 
     std::clog << "\nDone.\n";
-}
-
-Vec3 Camera::defocus_disk_sample() const {
-    /**
-     * @brief returns a random point in the defocus disk
-     */
-
-    auto p = random_in_unit_disk();
-    return center + (p.x() * defocus_disk_u) + (p.y() * defocus_disk_v);
-}
-
-Vec3 Camera::sample_square_stratified(int s_i, int s_j) const {
-    /**
-     * @brief returns the vector to a random point in the square
-     * subpixel specified by grid indices (s_i, s_j) for an 
-     * idealized unit square pixel [-0.5, -0.5] x [0.5, 0.5] 
-     */
-
-    auto px = ((s_i + random_double()) * inv_samples_sqrt) - 0.5;
-    auto py = ((s_j + random_double()) * inv_samples_sqrt) - 0.5;
-
-    return Vec3(px,py,0);
 }
