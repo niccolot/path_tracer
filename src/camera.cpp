@@ -1,6 +1,5 @@
 #include <thread>
 #include <string.h>
-#include <atomic>
 
 #include "camera.h"
 #include "utils.h"
@@ -41,8 +40,11 @@ Camera::Camera(
 
     depth_cutoff = int(max_depth/5);
 
-    image = new Vec3[img_height_val * img_width_val];
-    memset(&image[0], 0, img_height_val * img_width_val * sizeof(Vec3));
+    //image = new Vec3[img_height_val * img_width_val];
+    //memset(&image[0], 0, img_height_val * img_width_val * sizeof(Vec3));
+    for (int i = 0; i < img_height_val * img_width_val; ++i) {
+        image.push_back(Vec3());
+    }
 
     // camera
     double theta = degs_to_rads(vfov);
@@ -213,11 +215,16 @@ void Camera::color_per_job(const Hittable& world, const Hittable& lights, block_
             job.colors.push_back(pixel_color);
         }
     }
+
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+        image_blocks.push_back(job);
+    }
 }
 
 void Camera::thread_job_loop(const Hittable& world, const Hittable& lights) {
-    std::atomic<bool> has_work;
-    while (has_work) {
+    //std::atomic<bool> has_work{true};
+    while (true) {
         block_job_t job;
         
         {
@@ -225,30 +232,25 @@ void Camera::thread_job_loop(const Hittable& world, const Hittable& lights) {
             if (!jobs_queue.empty()) {
                 job = jobs_queue.front();
                 jobs_queue.pop();
+            } else {
+                break;
             }
         }
 
-        if (job.row_start < job.row_end) {
-            color_per_job(world, lights, job);
-        } else {
-            has_work = false;
-        }
-
-        {
-            std::lock_guard<std::mutex> lock(mutex);
-            cv.notify_one();
-        }
+        //if (job.row_start < job.row_end) {
+            color_per_job(std::ref(world), std::ref(lights), std::ref(job));
+        //} else {
+        //    has_work = false;
+        //}
     }
+
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+        cv.notify_one();
+    }
+    
+    
 }
-
-/*
-static const Interval intensity(0.000, 0.999);
-    int r_byte = int(256 * intensity.clamp(r));
-    int g_byte = int(256 * intensity.clamp(g));
-    int b_byte = int(256 * intensity.clamp(b));
-
-    out << r_byte << ' ' << g_byte << ' ' << b_byte << '\n';
-*/
 
 void Camera::reconstruct_image(std::ostream& out) {
     out << "P3\n" << img_width_val << ' ' << img_height_val << "\n255\n";
@@ -272,32 +274,32 @@ void Camera::reconstruct_image(std::ostream& out) {
 }
 
 void Camera::render(const Hittable& world, const Hittable& lights) {
-    auto n_threads = std::thread::hardware_concurrency();
-    int rows_per_job = 10;
-    int n_jobs = img_height_val / rows_per_job;
-    int leftover = img_height_val % n_threads;
-
-    // main thread initialize the details for all the jobs
-    for (int i=0; i<n_jobs; ++i) {
+    unsigned int n_threads = std::thread::hardware_concurrency();
+    unsigned int rows_per_job = 2;
+    unsigned int n_jobs = img_height_val / rows_per_job;
+    unsigned int leftover = img_height_val % rows_per_job;
+    
+    // main thread initializes the details for all the jobs
+    for (unsigned int i = 0; i < n_jobs; ++i) {
         block_job_t job;
         job.row_start = i*rows_per_job;
         job.row_end = job.row_start + rows_per_job;
-        if (i == n_threads - 1) {
+        if (i == n_jobs - 1) {
             job.row_end = job.row_start + rows_per_job + leftover;
         }
 
         job.row_size = img_width_val;
         jobs_queue.push(job);
     }
-
-    for (int i=0; i<n_threads-1; ++i) {
-        std::thread t(&Camera::thread_job_loop, this, world, lights);
-        threads.push_back(t);
+    
+    for (unsigned int i=0; i<n_threads-1; ++i) {
+        std::thread t(&Camera::thread_job_loop, this, std::ref(world), std::ref(lights));
+        threads.push_back(std::move(t));
     }
-
+    
     // last thread is main thread
     thread_job_loop(world, lights);
-
+   
     {
         std::unique_lock<std::mutex> lock(mutex);
         cv.wait(lock, [this, n_jobs] {
@@ -310,31 +312,14 @@ void Camera::render(const Hittable& world, const Hittable& lights) {
     }
 
     for (auto& job : image_blocks) {
-        int color_index = 0;
-        for (auto& col : job.colors) {
-            int col_index = job.indices[color_index];
-            image[col_index] = col;
+        auto len = job.indices.size();
+        for (size_t i = 0; i<len; ++i) {
+            int col_index = job.indices[i];
+            image[col_index] = job.colors[i];
             ++col_index;
         }
     }
-
-    reconstruct_image(std::cout);
-    /*
-    for (int j=0; j<img_height_val; ++j) {
-        std::clog << "\rScanlines remaining: " << (img_height_val - j) << ' ' << std::flush;
-        for (int i=0; i<img_width_val; ++i) {
-            Color pixel_color(0,0,0);
-            for (int s_j = 0; s_j<samples_sqrt; ++s_j) {
-                for (int s_i=0; s_i<samples_sqrt; ++s_i) {
-                    Ray r = get_ray(i, j, s_i, s_j);
-                    pixel_color += ray_color(r, max_depth, world, lights);
-                }
-            }
-            //write_color(std::cout, pixel_color * pixel_samples_scale);
-        }
-    }
-    */
     
-    delete[] image;
+    reconstruct_image(std::cout);
     std::clog << "\nDone.\n";
 }

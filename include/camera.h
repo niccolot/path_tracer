@@ -22,7 +22,8 @@ class Camera {
         Vec3 lookfrom; // where the camera is looking from
         Vec3 lookat; // point that the camera is looking at
         double vfov; // vertical field of view
-        Vec3* image;
+        //Vec3* image;
+        std::vector<Vec3> image;
 
         // in photography terms where
         // focal length = distance from camera center to 
