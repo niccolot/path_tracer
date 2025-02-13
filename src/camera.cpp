@@ -1,7 +1,12 @@
+#include <thread>
+#include <string.h>
+#include <atomic>
+
 #include "camera.h"
 #include "utils.h"
 #include "material.h"
 #include "pdf.h"
+
 
 Camera::Camera(
     int width, 
@@ -35,6 +40,9 @@ Camera::Camera(
     center = lookfrom;
 
     depth_cutoff = int(max_depth/5);
+
+    image = new Vec3[img_height_val * img_width_val];
+    memset(&image[0], 0, img_height_val * img_width_val * sizeof(Vec3));
 
     // camera
     double theta = degs_to_rads(vfov);
@@ -162,26 +170,6 @@ Color Camera::ray_color(const Ray& r, int depth, const Hittable& world, const Hi
     return color_from_emission + color_from_scatter;
 }
 
-void Camera::render(const Hittable& world, const Hittable& lights) {
-    std::cout << "P3\n" << img_width_val << ' ' << img_height_val << "\n255\n";
-
-    for (int j=0; j<img_height_val; ++j) {
-        std::clog << "\rScanlines remaining: " << (img_height_val - j) << ' ' << std::flush;
-        for (int i=0; i<img_width_val; ++i) {
-            Color pixel_color(0,0,0);
-            for (int s_j = 0; s_j<samples_sqrt; ++s_j) {
-                for (int s_i=0; s_i<samples_sqrt; ++s_i) {
-                    Ray r = get_ray(i, j, s_i, s_j);
-                    pixel_color += ray_color(r, max_depth, world, lights);
-                }
-            }
-            write_color(std::cout, pixel_color * pixel_samples_scale);
-        }
-    }
-
-    std::clog << "\nDone.\n";
-}
-
 Vec3 Camera::defocus_disk_sample() const {
     /**
      * @brief returns a random point in the defocus disk
@@ -202,4 +190,151 @@ Vec3 Camera::sample_square_stratified(int s_i, int s_j) const {
     auto py = ((s_j + random_double()) * inv_samples_sqrt) - 0.5;
 
     return Vec3(px,py,0);
+}
+
+void Camera::color_per_job(const Hittable& world, const Hittable& lights, block_job_t& job) {
+    for (int j=job.row_start; j<job.row_end; ++j) {
+        for (int i = 0; i < job.row_size; ++i) {
+            Color pixel_color(0,0,0);
+            for (int s_j = 0; s_j < samples_sqrt; ++s_j) {
+                for (int s_i = 0; s_i < samples_sqrt; ++s_i) {
+                    Ray r = get_ray(i, j, s_i, s_j);
+                    pixel_color += ray_color(r, max_depth, world, lights);
+                }
+            }
+
+            pixel_color *= pixel_samples_scale;
+            pixel_color.set_x(linear_to_gamma(pixel_color.x()));
+            pixel_color.set_y(linear_to_gamma(pixel_color.y()));
+            pixel_color.set_z(linear_to_gamma(pixel_color.z()));
+
+            const int index = j * job.row_size + i;
+            job.indices.push_back(index);
+            job.colors.push_back(pixel_color);
+        }
+    }
+}
+
+void Camera::thread_job_loop(const Hittable& world, const Hittable& lights) {
+    std::atomic<bool> has_work;
+    while (has_work) {
+        block_job_t job;
+        
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            if (!jobs_queue.empty()) {
+                job = jobs_queue.front();
+                jobs_queue.pop();
+            }
+        }
+
+        if (job.row_start < job.row_end) {
+            color_per_job(world, lights, job);
+        } else {
+            has_work = false;
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            cv.notify_one();
+        }
+    }
+}
+
+/*
+static const Interval intensity(0.000, 0.999);
+    int r_byte = int(256 * intensity.clamp(r));
+    int g_byte = int(256 * intensity.clamp(g));
+    int b_byte = int(256 * intensity.clamp(b));
+
+    out << r_byte << ' ' << g_byte << ' ' << b_byte << '\n';
+*/
+
+void Camera::reconstruct_image(std::ostream& out) {
+    out << "P3\n" << img_width_val << ' ' << img_height_val << "\n255\n";
+
+    static const Interval intensity(0.000, 0.999);
+    for (int i = 0; i < img_height_val * img_width_val; ++i) {
+        auto r = image[i].x();
+        auto g = image[i].y();
+        auto b = image[i].z();
+
+        if (std::isnan(r)) r = 0.;
+        if (std::isnan(g)) g = 0.;
+        if (std::isnan(b)) b = 0.;
+        
+        int r_byte = int(256 * intensity.clamp(r));
+        int g_byte = int(256 * intensity.clamp(g));
+        int b_byte = int(256 * intensity.clamp(b));
+
+        out << r_byte << ' ' << g_byte << ' ' << b_byte << '\n';
+    }
+}
+
+void Camera::render(const Hittable& world, const Hittable& lights) {
+    auto n_threads = std::thread::hardware_concurrency();
+    int rows_per_job = 10;
+    int n_jobs = img_height_val / rows_per_job;
+    int leftover = img_height_val % n_threads;
+
+    // main thread initialize the details for all the jobs
+    for (int i=0; i<n_jobs; ++i) {
+        block_job_t job;
+        job.row_start = i*rows_per_job;
+        job.row_end = job.row_start + rows_per_job;
+        if (i == n_threads - 1) {
+            job.row_end = job.row_start + rows_per_job + leftover;
+        }
+
+        job.row_size = img_width_val;
+        jobs_queue.push(job);
+    }
+
+    for (int i=0; i<n_threads-1; ++i) {
+        std::thread t(&Camera::thread_job_loop, this, world, lights);
+        threads.push_back(t);
+    }
+
+    // last thread is main thread
+    thread_job_loop(world, lights);
+
+    {
+        std::unique_lock<std::mutex> lock(mutex);
+        cv.wait(lock, [this, n_jobs] {
+            return image_blocks.size() == n_jobs;
+        });
+    }
+
+    for (auto& t : threads) {
+        t.join();
+    }
+
+    for (auto& job : image_blocks) {
+        int color_index = 0;
+        for (auto& col : job.colors) {
+            int col_index = job.indices[color_index];
+            image[col_index] = col;
+            ++col_index;
+        }
+    }
+
+    reconstruct_image(std::cout);
+    /*
+    for (int j=0; j<img_height_val; ++j) {
+        std::clog << "\rScanlines remaining: " << (img_height_val - j) << ' ' << std::flush;
+        for (int i=0; i<img_width_val; ++i) {
+            Color pixel_color(0,0,0);
+            for (int s_j = 0; s_j<samples_sqrt; ++s_j) {
+                for (int s_i=0; s_i<samples_sqrt; ++s_i) {
+                    Ray r = get_ray(i, j, s_i, s_j);
+                    pixel_color += ray_color(r, max_depth, world, lights);
+                }
+            }
+            //write_color(std::cout, pixel_color * pixel_samples_scale);
+        }
+    }
+    */
+    
+    delete[] image;
+    std::clog << "\nDone.\n";
 }
