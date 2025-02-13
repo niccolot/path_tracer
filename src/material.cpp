@@ -198,7 +198,7 @@ double Phong::scattering_pdf(
     double spec_angle = std::fmax(dot(reflect_dir, unit_vector(vdir)), 0.);
     double specular = _ks * ((_n + 1) / (2. * pi)) * std::pow(spec_angle, _n);
 
-    auto cos_theta = dot(rec.normal(), unit_vector(-r_in.direction()));
+    auto cos_theta = dot(rec.normal(), unit_vector(scattered.direction()));
     auto diffuse = _kd * std::fmax(0., cos_theta/pi);
 
     return diffuse + specular;

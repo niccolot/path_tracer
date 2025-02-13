@@ -34,7 +34,7 @@ Vec3 PhongPDF::generate() const {
     if (random_double() < _kd) {
         return uvw_normal.transform(random_cosine_direction());
     } else {
-        return uvw_reflection.transform(random_phong_direction(_n)); // disastro
-        //return uvw_normal.transform(random_phong_direction(_n)); // ok
+        //return uvw_reflection.transform(random_phong_direction(_n));
+        return uvw_normal.transform(random_phong_direction(_n)); 
     }
 }
