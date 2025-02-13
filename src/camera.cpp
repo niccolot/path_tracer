@@ -193,33 +193,67 @@ void Camera::render(const Hittable& world, const Hittable& lights) {
     unsigned int n_jobs = img_height_val / rows_per_job;
     unsigned int leftover = img_height_val % rows_per_job;
 
-    for (unsigned int i = 0; i < n_jobs; ++i) {
-        auto future = std::async([this, rows_per_job, i, leftover, n_jobs, &world, &lights]() {
+    for (unsigned int ii = 0; ii < n_jobs; ++ii) {
+        auto future = std::async([this, rows_per_job, ii, leftover, n_jobs, &world, &lights]() {
 
             block_job_t job;
-            job.row_start = i * rows_per_job;
+            job.row_start = ii * rows_per_job;
             job.row_end = job.row_start + rows_per_job;
-            if (i == n_jobs - 1) {
+            if (ii == n_jobs - 1) {
                 job.row_end = job.row_start + rows_per_job + leftover;
             }
 
             job.row_size = img_width_val;
 
             for (unsigned int j = job.row_start; j < job.row_end; ++j) {
-                for (unsigned int ii = 0; ii < job.row_size; ++ii) {
+                for (unsigned int i = 0; i < job.row_size; ++i) {
                     Color pixel_color(0,0,0);
                     for (int s_j = 0; s_j<samples_sqrt; ++s_j) {
                         for (int s_i = 0; s_i<samples_sqrt; ++s_i) {
-                            Ray r = get_ray(ii, j, s_i, s_j);
+                            Ray r = get_ray(i, j, s_i, s_j);
                             pixel_color += ray_color(r, max_depth, world, lights);
                         }
                     }
 
                     pixel_color *= pixel_samples_scale;
-                    
+                    pixel_color.set_x(linear_to_gamma(pixel_color.x()));
+                    pixel_color.set_y(linear_to_gamma(pixel_color.y()));
+                    pixel_color.set_z(linear_to_gamma(pixel_color.z()));
+
+                    int index = j * job.row_size + i;
+                    job.indices.push_back(index);
+                    job.colors.push_back(pixel_color);
                 }
             }
+
+            {
+                std::lock_guard<std::mutex> lock(mutex);
+                image_blocks.push_back(job);
+                cv.notify_one();
+            }
         });
+
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            futures.push_back(std::move(future));
+        }
+
+        {
+            std::unique_lock<std::mutex> lock(mutex);
+            cv.wait(lock, [this] {
+                return futures.size() == image_blocks.size();
+            });
+        }
+
+        for (auto& job : image_blocks) {
+            auto len = image_blocks.size();
+            for (size_t i = 0; i < len; ++i) {
+                int col_index = job.indices[i];
+                image[col_index] = job.colors[i];
+            }
+        }
+
+        reconstruct_image();
     } 
 
     for (int j=0; j<img_height_val; ++j) {

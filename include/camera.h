@@ -52,7 +52,7 @@ class Camera {
         std::mutex mutex;
         std::condition_variable cv;
         std::vector<block_job_t> image_blocks;
-        std::vector<std::future<Vec3>> futures;
+        std::vector<std::future<void>> futures;
 
         void write_color(std::ostream& out, const Color& pixel_color);
         Color ray_color(const Ray& r, int depth, const Hittable& world, const Hittable& lights) const;
@@ -85,6 +85,7 @@ class Camera {
         ) {}
 
         void render(const Hittable& world, const Hittable& lights);
+        void reconstruct_image(std::sstream out);
         void set_aspect_ratio(double aspect_ratio) { aspect_ratio_val = aspect_ratio; }
         void set_image_width(int img_width) { img_width_val = img_width; }
         void set_samples_per_pixel(int samples) { samples_per_pixel = samples; }
