@@ -223,7 +223,6 @@ void Camera::color_per_job(const Hittable& world, const Hittable& lights, block_
 }
 
 void Camera::thread_job_loop(const Hittable& world, const Hittable& lights) {
-    //std::atomic<bool> has_work{true};
     while (true) {
         block_job_t job;
         
@@ -237,22 +236,25 @@ void Camera::thread_job_loop(const Hittable& world, const Hittable& lights) {
             }
         }
 
-        //if (job.row_start < job.row_end) {
-            color_per_job(std::ref(world), std::ref(lights), std::ref(job));
-        //} else {
-        //    has_work = false;
-        //}
+        color_per_job(std::ref(world), std::ref(lights), std::ref(job));
     }
 
     {
         std::lock_guard<std::mutex> lock(mutex);
         cv.notify_one();
     }
-    
-    
 }
 
 void Camera::reconstruct_image(std::ostream& out) {
+    for (auto& job : image_blocks) {
+        auto len = job.indices.size();
+        for (size_t i = 0; i<len; ++i) {
+            int col_index = job.indices[i];
+            image[col_index] = job.colors[i];
+            ++col_index;
+        }
+    }
+
     out << "P3\n" << img_width_val << ' ' << img_height_val << "\n255\n";
 
     static const Interval intensity(0.000, 0.999);
@@ -275,7 +277,7 @@ void Camera::reconstruct_image(std::ostream& out) {
 
 void Camera::render(const Hittable& world, const Hittable& lights) {
     unsigned int n_threads = std::thread::hardware_concurrency();
-    unsigned int rows_per_job = 2;
+    unsigned int rows_per_job = 100;
     unsigned int n_jobs = img_height_val / rows_per_job;
     unsigned int leftover = img_height_val % rows_per_job;
     
@@ -309,15 +311,6 @@ void Camera::render(const Hittable& world, const Hittable& lights) {
 
     for (auto& t : threads) {
         t.join();
-    }
-
-    for (auto& job : image_blocks) {
-        auto len = job.indices.size();
-        for (size_t i = 0; i<len; ++i) {
-            int col_index = job.indices[i];
-            image[col_index] = job.colors[i];
-            ++col_index;
-        }
     }
     
     reconstruct_image(std::cout);
