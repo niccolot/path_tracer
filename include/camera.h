@@ -22,7 +22,6 @@ class Camera {
         Vec3 lookfrom; // where the camera is looking from
         Vec3 lookat; // point that the camera is looking at
         double vfov; // vertical field of view
-        //Vec3* image;
         std::vector<Vec3> image;
 
         // in photography terms where
@@ -51,10 +50,10 @@ class Camera {
         Vec3 pixel_delta_u;
         Vec3 pixel_delta_v;
 
-        std::vector<block_job_t> image_blocks;
+        std::vector<job_block_t> image_blocks;
         std::mutex mutex;
         std::condition_variable cv;
-        std::queue<block_job_t> jobs_queue;
+        std::queue<job_block_t> jobs_queue;
         std::vector<std::thread> threads;
 
         void write_color(std::ostream& out, const Color& pixel_color);
@@ -62,7 +61,7 @@ class Camera {
         Ray get_ray(int i, int j, int s_i, int s_j) const;
         Vec3 defocus_disk_sample() const;
         Vec3 sample_square_stratified(int s_i, int s_j) const;
-        void color_per_job(const Hittable& world, const Hittable& lights, block_job_t& job);
+        void color_per_job(const Hittable& world, const Hittable& lights, job_block_t& job);
         void thread_job_loop(const Hittable& world, const Hittable& lights);
         void reconstruct_image(std::ostream& out);
     

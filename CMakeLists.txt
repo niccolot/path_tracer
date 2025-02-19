@@ -15,8 +15,6 @@ file(GLOB SOURCES
     "main.cpp"
 )
 
-list(FILTER SOURCES EXCLUDE REGEX "src/material_old.cpp")
-
 add_executable(path_tracer ${SOURCES})  
 
 target_compile_features(path_tracer PUBLIC cxx_std_20)

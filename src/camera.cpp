@@ -194,7 +194,7 @@ Vec3 Camera::sample_square_stratified(int s_i, int s_j) const {
     return Vec3(px,py,0);
 }
 
-void Camera::color_per_job(const Hittable& world, const Hittable& lights, block_job_t& job) {
+void Camera::color_per_job(const Hittable& world, const Hittable& lights, job_block_t& job) {
     for (int j=job.row_start; j<job.row_end; ++j) {
         for (int i = 0; i < job.row_size; ++i) {
             Color pixel_color(0,0,0);
@@ -224,7 +224,7 @@ void Camera::color_per_job(const Hittable& world, const Hittable& lights, block_
 
 void Camera::thread_job_loop(const Hittable& world, const Hittable& lights) {
     while (true) {
-        block_job_t job;
+        job_block_t job;
         
         {
             std::lock_guard<std::mutex> lock(mutex);
@@ -283,7 +283,7 @@ void Camera::render(const Hittable& world, const Hittable& lights) {
     
     // main thread initializes the details for all the jobs
     for (unsigned int i = 0; i < n_jobs; ++i) {
-        block_job_t job;
+        job_block_t job;
         job.row_start = i*rows_per_job;
         job.row_end = job.row_start + rows_per_job;
         if (i == n_jobs - 1) {
