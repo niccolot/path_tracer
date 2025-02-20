@@ -2,6 +2,7 @@
 
 #include <catch2/catch_all.hpp>
 #include <iostream>
+#include <future>
 
 #include "multithreading.h"
 
@@ -17,24 +18,24 @@ TEST_CASE("ThreadSafeQueue class test single thread") {
     test_struct_t s2;
     
     SECTION("empty(), push() test") {
-        REQUIRE(q.empty() == true);
+        REQUIRE(q.empty());
 
         q.push(s);
-        REQUIRE(q.empty() == false);
+        REQUIRE(!q.empty());
     }
 
     SECTION("wait_and_pop() test") {
         q.push(s);
         auto res = q.wait_and_pop();
         REQUIRE(res);
-        REQUIRE(q.empty() == true);
+        REQUIRE(q.empty());
 
         s.n = 1;
         s.vec = std::vector<double>(10, 1.5);
         q.push(s);
         test_struct_t res2;
         q.wait_and_pop(res2);
-        REQUIRE(q.empty() == true);
+        REQUIRE(!q.empty());
         REQUIRE(res2.n == 1);
         REQUIRE(res2.vec[0] == 1.5);
         REQUIRE(res2.vec.size() == 10);
@@ -55,7 +56,7 @@ TEST_CASE("ThreadSafeQueue class test single thread") {
 
     SECTION("try_pop() test") {
         test_struct_t res;
-        REQUIRE(q.try_pop(res) == false);
+        REQUIRE(!q.try_pop(res));
         REQUIRE(!q.try_pop());
 
         q.push(s);
@@ -89,5 +90,43 @@ TEST_CASE("ThreadSafeQueue class test single thread") {
 }
 
 TEST_CASE("Thread safe queue multithreaded") {
-    
+
+    ThreadSafeQueue<test_struct_t> q;
+    std::vector<std::thread> threads;
+    test_struct_t s {1, std::vector<double>(5, 1.5)};
+    test_struct_t s2 {2, std::vector<double>(5, 2.5)};
+    test_struct_t s3 {3, std::vector<double>(5, 3.5)};
+
+    SECTION("empty(), push() test") {
+        threads.emplace_back(std::thread([&] {
+            q.push(s);
+        }));
+        threads.emplace_back(std::thread([&] {
+            q.push(s2);
+        }));
+        threads.emplace_back(std::thread([&] {
+            q.push(s3);
+        }));
+
+        for (auto& t : threads) {
+            t.join();
+        }
+
+        REQUIRE(!q.empty());
+    }
+
+    SECTION("wait_and_pop() test") {
+        std::vector<std::future<test_struct_t>> futures(3);
+        threads.emplace_back(std::thread([&] {
+            q.push(s);
+        }));
+        threads.emplace_back(std::thread([&] {
+            q.push(s2);
+        }));
+        threads.emplace_back(std::thread([&] {
+            q.push(s3);
+        }));
+
+        
+    }
 }
