@@ -8,7 +8,7 @@
 
 typedef struct TestStruct {
         int n = 0;
-        std::vector<double> vec;
+        std::vector<double> vec{};
 } test_struct_t;
 
 TEST_CASE("ThreadSafeQueue class test single thread") {
@@ -35,7 +35,7 @@ TEST_CASE("ThreadSafeQueue class test single thread") {
         q.push(s);
         test_struct_t res2;
         q.wait_and_pop(res2);
-        REQUIRE(!q.empty());
+        REQUIRE(q.empty());
         REQUIRE(res2.n == 1);
         REQUIRE(res2.vec[0] == 1.5);
         REQUIRE(res2.vec.size() == 10);
@@ -116,7 +116,17 @@ TEST_CASE("Thread safe queue multithreaded") {
     }
 
     SECTION("wait_and_pop() test") {
-        std::vector<std::future<test_struct_t>> futures(3);
+        test_struct_t res, res2, res3;
+        threads.emplace_back(std::thread([&] {
+            q.wait_and_pop(res);
+        }));
+        threads.emplace_back(std::thread([&] {
+            q.wait_and_pop(res2);
+        }));
+        threads.emplace_back(std::thread([&] {
+            q.wait_and_pop(res3);
+        }));
+
         threads.emplace_back(std::thread([&] {
             q.push(s);
         }));
@@ -127,6 +137,54 @@ TEST_CASE("Thread safe queue multithreaded") {
             q.push(s3);
         }));
 
+        for (auto& t : threads) {
+            t.join();
+        }
+
+        REQUIRE(res.vec.size() == 5);
+        REQUIRE(res2.vec.size() == 5);
+        REQUIRE(res3.vec.size() == 5);
+    }
+
+    SECTION("try_pop() test") {
+        test_struct_t res, res2, res3;
+        
+        threads.emplace_back(std::thread([&] {
+            q.try_pop(res);
+        }));
+        threads.emplace_back(std::thread([&] {
+            q.try_pop(res2);
+        }));
+        threads.emplace_back(std::thread([&] {
+            q.try_pop(res3);
+        }));
+
+        for (auto& t : threads) {
+            t.join();
+        }
+
+        REQUIRE(res.vec.size() == 0);
+        REQUIRE(res2.vec.size() == 0);
+        REQUIRE(res3.vec.size() == 0);
+
+        auto num_threads = std::thread::hardware_concurrency();
+        std::vector<std::future<std::shared_ptr<test_struct_t>>> futures;
+
+        for (unsigned i = 0; i < num_threads; ++i) {
+            futures.emplace_back(std::async(std::launch::async, 
+            [&]() -> std::shared_ptr<test_struct_t> {
+                return q.try_pop();
+            }));
+        }
+
+        REQUIRE(futures.size() == num_threads);
+
+        for (auto& f : futures) {
+            auto _ = f.get();
+        }
+    }
+
+    SECTION("Concurrent operations test") {
         
     }
 }
