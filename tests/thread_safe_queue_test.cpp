@@ -183,8 +183,4 @@ TEST_CASE("Thread safe queue multithreaded") {
             auto _ = f.get();
         }
     }
-
-    SECTION("Concurrent operations test") {
-        
-    }
 }

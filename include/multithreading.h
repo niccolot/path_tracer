@@ -6,6 +6,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <future>
 
 #include "vec3.h"
 
@@ -95,4 +96,82 @@ public:
         return data_queue.empty();
     }
 }; // class ThreadSafeQueue 
+
+class FunctionWrapper {
+private:
+    typedef struct ImplBase {
+        virtual void call() = 0;
+        virtual ~ImplBase() {}
+    } impl_base_t; // impl_base_t
+
+    template<typename F>
+    struct impl_type {
+        F f;
+        impl_type(F&& f_) : f(std::move(f_)) {}
+        void call() { f(); }
+    }; // struct impl_type
+
+    std::unique_ptr<impl_base_t> impl;
+
+public:
+    template<typename F>
+    FunctionWrapper(F&& f) : impl(new impl_type<F>(std::move(f))) {}
+    FunctionWrapper() = default;
+    FunctionWrapper(FunctionWrapper&& other) : impl(std::move(other.impl)) {}
+    FunctionWrapper& operator=(FunctionWrapper&& other) {
+        impl = std::move(other.impl);
+        
+        return *this;
+    }
+
+    void operator() () { impl->call(); }
+    FunctionWrapper(const FunctionWrapper&) = delete;
+    FunctionWrapper(FunctionWrapper&) = delete;
+    FunctionWrapper& operator=(const FunctionWrapper&) = delete;
+}; // class FunctionWrapper
+
+class ThreadPool {
+private:
+    std::atomic<bool> done; 
+    ThreadSafeQueue<FunctionWrapper> queue;
+    std::vector<std::thread> threads;
+    ThreadJoiner joiner;
+
+    void worker_thread() {
+        while(!done) {
+            FunctionWrapper task;
+            if (queue.try_pop(task)) {
+                task();
+            } else {
+                std::this_thread::yield();
+            }
+        }
+    }
+
+public:
+    ThreadPool() : done(false), joiner(threads) {
+        unsigned const thread_count = std::thread::hardware_concurrency();
+        try {
+            for (unsigned i = 0; i < thread_count; ++i) {
+                threads.emplace_back(std::thread(&ThreadPool::worker_thread, this));
+            }
+        } catch(...) {
+            done = true;
+            throw;
+        }
+    }
+
+    ~ThreadPool() { done = true; }
+
+    template<typename FunctionType>
+    std::future<typename std::result_of<FunctionType()>::type> submit(FunctionType f) {
+        
+        typedef typename std::result_of<FunctionType()>::type result_type;
+        std::packaged_task<result_type()> task(std::move(f));
+        std::future<result_type> res(task.get_future());
+        queue.push(std::move(task));
+
+        return res;
+    }
+}; // class ThreadPool
 #endif
