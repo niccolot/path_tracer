@@ -105,7 +105,7 @@ private:
     } impl_base_t; // impl_base_t
 
     template<typename F>
-    struct impl_type {
+    struct impl_type : impl_base_t {
         F f;
         impl_type(F&& f_) : f(std::move(f_)) {}
         void call() { f(); }
@@ -153,7 +153,7 @@ public:
         unsigned const thread_count = std::thread::hardware_concurrency();
         try {
             for (unsigned i = 0; i < thread_count; ++i) {
-                threads.emplace_back(std::thread(&ThreadPool::worker_thread, this));
+                threads.push_back(std::thread(&ThreadPool::worker_thread, this));
             }
         } catch(...) {
             done = true;
@@ -167,7 +167,7 @@ public:
     std::future<typename std::result_of<FunctionType()>::type> submit(FunctionType f) {
         
         typedef typename std::result_of<FunctionType()>::type result_type;
-        std::packaged_task<result_type()> task(std::move(f));
+        std::packaged_task<result_type()> task{std::move(f)};
         std::future<result_type> res(task.get_future());
         queue.push(std::move(task));
 
