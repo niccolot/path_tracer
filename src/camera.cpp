@@ -232,7 +232,7 @@ void Camera::reconstruct_image(std::ostream& out) {
 }
 
 void Camera::render(const Hittable& world, const Hittable& lights) {
-    unsigned n_threads = 4;//std::thread::hardware_concurrency();
+    unsigned n_threads = std::thread::hardware_concurrency();
     unsigned rows_per_job = img_height_val / n_threads;
     unsigned leftover = img_height_val % n_threads;
     std::vector<job_block_t> jobs;
