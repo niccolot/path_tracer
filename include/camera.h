@@ -1,10 +1,15 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include <condition_variable>
+#include <mutex>
+#include <queue>
+
 #include "vec3.h"
 #include "color.h"
 #include "hittable.h"
 #include "utils.h"
+#include "multithreading.h"
 
 using Color = Vec3;
 
@@ -17,6 +22,7 @@ class Camera {
         Vec3 lookfrom; // where the camera is looking from
         Vec3 lookat; // point that the camera is looking at
         double vfov; // vertical field of view
+        std::vector<Vec3> image;
 
         // in photography terms where
         // focal length = distance from camera center to 
@@ -44,11 +50,16 @@ class Camera {
         Vec3 pixel_delta_u;
         Vec3 pixel_delta_v;
 
-        void write_color(std::ostream& out, const Color& pixel_color);
+        std::vector<job_block_t> image_blocks;
+        std::mutex mutex;
+        std::condition_variable cv;
+
         Color ray_color(const Ray& r, int depth, const Hittable& world, const Hittable& lights) const;
         Ray get_ray(int i, int j, int s_i, int s_j) const;
         Vec3 defocus_disk_sample() const;
         Vec3 sample_square_stratified(int s_i, int s_j) const;
+        void color_per_job(const Hittable& world, const Hittable& lights, job_block_t& job);
+        void reconstruct_image(std::ostream& out);
     
     public:
         Camera(int width, 

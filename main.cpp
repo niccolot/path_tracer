@@ -165,6 +165,8 @@ void cornell_box()
     //world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, glass));
     //world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, white));
 
+    world = HittableList(std::make_shared<BVHNode>(world));
+
     auto empty_mat = std::shared_ptr<Material>();
     HittableList lights;
     lights.add(std::make_shared<Quad>(Vec3(213, 554, 227), Vec3(130, 0, 0), Vec3(0, 0, 105), empty_mat));

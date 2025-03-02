@@ -7,12 +7,13 @@ double MixturePDF::value(
     const Vec3& direction_view) const {
 
     double v0 = p[0]->value(direction_out, direction_in, direction_view);
-    double v1 = p[1]->value(direction_out, direction_in, direction_view); 
-    
+    double v1 = p[1]->value(direction_out, direction_in, direction_view);
+
     return 0.5*v0 + 0.5*v1;
 }
 
 Vec3 MixturePDF::generate() const {
+
     return RandomUtils::random_double() < 0.5 ? p[0]->generate() : p[1]->generate();
 }
 

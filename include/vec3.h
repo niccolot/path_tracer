@@ -211,12 +211,6 @@ inline Vec3 random_phong_direction(int n) {
     auto y = std::sin(phi)*std::sqrt(1-r1_1);
     auto z = r1_2;
     
-    //double cos_theta = std::pow(r2, 1. / (n + 1));
-    //double sin_theta = std::sqrt(1. - cos_theta * cos_theta);
-
-    //double x = std::cos(phi) * sin_theta;
-    //double y = std::sin(phi) * sin_theta; 
-
     return Vec3(x,y,z);
 }
 
