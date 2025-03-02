@@ -28,6 +28,7 @@ elif [ "$build_type" == "release" ]; then
 elif [ "$build_type" == "profile" ]; then
     cmake -DCMAKE_BUILD_TYPE=Profile .
     cmake --build .     
+
 fi
 
 if [ $? -eq 0 ]; then

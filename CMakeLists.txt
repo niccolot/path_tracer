@@ -22,4 +22,3 @@ target_compile_features(path_tracer PUBLIC cxx_std_20)
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -Wpedantic")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_CXX_FLAGS_PROFILE "-g -O2")
-

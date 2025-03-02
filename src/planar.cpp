@@ -34,7 +34,7 @@ bool Planar::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
     double beta{};
 
     muller_trumbore_intersect(alpha, beta, planar_hitpt_vec);
-
+    
     //hitpoint outside the actual figure
     if (!is_interior(alpha, beta, rec)) {
         return false;
@@ -69,19 +69,19 @@ void Planar::muller_trumbore_intersect(double& alpha, double& beta, const Vec3& 
 
     double delta;
     if ((delta = _u.x() * _v.y() - _u.y()*_v.x()) != 0) {
-
-        alpha = (planar_hitpt_vec.x() * _v.y() - planar_hitpt_vec.y() * _v.x()) / delta;
-        beta = (planar_hitpt_vec.y() * _u.x() - planar_hitpt_vec.x() * _u.y()) / delta;
+        double delta_inv = 1. / delta;
+        alpha = (planar_hitpt_vec.x() * _v.y() - planar_hitpt_vec.y() * _v.x()) * delta_inv;
+        beta = (planar_hitpt_vec.y() * _u.x() - planar_hitpt_vec.x() * _u.y()) * delta_inv;
 
     } else if ((delta = _u.x() * _v.z() - _u.z() * _v.x()) != 0) {
-
-        alpha = (planar_hitpt_vec.x() * _v.z() - planar_hitpt_vec.z() * _v.x()) / delta;
-        beta = (planar_hitpt_vec.z() * _u.x() - planar_hitpt_vec.x() * _u.z()) / delta;
+        double delta_inv = 1. / delta;
+        alpha = (planar_hitpt_vec.x() * _v.z() - planar_hitpt_vec.z() * _v.x()) * delta_inv;
+        beta = (planar_hitpt_vec.z() * _u.x() - planar_hitpt_vec.x() * _u.z()) * delta_inv;
 
     } else {
-
         delta = _u.y() * _v.z() - _u.z() * _v.y();
-        alpha = (planar_hitpt_vec.y() * _v.z() - planar_hitpt_vec.z() * _v.y()) / delta;
-        beta = (planar_hitpt_vec.z() * _u.y() - planar_hitpt_vec.y() * _u.z()) / delta;
+        double delta_inv = 1. / delta;
+        alpha = (planar_hitpt_vec.y() * _v.z() - planar_hitpt_vec.z() * _v.y()) * delta_inv;
+        beta = (planar_hitpt_vec.z() * _u.y() - planar_hitpt_vec.y() * _u.z()) * delta_inv;
     }
 }

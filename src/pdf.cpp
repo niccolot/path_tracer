@@ -1,4 +1,5 @@
 #include "pdf.h"
+#include "utils.h"
 
 double MixturePDF::value(
     const Vec3& direction_out,
@@ -12,7 +13,7 @@ double MixturePDF::value(
 }
 
 Vec3 MixturePDF::generate() const {
-    
+
     return RandomUtils::random_double() < 0.5 ? p[0]->generate() : p[1]->generate();
 }
 

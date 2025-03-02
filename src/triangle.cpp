@@ -1,4 +1,5 @@
 #include "triangle.h"
+#include "utils.h"
 
 bool Triangle::is_interior(double a, double b, HitRecord& rec) const {
     Interval unit_interval = Interval(0,1);

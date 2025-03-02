@@ -1,4 +1,5 @@
 #include "quad.h"
+#include "utils.h"
 
 void Quad::set_bounding_box() {
     auto bbox_diagonal1 = AxisAlignedBBox(_Q, _Q + _u + _v);
