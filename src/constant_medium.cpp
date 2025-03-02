@@ -22,7 +22,7 @@ bool ConstantMedium::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
 
     auto ray_length = r.direction().length();
     auto distance_inside_boundary = (rec2.t() - rec1.t()) * ray_length;
-    auto hit_distance = neg_inv_density * std::log(random_double());
+    auto hit_distance = neg_inv_density * std::log(RandomUtils::random_double());
 
     if (hit_distance > distance_inside_boundary) {
         return false;

@@ -1,4 +1,5 @@
 #include "triangle.h"
+#include "utils.h"
 
 bool Triangle::is_interior(double a, double b, HitRecord& rec) const {
     Interval unit_interval = Interval(0,1);
@@ -22,8 +23,8 @@ bool Triangle::is_interior(double a, double b, HitRecord& rec) const {
 Vec3 Triangle::random(const Vec3& origin) const {
     double a, b;
     while (true) {
-        a = random_double();
-        b = random_double();
+        a = RandomUtils::random_double();
+        b = RandomUtils::random_double();
 
         if ((a + b) < 1) break;
     }

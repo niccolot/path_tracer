@@ -95,7 +95,7 @@ Ray Camera::get_ray(int i, int j, int s_i, int s_j) const {
     for blurred 'moving' spheres that moves from t=0 to t=1 
     the rays are generated at random times in [0,1) 
     */
-    auto ray_time = random_double();
+    auto ray_time = RandomUtils::random_double();
 
     return Ray(ray_origin, ray_direction, ray_time);
 }
@@ -198,8 +198,8 @@ Vec3 Camera::sample_square_stratified(int s_i, int s_j) const {
      * idealized unit square pixel [-0.5, -0.5] x [0.5, 0.5] 
      */
 
-    auto px = ((s_i + random_double()) * inv_samples_sqrt) - 0.5;
-    auto py = ((s_j + random_double()) * inv_samples_sqrt) - 0.5;
+    auto px = ((s_i + RandomUtils::random_double()) * inv_samples_sqrt) - 0.5;
+    auto py = ((s_j + RandomUtils::random_double()) * inv_samples_sqrt) - 0.5;
 
     return Vec3(px,py,0);
 }

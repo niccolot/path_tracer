@@ -64,7 +64,7 @@ void Perlin::perlin_generate_perm(int* p) {
 
 void Perlin::permute(int* p, int n) {
     for (int i=n-1; i>0; --i) {
-        int target = random_int(0, i);
+        int target = RandomUtils::random_int(0, i);
         int tmp = p[i];
         p[i] = p[target];
         p[target] = tmp;
