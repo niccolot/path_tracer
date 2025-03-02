@@ -8,7 +8,7 @@ bool Lambertian::scatter(
     scattered_rays_t scattered_ray;
     
     // more reflection
-    if (random_double() < r) {
+    if (RandomUtils::random_double() < r) {
         scattered_ray.attenuation = tex->value(rec.u(), rec.v(), rec.point()) * r;
         scattered_ray.pdf = std::make_shared<CosinePDF>(rec.normal());
         scattered_ray.skip_pdf = false;
@@ -78,7 +78,7 @@ bool Dielectric::scatter(
     bool cannot_refract = ri*sin_theta > 1.0;
     
     // no transmission
-    if (cannot_refract || reflectance(cos_theta, ri) > random_double()) {
+    if (cannot_refract || reflectance(cos_theta, ri) > RandomUtils::random_double()) {
         Vec3 direction_reflect;
         scattered_rays_t reflected_ray;
 

@@ -104,7 +104,7 @@ Ray Camera::get_ray(int i, int j, int s_i, int s_j) const {
     for blurred 'moving' spheres that moves from t=0 to t=1 
     the rays are generated at random times in [0,1) 
     */
-    auto ray_time = random_double();
+    auto ray_time = RandomUtils::random_double();
 
     return Ray(ray_origin, ray_direction, ray_time);
 }
@@ -166,13 +166,13 @@ Vec3 Camera::sample_square_stratified(int s_i, int s_j) const {
      * idealized unit square pixel [-0.5, -0.5] x [0.5, 0.5] 
      */
 
-    auto px = ((s_i + random_double()) * inv_samples_sqrt) - 0.5;
-    auto py = ((s_j + random_double()) * inv_samples_sqrt) - 0.5;
+    auto px = ((s_i + RandomUtils::random_double()) * inv_samples_sqrt) - 0.5;
+    auto py = ((s_j + RandomUtils::random_double()) * inv_samples_sqrt) - 0.5;
 
     return Vec3(px,py,0);
 }
 
-void Camera::color_per_job(const Hittable& world, const Hittable& lights, unsigned id, job_block_t& job) {
+void Camera::color_per_job(const Hittable& world, const Hittable& lights, job_block_t& job) {
     for (int j=job.row_start; j<job.row_end; ++j) {
         for (int i = 0; i < job.row_size; ++i) {
             Color pixel_color(0,0,0);
@@ -246,18 +246,17 @@ void Camera::render(const Hittable& world, const Hittable& lights) {
             job.row_end += leftover;
         }
 
-        job.id = i;
         job.row_size = img_width_val;
         jobs.push_back(job);
     }
 
     for (unsigned i = 0; i < (n_threads - 1); ++i) {
         threads.emplace_back([this, &world, &lights, &jobs, i] {
-            color_per_job(world, lights, i, jobs[i]);
+            color_per_job(world, lights, jobs[i]);
         });
     }
 
-    color_per_job(world, lights, n_threads - 1, jobs[n_threads - 1]);
+    color_per_job(world, lights, jobs[n_threads - 1]);
 
     {
         std::unique_lock<std::mutex> lock(mutex);

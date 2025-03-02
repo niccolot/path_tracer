@@ -73,11 +73,11 @@ class Vec3 {
         }
 
         static Vec3 random() {
-            return Vec3(random_double(), random_double(), random_double());
+            return Vec3(RandomUtils::random_double(), RandomUtils::random_double(), RandomUtils::random_double());
         }
         
         static Vec3 random(double min, double max) {
-            return Vec3(random_double(min, max), random_double(min, max), random_double(min, max));
+            return Vec3(RandomUtils::random_double(min, max), RandomUtils::random_double(min, max), RandomUtils::random_double(min, max));
         }
 
         double length_squared() const {
@@ -155,7 +155,7 @@ inline Vec3 sample_square() {
      * unit square
      */
 
-    return Vec3(random_double(-0.5, 0.5), random_double(-0.5, 0.5), 0);
+    return Vec3(RandomUtils::random_double(-0.5, 0.5), RandomUtils::random_double(-0.5, 0.5), 0);
 }
 
 inline Vec3 random_unit_vector() {
@@ -176,7 +176,7 @@ inline Vec3 random_unit_vector() {
 
 inline Vec3 random_in_unit_disk() {
     while (true) {
-        auto p = Vec3(random_double(-1,1), random_double(-1, 1), 0);
+        auto p = Vec3(RandomUtils::random_double(-1,1), RandomUtils::random_double(-1, 1), 0);
         if (p.length_squared() < 1) {
             return p;
         }
@@ -184,8 +184,8 @@ inline Vec3 random_in_unit_disk() {
 }
 
 inline Vec3 random_cosine_direction() {
-    auto r1 = random_double();
-    auto r2 = random_double();
+    auto r1 = RandomUtils::random_double();
+    auto r2 = RandomUtils::random_double();
 
     auto phi = 2*pi*r2;
     auto x = std::cos(phi) * std::sqrt(1 - r1);
@@ -199,8 +199,8 @@ inline Vec3 random_phong_direction(int n) {
     /**
      * @param n phong specular exponent
      */
-    auto r1 = random_double();
-    auto r2 = random_double();
+    auto r1 = RandomUtils::random_double();
+    auto r2 = RandomUtils::random_double();
 
     auto phi = 2*pi*r2;
     

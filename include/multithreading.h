@@ -14,7 +14,6 @@ typedef struct JobBlock {
     int row_start;
     int row_end;
     int row_size;
-    unsigned id;
     std::vector<int> indices;
     std::vector<Vec3> colors;
 } job_block_t; // block_job_t 

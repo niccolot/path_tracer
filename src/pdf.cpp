@@ -13,7 +13,7 @@ double MixturePDF::value(
 
 Vec3 MixturePDF::generate() const {
     
-    return random_double() < 0.5 ? p[0]->generate() : p[1]->generate();
+    return RandomUtils::random_double() < 0.5 ? p[0]->generate() : p[1]->generate();
 }
 
 double PhongPDF::value(
@@ -32,7 +32,7 @@ double PhongPDF::value(
 }  
 
 Vec3 PhongPDF::generate() const {
-    if (random_double() < _kd) {
+    if (RandomUtils::random_double() < _kd) {
         return uvw_normal.transform(random_cosine_direction());
     } else {
         //return uvw_reflection.transform(random_phong_direction(_n));

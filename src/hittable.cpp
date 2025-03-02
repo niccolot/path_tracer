@@ -35,10 +35,10 @@ double HittableList::pdf_value(const Vec3& origin, const Vec3& direction) const 
 
 Vec3 HittableList::random(const Vec3& origin) const {
     auto int_size = int(objects.size());
-    auto vec = objects[random_int(0, int_size-1)]->random(origin);
+    auto vec = objects[RandomUtils::random_int(0, int_size-1)]->random(origin);
 
     while (vec.is_nan()) {
-        vec = objects[random_int(0, int_size-1)]->random(origin);
+        vec = objects[RandomUtils::random_int(0, int_size-1)]->random(origin);
     }
 
     return vec;

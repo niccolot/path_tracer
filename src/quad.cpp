@@ -23,7 +23,7 @@ bool Quad::is_interior(double a, double b, HitRecord& rec) const {
 }
 
 Vec3 Quad::random(const Vec3& origin) const {
-    auto p = Q() + (random_double() * u()) + (random_double() * v());
+    auto p = Q() + (RandomUtils::random_double() * u()) + (RandomUtils::random_double() * v());
 
     return p - origin;
 }
