@@ -59,7 +59,7 @@ bool Sphere::hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
     rec.set_t(root);
     rec.set_point(r.at(root));
     
-    Vec3 outward_normal = (rec.point() - current_center) / radius;
+    Vec3 outward_normal = unit_vector((rec.point() - current_center) / radius);
     rec.set_face_normal(r, outward_normal);
     get_sphere_uv(outward_normal, rec.u(), rec.v());
     rec.set_material(mat);

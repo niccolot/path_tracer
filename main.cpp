@@ -157,11 +157,11 @@ void cornell_box()
     world.add(box1);
     //world.add(box2);
 
-    auto phong = std::make_shared<Phong>(Color(0.8, 0.3, 0.4), 0.7, 0.3, 20);
+    auto phong = std::make_shared<Phong>(Color(0.8, 0.3, 0.4), 0.5, 0.5, 5);
     auto lamb = std::make_shared<Lambertian>(Color(0.8, 0.3, 0.4));
     auto glass = std::make_shared<Dielectric>(1.5);
 
-    world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, lamb));
+    world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, phong));
     //world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, glass));
     //world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, white));
 
@@ -181,9 +181,9 @@ void test2()
 {
     HittableList world;
     auto ground = std::make_shared<Lambertian>(Color(0.8, 0.5, 0.0));
-    auto center = std::make_shared<Phong>(Color(0.8,0.1,0.2), 0.5, 0.5, 5);
+    //auto center = std::make_shared<Phong>(Color(0.8,0.1,0.2), 0.5, 0.5, 5);
     //auto center = std::make_shared<Dielectric>(1.5);
-    //auto center = std::make_shared<Lambertian>(Color(0.8,0.1,0.2));
+    auto center = std::make_shared<Lambertian>(Color(0.8,0.1,0.2));
     auto light = std::make_shared<DiffuseLight>(Color(20, 20, 20));
 
     world.add(std::make_shared<Sphere>(Vec3(0, 0, 0), 0.5, center));
@@ -195,10 +195,10 @@ void test2()
     HittableList lights;
     auto empty = std::shared_ptr<Material>();
     lights.add(std::make_shared<Quad>(Vec3(0.5, 3, 0.5), Vec3(-0.5, 0, 0), Vec3(0, 0, -0.5), empty));
-    lights.add(std::make_shared<Sphere>(Vec3(0, 0, 0), 0.5, empty));
-    lights.add(std::make_shared<Sphere>(Vec3(0, -100.5, -1), 100, empty));
+    //lights.add(std::make_shared<Sphere>(Vec3(0, 0, 0), 0.5, empty));
+    //lights.add(std::make_shared<Sphere>(Vec3(0, -100.5, -1), 100, empty));
 
-    Camera cam(400, 16. / 9., Vec3(0, 1, 3), Vec3(0, 0, 0), 90, 10, 0, 2000);
+    Camera cam(400, 16. / 9., Vec3(0, 1, 3), Vec3(0, 0, 0), 90, 10, 0, 1000, 10);
     auto bg = Color(0, 0, 0);
     cam.set_background(bg);
     cam.render(world, lights);
@@ -209,5 +209,5 @@ void test2()
 int main()
 {
 
-    cornell_box();
+    test2();
 }
