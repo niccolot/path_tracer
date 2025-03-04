@@ -39,11 +39,7 @@ Camera::Camera(
 
     depth_cutoff = int(max_depth/5);
 
-    //image = new Vec3[img_height_val * img_width_val];
-    //memset(&image[0], 0, img_height_val * img_width_val * sizeof(Vec3));
-    for (int i = 0; i < img_height_val * img_width_val; ++i) {
-        image.push_back(Vec3());
-    }
+    image.reserve(img_height_val * img_width_val);
 
     // camera
     double theta = degs_to_rads(vfov);
@@ -136,8 +132,10 @@ Color Camera::ray_color(const Ray& r, int depth, const Hittable& world, const Hi
         if (ray_t.skip_pdf || ray_t.pdf == nullptr) {
             color_from_scatter += ray_t.attenuation * ray_color(ray_t.skip_pdf_ray, depth-1, world, lights);
         } else {
-            auto light_ptr = std::make_shared<HittablePDF>(lights, rec.point());
-            MixturePDF p(light_ptr, ray_t.pdf);
+            //auto light_ptr = std::make_shared<HittablePDF>(lights, rec.point());
+            //MixturePDF p(light_ptr, ray_t.pdf);
+            auto ligth_obj = HittablePDF{lights, rec.point()};
+            MixturePDF p(ligth_obj, *ray_t.pdf.get());
             Ray scattered = Ray(rec.point(), p.generate(), r.time());
             double pdf_value = p.value(scattered.direction(), r.direction(), w);
             double scattering_pdf = rec.material()->scattering_pdf(r, rec, scattered, w);
@@ -173,6 +171,8 @@ Vec3 Camera::sample_square_stratified(int s_i, int s_j) const {
 }
 
 void Camera::color_per_job(const Hittable& world, const Hittable& lights, job_block_t& job) {
+    job.colors.reserve((job.row_end - job.row_start) * job.row_size);
+    job.indices.reserve((job.row_end - job.row_start) * job.row_size);
     for (int j=job.row_start; j<job.row_end; ++j) {
         for (int i = 0; i < job.row_size; ++i) {
             Color pixel_color(0,0,0);
@@ -237,6 +237,7 @@ void Camera::render(const Hittable& world, const Hittable& lights) {
     unsigned leftover = img_height_val % n_threads;
     std::vector<job_block_t> jobs;
     std::vector<std::thread> threads;
+    image_blocks.reserve(n_threads);
 
     for (unsigned i = 0; i < n_threads; ++i) {
         job_block_t job;
@@ -257,13 +258,6 @@ void Camera::render(const Hittable& world, const Hittable& lights) {
     }
 
     color_per_job(world, lights, jobs[n_threads - 1]);
-
-    {
-        std::unique_lock<std::mutex> lock(mutex);
-        cv.wait(lock, [this, n_threads] {
-            return image_blocks.size() == n_threads;
-        });
-    }
 
     for (auto& t : threads) {
         if (t.joinable()) {

@@ -19,13 +19,27 @@ class PDF {
 
 class MixturePDF : public PDF {
     private:
-        std::shared_ptr<PDF> p[2];
+        //std::shared_ptr<PDF> p[2];
+        const PDF& m_p0;
+        const PDF& m_p1;
+        //std::vector<PDF*> p;
 
     public:
-        MixturePDF(std::shared_ptr<PDF> p0, std::shared_ptr<PDF> p1) {
-            p[0] = p0;
-            p[1] = p1;
-        }
+        //MixturePDF(std::shared_ptr<PDF> p0, std::shared_ptr<PDF> p1) {
+        //    p[0] = p0;
+        //    p[1] = p1;
+        //}
+        MixturePDF(const PDF& p0, const PDF& p1) : m_p0(p0), m_p1(p1) {}
+        //MixturePDF(PDF* p0, PDF* p1) {
+        //    p.reserve(2);
+        //    p[0] = p0;
+        //    p[1] = p1;
+        //}
+        //~MixturePDF() {
+        //    for (const auto& elem : p) {
+        //        delete elem;
+        //    }
+        //}
 
         double value(
             const Vec3& direction_out, 

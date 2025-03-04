@@ -22,7 +22,7 @@ class Material {
             [[maybe_unused]] const HitRecord& rec,
             [[maybe_unused]] double u,
             [[maybe_unused]] double v,
-            [[maybe_unused]] const Vec3& p) const = 0;//{ return Color(0,0,0); }
+            [[maybe_unused]] const Vec3& p) const = 0;
 
         virtual double scattering_pdf(
             const Ray& r_in,

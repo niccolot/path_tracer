@@ -161,11 +161,11 @@ void cornell_box()
     auto lamb = std::make_shared<Lambertian>(Color(0.8, 0.3, 0.4));
     auto glass = std::make_shared<Dielectric>(1.5);
 
-    world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, phong));
+    world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, lamb));
     //world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, glass));
     //world.add(std::make_shared<Sphere>(Vec3(190, 90, 190), 90, white));
 
-    world = HittableList(std::make_shared<BVHNode>(world));
+    //world = HittableList(std::make_shared<BVHNode>(world));
 
     auto empty_mat = std::shared_ptr<Material>();
     HittableList lights;
@@ -209,5 +209,5 @@ void test2()
 int main()
 {
 
-    test2();
+    cornell_box();
 }
