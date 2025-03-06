@@ -34,7 +34,7 @@ class HitRecord {
 
         void set_point(const Vec3& p) { point_val = p; }
         void set_t(double t) { t_val = t; }
-        void set_material(const std::shared_ptr<Material> material) { mat = material; }
+        void set_material(const std::shared_ptr<Material>& material) { mat = material; }
         void set_u(double u) { _u = u; }
         void set_v(double v) { _v = v; }
         void set_normal(const Vec3& n) { normal_val = n; }
