@@ -30,7 +30,6 @@ double HittableList::pdf_value(const Vec3& origin, const Vec3& direction) const 
     }
 
     return sum;
-    //return objects[1]->pdf_value(origin, direction);
 }
 
 Vec3 HittableList::random(const Vec3& origin) const {
