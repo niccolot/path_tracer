@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 
 project(path_tracer
-    VERSION 1.0
+    VERSION 2.0
     DESCRIPTION "C++ path tracer"
     LANGUAGES CXX)
 
