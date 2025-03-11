@@ -16,6 +16,10 @@ namespace RandomUtils {
     inline uint32_t xor128() {
         /**
          * @brief xor128 algorithm for uint32_t
+         * 
+         * note that is not seeded so it will 
+         * produce always the same sequence, not 
+         * a problem per se in raytracing
          */
 
         static uint32_t x = 123456789;
