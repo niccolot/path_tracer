@@ -2,6 +2,7 @@
 #define VEC3_H
 
 #include <iostream>
+#include <cmath>
 #include <limits>
 
 template<typename T>
@@ -35,7 +36,7 @@ public:
         return *this;
     }
 
-    Vec3<T> operator-() const { return Vec3<T>(-e[0], -e[1], -e[1]); }
+    Vec3<T> operator-() const { return Vec3<T>(-e[0], -e[1], -e[2]); }
     
     Vec3<T> operator+=(const Vec3<T>& v) {
         e[0] += v.x();
@@ -85,22 +86,22 @@ inline Vec3<T> operator-(const Vec3<T>& u, const Vec3<T>& v) {
     return u + (-v);
 }
 
-template<typename T>
-inline Vec3<T> operator*(const Vec3<T>& v,T t) {
+template<typename T, typename U>
+inline Vec3<T> operator*(const Vec3<T>& v, U t) {
     return Vec3<T>(v.x() * t, v.y() * t, v.z() * t);
 }
 
-template<typename T>
-inline Vec3<T> operator*(T t, const Vec3<T>& v) {
+template<typename T, typename U>
+inline Vec3<T> operator*(U t, const Vec3<T>& v) {
     return v * t;
 }
 
-template<typename T>
-inline Vec3<T> operator/(const Vec3<T>& v,T t) {
+template<typename T, typename U>
+inline Vec3<T> operator/(const Vec3<T>& v, U t) {
     return v * (1/t);
 }
 
-template<typename T>
+template<typename T, typename U>
 inline Vec3<T> operator/(T t, const Vec3<T>& v) {
     return v / t;
 }

@@ -1,6 +1,7 @@
 #include <cmath>
 
 #include "camera.h"
+#include "interval.h"
 #include "utils.h"
 
 Camera::Camera(
@@ -20,9 +21,10 @@ Camera::Camera(
     _vfov(vfov),
     _focus_dist(focus_dist)
 {
+    _gamma_correction = true;
     _img_height = uint32_t(_img_width / _aspect_ratio);
     _img_height = (_img_height > 1) ? _img_height : 1; // img_height at leas 1 pixel
-    _vup = Vec3f(0,1.f,0);
+    _vup = Vec3f(0.f,1.f,0.f);
 
     // antiparallel to view direction
     _w = unit_vector(_lookfrom - _lookat);
@@ -49,5 +51,48 @@ Camera::Camera(
 }
 
 void Camera::render() {
+    std::cout << "P3\n" << _img_width << ' ' << _img_height << "\n255\n";
+    for(uint32_t j = 0; j < _img_height; ++j) {
+        for (uint32_t i = 0; i < _img_width; ++i) {
+            Color pixel_color;
+            Ray r = get_ray(i, j);
+            pixel_color += ray_color(r);
+            write_color(pixel_color);
+        }
+    }
+}
 
+Ray Camera::get_ray(uint32_t i, uint32_t j) {
+    Vec3f pixel = _pixel00_loc + (i * _pixel_delta_u) + (j * _pixel_delta_v);
+
+    return Ray(_lookfrom, pixel - _lookfrom);
+}
+
+Color Camera::ray_color(const Ray& r) {
+    float a = 0.5f * (unit_vector(r.direction()).y() + 1.f);
+
+    return (1.f - a) * Color(1.f,1.f,1.f) + a * _background;
+}
+
+void Camera::write_color(Color& color) {
+    if (_gamma_correction) {
+        gamma_correction(color);
+    }
+    
+    float r = color.x();
+    float g = color.y();
+    float b = color.z();
+
+    static const Interval intensity(0.000f, 0.999f);
+    uint32_t r_byte = uint32_t(intensity.clamp(r) * 256);
+    uint32_t g_byte = uint32_t(intensity.clamp(g) * 256);
+    uint32_t b_byte = uint32_t(intensity.clamp(b) * 256);
+
+    std::cout << r_byte << ' ' << g_byte << ' ' << b_byte << '\n';
+}
+
+void Camera::gamma_correction(Color& color) {
+    color.set_x(linear_to_gamma(color.x()));
+    color.set_y(linear_to_gamma(color.y()));
+    color.set_z(linear_to_gamma(color.z()));
 }
