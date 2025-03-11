@@ -24,8 +24,8 @@ public:
     void set_y(T y) { e[1] = y; }
     void set_z(T z) { e[2] = z; }
 
-    T operator[](size_t i) const { return e[i]; }
-    T& operator[](size_t i) { return e[i]; }
+    T operator[](uint32_t i) const { return e[i]; }
+    T& operator[](uint32_t i) { return e[i]; }
 
     Vec3<T> operator=(const Vec3<T>& v) {
         e[0] = v.x();
@@ -61,11 +61,11 @@ public:
         return *this *= 1/t;
     }
 
-    T length_squared() {
+    T length_squared() const {
         return e[0] * e[0] + e[1] * e[1] + e[2] * e[2];
     }
 
-    T length() {
+    T length() const {
         return std::sqrt(length_squared());
     }
 }; // class Vec3
