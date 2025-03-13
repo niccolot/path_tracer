@@ -10,7 +10,7 @@
 class Camera {
 
 private:
-    bool _gamma_correction;
+    bool _gamma_correction = true;
     uint32_t _img_width, _img_height;
     float _aspect_ratio;
     Vec3f _lookfrom, _lookat;
@@ -38,7 +38,7 @@ public:
         float focus_dist = 10.f
     );
 
-    void set_background(const Color& background) { _background = background; }
+    void set_background(Color&& background) { _background = std::move(background); }
     void render();
 }; // class Camera
 

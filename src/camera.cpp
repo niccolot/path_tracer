@@ -21,7 +21,6 @@ Camera::Camera(
     _vfov(vfov),
     _focus_dist(focus_dist)
 {
-    _gamma_correction = true;
     _img_height = uint32_t(_img_width / _aspect_ratio);
     _img_height = (_img_height > 1) ? _img_height : 1; // img_height at leas 1 pixel
     _vup = Vec3f(0.f,1.f,0.f);
@@ -38,7 +37,7 @@ Camera::Camera(
     // image plane
     float h = std::tan(0.5f * degs_to_rads(_vfov));
     float img_plane_height = 2.f * h * _focus_dist;
-    float img_plane_width = img_plane_height * float(_img_width) / _img_height;
+    float img_plane_width = img_plane_height * float(_img_width) / float(_img_height);
     Vec3f img_plane_u = img_plane_width * _u;
     Vec3 img_plane_v = -img_plane_height * _v;
     _pixel_delta_u = img_plane_u / img_plane_width;
@@ -65,7 +64,7 @@ void Camera::render() {
 Ray Camera::get_ray(uint32_t i, uint32_t j) {
     Vec3f pixel = _pixel00_loc + (i * _pixel_delta_u) + (j * _pixel_delta_v);
 
-    return Ray(_lookfrom, pixel - _lookfrom);
+    return Ray{_lookfrom, pixel - _lookfrom};
 }
 
 Color Camera::ray_color(const Ray& r) {
@@ -84,9 +83,9 @@ void Camera::write_color(Color& color) {
     float b = color.z();
 
     static const Interval intensity(0.000f, 0.999f);
-    uint32_t r_byte = uint32_t(intensity.clamp(r) * 256);
-    uint32_t g_byte = uint32_t(intensity.clamp(g) * 256);
-    uint32_t b_byte = uint32_t(intensity.clamp(b) * 256);
+    auto r_byte = uint32_t(intensity.clamp(r) * 256);
+    auto g_byte = uint32_t(intensity.clamp(g) * 256);
+    auto b_byte = uint32_t(intensity.clamp(b) * 256);
 
     std::cout << r_byte << ' ' << g_byte << ' ' << b_byte << '\n';
 }

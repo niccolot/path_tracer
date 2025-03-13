@@ -5,6 +5,8 @@
 #include <cmath>
 #include <limits>
 
+#include "random.h"
+
 template<typename T>
 class Vec3 {
 
@@ -71,6 +73,9 @@ public:
     }
 }; // class Vec3
 
+using Vec3f = Vec3<float>;
+using Vec3Double = Vec3<double>;
+
 template<typename T>
 inline std::ostream& operator<<(std::ostream& out, const Vec3<T>& v) {
     return out << v.x() << ' ' << v.y() << ' ' << v.z();
@@ -124,6 +129,28 @@ inline Vec3<T> unit_vector(const Vec3<T>& v) {
     return v / v.length();
 }
 
-using Vec3f = Vec3<float>;
-using Vec3Double = Vec3<double>;
+inline Vec3f random_vector() {
+    return Vec3f(RandomUtils::random_float(), RandomUtils::random_float(), RandomUtils::random_float());
+}
+
+inline Vec3f random_vector(float min, float max) {
+    return Vec3f(RandomUtils::random_float(min, max), RandomUtils::random_float(min, max), RandomUtils::random_float(min, max));
+}
+
+inline Vec3f random_unit_vector() {
+    /**
+     * @brief generates random vectors inside the unit square 
+     * containing the unit circle. Once a generated vector is
+     * inside the circle and not too short for numerical overlow,
+     * it is returned
+     */
+    while(true) {
+        Vec3f p = random_vector(-1.f, 1.f);
+        float lensq = p.length_squared();
+        if (lensq > 1e-80 && lensq <= 1.f) {
+            return p / std::sqrt(lensq);
+        }
+    }
+}
+
 #endif

@@ -4,14 +4,14 @@
 #include <random>
 
 namespace RandomUtils {
-    inline std::mt19937 generate_engine() {
+    inline std::mt19937 _generate_engine() {
         std::random_device rd{};
         std::seed_seq ss{rd(), rd(), rd(), rd(), rd(), rd(), rd(), rd()};
 
         return std::mt19937{ss};
     }
 
-    inline std::mt19937 random_engine{ generate_engine() };
+    inline std::mt19937 _random_engine{ _generate_engine() };
 
     inline uint32_t xor128() {
         /**
@@ -46,7 +46,7 @@ namespace RandomUtils {
          */
         if (mt) {
             std::uniform_real_distribution<float> distribution(0., 1.);
-            return distribution(random_engine);
+            return distribution(_random_engine);
         } else {
             return xor128_float();
         }

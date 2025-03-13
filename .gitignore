@@ -4,3 +4,4 @@ main
 build
 path_tracer
 note.txt
+sdl_example.cpp
