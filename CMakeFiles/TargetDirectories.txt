@@ -1,8 +1,0 @@
-/home/nico/repos/path_tracer/CMakeFiles/path_tracer.dir
-/home/nico/repos/path_tracer/CMakeFiles/edit_cache.dir
-/home/nico/repos/path_tracer/CMakeFiles/rebuild_cache.dir
-/home/nico/repos/path_tracer/vendor/SDL/CMakeFiles/SDL3-shared.dir
-/home/nico/repos/path_tracer/vendor/SDL/CMakeFiles/SDL3_test.dir
-/home/nico/repos/path_tracer/vendor/SDL/CMakeFiles/SDL_uclibc.dir
-/home/nico/repos/path_tracer/vendor/SDL/CMakeFiles/edit_cache.dir
-/home/nico/repos/path_tracer/vendor/SDL/CMakeFiles/rebuild_cache.dir
