@@ -15,35 +15,6 @@ std::atomic<bool> done_rendering = false;
 constexpr int width = 800;
 constexpr int height = 600;
 
-template <typename T>
-class SimpleQueue
-{
-public:
-    void push(T val)
-    {
-        std::lock_guard g{ m_mutex };
-        m_queue.push(std::move(val));
-    }
-
-    std::optional<T> try_pop()
-    {
-        std::optional<T> result;
-        {
-            std::lock_guard g{ m_mutex };
-            if (m_queue.size())
-            {
-                result.emplace(std::move(m_queue.front()));
-                m_queue.pop();
-            }
-        }
-        return result;
-    }
-
-private:
-    std::queue<T> m_queue;
-    std::mutex m_mutex;
-};
-
 struct ScanLine
 {
     int y_pos;
@@ -62,14 +33,7 @@ void worker_task(ThreadSafeQueue<ScanLine>& queue)
         // sleep for few millisecond
         std::this_thread::sleep_for(std::chrono::milliseconds{ 5 });
 
-        // do some work
-        if (y >= height)
-        {
-            //y = 0;
-            value = dist(engine);
-        }
         std::vector<uint32_t> vec(width, value);
-
         // push result to queue
         queue.push({ y, std::move(vec) });
         
@@ -133,6 +97,7 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     SDL_RenderClear(context->renderer);
 
     // update surface from other thread data
+    //auto line = context->queue.try_pop();
     auto line = context->queue.try_pop();
     while (line && !done_rendering)
     {

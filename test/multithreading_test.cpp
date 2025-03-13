@@ -168,11 +168,11 @@ TEST_CASE("Thread safe queue multithreaded") {
         REQUIRE(res3.vec.size() == 0);
 
         auto num_threads = std::thread::hardware_concurrency();
-        std::vector<std::future<std::shared_ptr<test_struct_t>>> futures;
+        std::vector<std::future<std::optional<test_struct_t>>> futures;
 
         for (unsigned i = 0; i < num_threads; ++i) {
             futures.emplace_back(std::async(std::launch::async, 
-            [&]() -> std::shared_ptr<test_struct_t> {
+            [&]() -> std::optional<test_struct_t> {
                 return q.try_pop();
             }));
         }
