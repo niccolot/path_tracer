@@ -27,7 +27,6 @@ TEST_CASE("ThreadSafeQueue class test single thread") {
     SECTION("wait_and_pop() test") {
         q.push(s);
         auto res = q.wait_and_pop();
-        REQUIRE(res);
         REQUIRE(q.empty());
 
         s.n = 1;
@@ -45,12 +44,12 @@ TEST_CASE("ThreadSafeQueue class test single thread") {
         q.push(s);
         q.push(s2);
 
-        q.wait_and_pop(*res);
+        q.wait_and_pop(res);
         q.wait_and_pop(res2);
 
-        REQUIRE(res -> n == 1);
+        REQUIRE(res.n == 1);
         REQUIRE(res2.n == 2);
-        REQUIRE(res -> vec[0] == 1.5);
+        REQUIRE(res.vec[0] == 1.5);
         REQUIRE(res2.vec[0] == 2.5);
     }
 

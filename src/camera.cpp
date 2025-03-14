@@ -21,6 +21,7 @@ Camera::Camera(
     _vfov(vfov),
     _focus_dist(focus_dist)
 {
+    
     _img_height = uint32_t(_img_width / _aspect_ratio);
     _img_height = (_img_height > 1) ? _img_height : 1; // img_height at leas 1 pixel
     _vup = Vec3f(0.f,1.f,0.f);
@@ -49,16 +50,33 @@ Camera::Camera(
     _pixel00_loc = img_plane_upper_left + 0.5f * (_pixel_delta_u + _pixel_delta_v);
 }
 
-void Camera::render() {
-    std::cout << "P3\n" << _img_width << ' ' << _img_height << "\n255\n";
+std::vector<uint32_t> Camera::render() {
+    //std::cout << "P3\n" << _img_width << ' ' << _img_height << "\n255\n";
+    std::vector<uint32_t> row_colors(_img_width);
     for(uint32_t j = 0; j < _img_height; ++j) {
         for (uint32_t i = 0; i < _img_width; ++i) {
             Color pixel_color;
             Ray r = get_ray(i, j);
             pixel_color += ray_color(r);
-            write_color(pixel_color);
+            write_color(pixel_color, row_colors);
         }
+        row_colors.clear();
     }
+
+    return row_colors;
+}
+
+std::vector<uint32_t> Camera::render_row(uint32_t row) {
+    std::vector<uint32_t> row_colors;
+    row_colors.reserve(_img_width);
+    for (uint32_t i = 0; i < _img_width; ++i) {
+        Color pixel_color;
+        Ray r = get_ray(i, row);
+        pixel_color += ray_color(r);
+        write_color(pixel_color, row_colors);
+    }
+    
+    return row_colors;
 }
 
 Ray Camera::get_ray(uint32_t i, uint32_t j) {
@@ -73,7 +91,7 @@ Color Camera::ray_color(const Ray& r) {
     return (1.f - a) * Color(1.f,1.f,1.f) + a * _background;
 }
 
-void Camera::write_color(Color& color) {
+void Camera::write_color(Color& color, std::vector<uint32_t>& row_colors) {
     if (_gamma_correction) {
         gamma_correction(color);
     }
@@ -87,7 +105,11 @@ void Camera::write_color(Color& color) {
     auto g_byte = uint32_t(intensity.clamp(g) * 256);
     auto b_byte = uint32_t(intensity.clamp(b) * 256);
 
-    std::cout << r_byte << ' ' << g_byte << ' ' << b_byte << '\n';
+    auto pixel = (255 << 24) | (r_byte << 16) | (g_byte << 8) | b_byte;
+    //auto pixel = 0xffffffff;
+    row_colors.push_back(std::move(pixel));
+
+    //std::cout << r_byte << ' ' << g_byte << ' ' << b_byte << '\n';
 }
 
 void Camera::gamma_correction(Color& color) {

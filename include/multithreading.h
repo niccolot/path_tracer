@@ -34,10 +34,10 @@ public:
         return true;
     }
 
-    std::optional<T> wait_and_pop() {
+    T wait_and_pop() {
         std::unique_lock<std::mutex> lk(mut);
         cv.wait(lk, [this] { return !data_queue.empty(); });
-        std::optional<T> res = std::move(data_queue.front());
+        T res = std::move(data_queue.front());
         data_queue.pop();
 
         return res;

@@ -24,7 +24,7 @@ private:
 
     Ray get_ray(uint32_t i, uint32_t j);
     Color ray_color(const Ray& r);
-    void write_color(Color& color);
+    void write_color(Color& color, std::vector<uint32_t>& row_colors);
     void gamma_correction(Color& color);    
     
 public:
@@ -39,7 +39,8 @@ public:
     );
 
     void set_background(Color&& background) { _background = std::move(background); }
-    void render();
+    std::vector<uint32_t> render();
+    std::vector<uint32_t> render_row(uint32_t row);
 }; // class Camera
 
 #endif
