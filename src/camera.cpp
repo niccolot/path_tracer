@@ -6,7 +6,7 @@
 
 Camera::Camera(
     uint32_t width,
-    float aspect_ratio,
+    uint32_t height,
     Vec3f lookfrom,
     Vec3f lookat,
     Color background,
@@ -14,16 +14,13 @@ Camera::Camera(
     float focus_dist
 ) :
     _img_width(width),
-    _aspect_ratio(aspect_ratio),
+    _img_height(height),
     _lookfrom(lookfrom),
     _lookat(lookat),
     _background(background),
     _vfov(vfov),
     _focus_dist(focus_dist)
 {
-    
-    _img_height = uint32_t(_img_width / _aspect_ratio);
-    _img_height = (_img_height > 1) ? _img_height : 1; // img_height at leas 1 pixel
     _vup = Vec3f(0.f,1.f,0.f);
 
     // antiparallel to view direction
@@ -101,15 +98,12 @@ void Camera::write_color(Color& color, std::vector<uint32_t>& row_colors) {
     float b = color.z();
 
     static const Interval intensity(0.000f, 0.999f);
-    auto r_byte = uint32_t(intensity.clamp(r) * 256);
-    auto g_byte = uint32_t(intensity.clamp(g) * 256);
-    auto b_byte = uint32_t(intensity.clamp(b) * 256);
+    auto r_byte = uint8_t(intensity.clamp(r) * 256);
+    auto g_byte = uint8_t(intensity.clamp(g) * 256);
+    auto b_byte = uint8_t(intensity.clamp(b) * 256);
 
-    auto pixel = (255 << 24) | (r_byte << 16) | (g_byte << 8) | b_byte;
-    //auto pixel = 0xffffffff;
+    uint32_t pixel = (0xffffffff << 24) | (r_byte << 16) | (g_byte << 8) | b_byte;
     row_colors.push_back(std::move(pixel));
-
-    //std::cout << r_byte << ' ' << g_byte << ' ' << b_byte << '\n';
 }
 
 void Camera::gamma_correction(Color& color) {

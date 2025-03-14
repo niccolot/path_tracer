@@ -12,7 +12,6 @@ class Camera {
 private:
     bool _gamma_correction = true;
     uint32_t _img_width, _img_height;
-    float _aspect_ratio;
     Vec3f _lookfrom, _lookat;
     Color _background;
     float _vfov; // vertical aperture
@@ -30,7 +29,7 @@ private:
 public:
     Camera(
         uint32_t width,
-        float aspect_ratio,
+        uint32_t height,
         Vec3f lookfrom = Vec3f(),
         Vec3f lookat = Vec3f(0.f, 0.f, -1.f),
         Color background = Color(),

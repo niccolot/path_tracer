@@ -13,8 +13,8 @@
 
 std::atomic<bool> quit_app = false;
 std::atomic<bool> done_rendering = false;
-constexpr int width = 400;
-constexpr int height = int(400 * (9.f / 16.f));
+constexpr uint32_t width = 1920;
+constexpr uint32_t height = 1080;
 
 struct ScanLine
 {
@@ -28,15 +28,11 @@ void worker_task(ThreadSafeQueue<ScanLine>& queue)
     uint32_t row = 0;
     std::mt19937 engine;
     std::uniform_int_distribution dist{};
-    //uint32_t value = 0xFFFFFFFF;
-    Camera cam(width, 16.f / 9.f);
+    Camera cam(width, height);
     while (!quit_app)
     {
         // sleep for few millisecond
-        std::this_thread::sleep_for(std::chrono::milliseconds{ 1 });
-
-        //std::vector<uint32_t> vec(width, value);
-        
+        std::this_thread::sleep_for(std::chrono::milliseconds{ 1 });        
         // push result to queue
         queue.push({ row, std::move(cam.render_row(row)) });
         
@@ -45,7 +41,6 @@ void worker_task(ThreadSafeQueue<ScanLine>& queue)
         }
         row++;
     }
-
 }
 
 struct AppContext
@@ -84,7 +79,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
     }
 
     // create worker
-    context->worker = std::thread{ [context]() { worker_task(context->queue); } };
+    context->worker = std::thread{ [&context]() { worker_task(context->queue); } };
 
     // create a dark surface
     context->screen_surface = SDL_CreateSurface(width, height, SDL_PIXELFORMAT_ARGB32);
@@ -130,10 +125,7 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
         quit_app = true;
         return SDL_APP_SUCCESS;
     }
-    //if (event->type == SDL_EVENT_USER) {
-    //    done_rendering = true;
-    //    return SDL_APP_SUCCESS;
-    //}
+
     return SDL_APP_CONTINUE;
 }
 
