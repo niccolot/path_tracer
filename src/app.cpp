@@ -73,7 +73,7 @@ void App::run() {
                     _quit_app = true;
                 }
         }
-        
+
         SDL_Texture* tex = SDL_CreateTextureFromSurface(_renderer, _screen_surface);
         SDL_RenderTexture(_renderer, tex, nullptr, nullptr);
         SDL_DestroyTexture(tex);
