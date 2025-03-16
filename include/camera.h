@@ -27,6 +27,7 @@ private:
     void gamma_correction(Color& color);    
     
 public:
+    Camera() = default;
     Camera(
         uint32_t width,
         uint32_t height,
@@ -36,9 +37,13 @@ public:
         float vfov = 90.f,
         float focus_dist = 10.f
     );
-
+    Camera(const Camera&) = delete;
+    Camera& operator=(const Camera&) = delete;
+    Camera(Camera&&) = default;
+    Camera& operator=(Camera&& other) = default;
+    ~Camera() = default;
+    
     void set_background(Color&& background) { _background = std::move(background); }
-    std::vector<uint32_t> render();
     std::vector<uint32_t> render_row(uint32_t row);
 }; // class Camera
 

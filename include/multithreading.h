@@ -4,6 +4,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <queue>
+#include <optional>
 
 template<typename T>
 class ThreadSafeQueue {
@@ -55,7 +56,7 @@ public:
         return res;
     }
 
-    void push(T val) {
+    void push(T&& val) {
         std::lock_guard<std::mutex> lk(mut);
         data_queue.push(std::move(val));
         cv.notify_one();
@@ -73,19 +74,19 @@ typedef struct ScanLine {
     std::vector<uint32_t> values;
 } scanline_t;
 
-void worker_task(Camera& cam, ThreadSafeQueue<scanline_t>& queue) {
-    uint32_t row = 0;
-    
-    while (!quit_app)
-    {
-        // sleep for few millisecond
-        std::this_thread::sleep_for(std::chrono::milliseconds{ 1 });        
-        queue.push({ row, std::move(cam.render_row(row)) });
-        
-        if (row == height) {
-            done_rendering = true;
-        }
-        row++;
-    }
-}
+//void worker_task(Camera& cam, ThreadSafeQueue<scanline_t>& queue) {
+//    uint32_t row = 0;
+//    
+//    while (!quit_app)
+//    {
+//        // sleep for few millisecond
+//        std::this_thread::sleep_for(std::chrono::milliseconds{ 1 });        
+//        queue.push({ row, std::move(cam.render_row(row)) });
+//        
+//        if (row == height) {
+//            done_rendering = true;
+//        }
+//        row++;
+//    }
+//}
 #endif

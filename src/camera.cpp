@@ -47,22 +47,6 @@ Camera::Camera(
     _pixel00_loc = img_plane_upper_left + 0.5f * (_pixel_delta_u + _pixel_delta_v);
 }
 
-std::vector<uint32_t> Camera::render() {
-    //std::cout << "P3\n" << _img_width << ' ' << _img_height << "\n255\n";
-    std::vector<uint32_t> row_colors(_img_width);
-    for(uint32_t j = 0; j < _img_height; ++j) {
-        for (uint32_t i = 0; i < _img_width; ++i) {
-            Color pixel_color;
-            Ray r = get_ray(i, j);
-            pixel_color += ray_color(r);
-            write_color(pixel_color, row_colors);
-        }
-        row_colors.clear();
-    }
-
-    return row_colors;
-}
-
 std::vector<uint32_t> Camera::render_row(uint32_t row) {
     std::vector<uint32_t> row_colors;
     row_colors.reserve(_img_width);

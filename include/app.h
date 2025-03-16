@@ -4,28 +4,44 @@
 #include <vector>
 #include <atomic>
 #include <thread>
+#include <exception>
+#include <string>
+#include <string_view>
 
 #include "SDL3/SDL.h"
-#include "SDL3/SDL_main.h"
+//#include "SDL3/SDL_main.h"
 
 #include "multithreading.h"
+#include "camera.h"
 
-typedef struct AppContext {
-    std::atomic<bool> quit_app = false;
-    std::atomic<bool> done_rendering = false;
-    uint32_t img_width;
-    uint32_t img_height;
-    SDL_Window* window = nullptr;
-    SDL_Renderer* renderer = nullptr;
-    std::thread worker;
-    ThreadSafeQueue<scanline_t> queue;
-    SDL_Surface* screen_surface = nullptr;
-} app_context_t;
+class SDL_Exception : public std::exception {
+private:
+    std::string _error_msg{};
 
-app_context_t generate_context();
-SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv);
-SDL_AppResult initialize_app(const app_context_t& context);
-SDL_AppResult SDL_AppIterate(void* appstate);
-SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event);
-void SDL_AppQuit(void* appstate, SDL_AppResult result);
+public:
+    SDL_Exception(std::string_view msg) : _error_msg(msg) {}
+    const char* what() const noexcept override { return _error_msg.c_str(); }
+}; // class SDL_Exception
+
+class App {
+private:
+    std::atomic<bool> _quit_app{ false };
+    std::atomic<bool> _done_rendering{ false };
+    uint32_t _img_width;
+    uint32_t _img_height;
+    uint32_t _window_width;
+    uint32_t _window_height;
+    SDL_Window* _window{ nullptr };
+    SDL_Renderer* _renderer{ nullptr };
+    SDL_Surface* _screen_surface{ nullptr };
+    std::thread _worker;
+    ThreadSafeQueue<scanline_t> _queue;
+    Camera _cam;
+    void _worker_task();
+
+public:
+    App(uint32_t w, uint32_t h);
+    ~App();
+    void run();
+}; // class App
 #endif
