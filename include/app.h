@@ -9,19 +9,22 @@
 #include <string_view>
 
 #include "SDL3/SDL.h"
-//#include "SDL3/SDL_main.h"
 
 #include "multithreading.h"
 #include "camera.h"
+#include "vec3.h"
 
-class SDL_Exception : public std::exception {
-private:
-    std::string _error_msg{};
-
-public:
-    SDL_Exception(std::string_view msg) : _error_msg(msg) {}
-    const char* what() const noexcept override { return _error_msg.c_str(); }
-}; // class SDL_Exception
+typedef struct InitParams {
+    uint32_t img_width;
+    uint32_t img_height;
+    uint32_t window_width;
+    uint32_t window_height;
+    Vec3f lookfrom;
+    Vec3f lookat;
+    Color background;
+    float vfov;
+    float focus_dist;
+} init_params_t;
 
 class App {
 private:
@@ -33,14 +36,14 @@ private:
     uint32_t _window_height;
     SDL_Window* _window{ nullptr };
     SDL_Renderer* _renderer{ nullptr };
-    SDL_Surface* _screen_surface{ nullptr };
+    SDL_Surface* _image_surface{ nullptr };
     std::thread _worker;
     ThreadSafeQueue<scanline_t> _queue;
     Camera _cam;
     void _worker_task();
 
 public:
-    App(uint32_t w, uint32_t h);
+    App(uint32_t img_width, uint32_t img_height, uint32_t window_width, uint32_t window_height);
     ~App();
     void run();
 }; // class App

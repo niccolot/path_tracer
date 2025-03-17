@@ -13,6 +13,7 @@ include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/vendor/SDL/include)
 include_directories(${CMAKE_BINARY_DIR}/vendor/SDL/include) 
 
+
 file(GLOB SOURCES
     "src/*.cpp"
     "main.cpp"
@@ -22,6 +23,7 @@ set(SDL_SHARED OFF CACHE BOOL "" FORCE)
 set(SDL_STATIC ON CACHE BOOL "" FORCE)
 
 add_subdirectory(vendor/SDL)
+add_subdirectory(vendor/nlohmann_json)
 
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCES})  
 
@@ -31,6 +33,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
 )
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE SDL3::SDL3)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 
 target_compile_features(${CMAKE_PROJECT_NAME} PUBLIC cxx_std_20)
 

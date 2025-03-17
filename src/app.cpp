@@ -1,36 +1,40 @@
+#include <format>
+
 #include "app.h"
 
-App::App(uint32_t w, uint32_t h) {
-    _img_width = w;
-    _img_height = h;
-    _window_width = w;
-    _window_height = h;
+App::App(uint32_t img_width, uint32_t img_height, uint32_t window_width, uint32_t window_height) {
+    _img_width = img_width;
+    _img_height = img_height;
+    _window_width = window_width;
+    _window_height = window_height;
 
     bool success{ SDL_Init( SDL_INIT_VIDEO ) };
     if (!success) {
-        SDL_Log("SDL failed to initialize: %s\n", SDL_GetError());
-        throw SDL_Exception("SDL failed to initialize");
+        throw std::runtime_error{ std::format("SDL failed to initialize: {}\n", SDL_GetError()) };
     }
 
     success = SDL_CreateWindowAndRenderer("Path Tracer", _window_width, _window_height, SDL_WINDOW_RESIZABLE, &_window, &_renderer);
     if (!success) {
-        SDL_Log("SDL failed to create window and renderer: %s", SDL_GetError());
-        throw SDL_Exception("SDL failed to create window and renderer");
+        throw std::runtime_error{ std::format("SDL failed to create window and renderer: {}\n", SDL_GetError()) };
     }
 
-    _screen_surface = SDL_CreateSurface(_window_width, _window_height, SDL_PIXELFORMAT_ARGB32);
-    if (!_screen_surface) {
-        SDL_Log("SDL failed to create image surface: %s", SDL_GetError());
+    success = SDL_SetWindowPosition(_window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    if (!success) {
+        throw std::runtime_error{ std::format("SDL failed to position the window: {}\n", SDL_GetError()) };
+    }
+
+    _image_surface = SDL_CreateSurface(_img_width, _img_height, SDL_PIXELFORMAT_ARGB32);
+    if (!_image_surface) {
+        throw std::runtime_error{ std::format("SDL failed to create image surface: {}\n", SDL_GetError()) };
     }
 
     _cam = std::move(Camera{_img_width, _img_height});
-    _worker = std::thread{ &App::_worker_task, this};
 }
 
 void App::_worker_task() {
     uint32_t row = 0;
-    while (!_quit_app) {
-        // sleep for few millisecond to increase smoothness
+    while (!_done_rendering) {
+        // sleep for few millisecond to increase visual smoothness
         std::this_thread::sleep_for(std::chrono::milliseconds{ 1 });        
         _queue.push({ row, std::move(_cam.render_row(row)) });
         
@@ -45,7 +49,7 @@ App::~App() {
     if (_renderer) {
         SDL_DestroyRenderer(_renderer);
     }
-    SDL_DestroySurface(_screen_surface);
+    SDL_DestroySurface(_image_surface);
     if (_window) {
         SDL_DestroyWindow(_window);
     }
@@ -55,12 +59,13 @@ App::~App() {
 }
 
 void App::run() {
+    _worker = std::thread{ &App::_worker_task, this};
     while(!_quit_app) {
         std::optional<scanline_t> line = _queue.try_pop();
         while (line && !_done_rendering) {
             scanline_t line_val = line.value();
-            uint32_t* pixels = static_cast<uint32_t*>(_screen_surface->pixels);
-            size_t begin_pixel = _screen_surface->pitch / sizeof(uint32_t) * line_val.row;
+            uint32_t* pixels = static_cast<uint32_t*>(_image_surface->pixels);
+            size_t begin_pixel = _image_surface->pitch / sizeof(uint32_t) * line_val.row;
             for (size_t i = 0; i < line_val.values.size(); i++) {
                 pixels[begin_pixel + i] = line_val.values[i];
             }
@@ -74,7 +79,7 @@ void App::run() {
                 }
         }
 
-        SDL_Texture* tex = SDL_CreateTextureFromSurface(_renderer, _screen_surface);
+        SDL_Texture* tex = SDL_CreateTextureFromSurface(_renderer, _image_surface);
         SDL_RenderTexture(_renderer, tex, nullptr, nullptr);
         SDL_DestroyTexture(tex);
         SDL_RenderPresent(_renderer);
