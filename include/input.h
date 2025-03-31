@@ -1,7 +1,7 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-#include <string_view>
+#include <string>
 
 #include <nlohmann/json.hpp>
 
@@ -11,5 +11,5 @@ using njson = nlohmann::json;
 
 void from_json(const njson& j, Vec3f& v);
 void from_json(const njson& j, init_params_t& p);
-init_params_t init_from_json(std::string_view datapath);
+init_params_t init_from_json(const std::string& datapath);
 #endif

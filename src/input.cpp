@@ -18,11 +18,11 @@ void from_json(const njson& j, init_params_t& p) {
     j.at("img_height").get_to(p.img_height);
     j.at("window_width").get_to(p.window_width);
     j.at("window_height").get_to(p.window_height);
-    j.at("lookfrom").get_to(p.lookfrom);
-    j.at("lookat").get_to(p.lookat);
-    j.at("background").get_to(p.background);
-    j.at("vfov").get_to(p.vfov);
-    j.at("focus_dist").get_to(p.focus_dist);
+    //j.at("lookfrom").get_to(p.lookfrom);
+    //j.at("lookat").get_to(p.lookat);
+    //j.at("background").get_to(p.background);
+    //j.at("vfov").get_to(p.vfov);
+    //j.at("focus_dist").get_to(p.focus_dist);
 }
 
 init_params_t init_from_json(const std::string& datapath) {

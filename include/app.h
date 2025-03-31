@@ -41,9 +41,11 @@ private:
     ThreadSafeQueue<scanline_t> _queue;
     Camera _cam;
     void _worker_task();
+    void _init_app();
 
 public:
     App(uint32_t img_width, uint32_t img_height, uint32_t window_width, uint32_t window_height);
+    App(const std::string& file_path);
     ~App();
     void run();
 }; // class App
