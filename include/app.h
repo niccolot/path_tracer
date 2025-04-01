@@ -19,11 +19,11 @@ typedef struct InitParams {
     uint32_t img_height;
     uint32_t window_width;
     uint32_t window_height;
+    float vfov;
+    float focus_dist;
     Vec3f lookfrom;
     Vec3f lookat;
     Color background;
-    float vfov;
-    float focus_dist;
 } init_params_t;
 
 class App {
@@ -34,10 +34,14 @@ private:
     uint32_t _img_height;
     uint32_t _window_width;
     uint32_t _window_height;
+    float _vfov;
+    float _focus_dist;
     SDL_Window* _window{ nullptr };
     SDL_Renderer* _renderer{ nullptr };
     SDL_Surface* _image_surface{ nullptr };
     std::thread _worker;
+    Vec3f _lookfrom, _lookat;
+    Color _background;
     ThreadSafeQueue<scanline_t> _queue;
     Camera _cam;
     void _worker_task();

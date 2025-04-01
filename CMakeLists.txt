@@ -37,6 +37,22 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json
 
 target_compile_features(${CMAKE_PROJECT_NAME} PUBLIC cxx_std_20)
 
+set(INIT_FOLDER ${CMAKE_SOURCE_DIR}/init)
+set(BUILD_INIT_FOLDER ${CMAKE_BINARY_DIR}/init)
+set(TIMESTAMP_FILE ${CMAKE_BINARY_DIR}/init_copy_timestamp)
+
+file(GLOB_RECURSE INIT_FILES ${INIT_FOLDER}/*)
+
+add_custom_command(
+    OUTPUT ${TIMESTAMP_FILE}
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${INIT_FOLDER} ${BUILD_INIT_FOLDER}
+    COMMAND ${CMAKE_COMMAND} -E touch ${TIMESTAMP_FILE}
+    DEPENDS ${INIT_FOLDER} ${INIT_FILES}
+    COMMENT "Copying init folder to build directory if modified"
+)
+
+add_custom_target(copy_init ALL DEPENDS ${TIMESTAMP_FILE})
+
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -Wpedantic")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-set(CMAKE_CXX_FLAGS_PROFILE "-g -O2")
+set(CMAKE_CXX_FLAGS_PROFILE "-g -O3")

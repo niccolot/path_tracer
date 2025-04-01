@@ -10,28 +10,6 @@ App::App(uint32_t img_width, uint32_t img_height, uint32_t window_width, uint32_
     _window_height = window_height;
 
     _init_app();
-
-    //bool success{ SDL_Init( SDL_INIT_VIDEO ) };
-    //if (!success) {
-    //    throw std::runtime_error{ std::format("SDL failed to initialize: {}\n", SDL_GetError()) };
-    //}
-//
-    //success = SDL_CreateWindowAndRenderer("Path Tracer", _window_width, _window_height, SDL_WINDOW_RESIZABLE, &_window, &_renderer);
-    //if (!success) {
-    //    throw std::runtime_error{ std::format("SDL failed to create window and renderer: {}\n", SDL_GetError()) };
-    //}
-//
-    //success = SDL_SetWindowPosition(_window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-    //if (!success) {
-    //    throw std::runtime_error{ std::format("SDL failed to position the window: {}\n", SDL_GetError()) };
-    //}
-//
-    //_image_surface = SDL_CreateSurface(_img_width, _img_height, SDL_PIXELFORMAT_ARGB32);
-    //if (!_image_surface) {
-    //    throw std::runtime_error{ std::format("SDL failed to create image surface: {}\n", SDL_GetError()) };
-    //}
-//
-    //_cam = std::move(Camera{_img_width, _img_height});
 }
 
 App::App(const std::string& file_path) {
@@ -41,6 +19,11 @@ App::App(const std::string& file_path) {
     _img_height = init_pars.img_height;
     _window_height = init_pars.window_height;
     _window_width = init_pars.window_width;
+    _lookfrom = init_pars.lookfrom;
+    _lookat = init_pars.lookat;
+    _background = init_pars.background;
+    _vfov = init_pars.vfov;
+    _focus_dist = init_pars.focus_dist;
 
     _init_app();
 }

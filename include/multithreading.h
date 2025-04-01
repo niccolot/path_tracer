@@ -73,20 +73,4 @@ typedef struct ScanLine {
     uint32_t row;
     std::vector<uint32_t> values;
 } scanline_t;
-
-//void worker_task(Camera& cam, ThreadSafeQueue<scanline_t>& queue) {
-//    uint32_t row = 0;
-//    
-//    while (!quit_app)
-//    {
-//        // sleep for few millisecond
-//        std::this_thread::sleep_for(std::chrono::milliseconds{ 1 });        
-//        queue.push({ row, std::move(cam.render_row(row)) });
-//        
-//        if (row == height) {
-//            done_rendering = true;
-//        }
-//        row++;
-//    }
-//}
 #endif
