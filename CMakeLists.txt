@@ -36,6 +36,9 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_BINARY_DIR}/vendor/stb
 )
 
+# disable warning caused by stb
+set_source_files_properties(src/app.cpp PROPERTIES COMPILE_OPTIONS -Wno-missing-field-initializers)
+
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE SDL3::SDL3)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 

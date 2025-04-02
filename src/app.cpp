@@ -35,7 +35,7 @@ void App::_init_app() {
         throw std::runtime_error{ std::format("SDL failed to position the window: {}\n", SDL_GetError()) };
     }
 
-    _image_surface = SDL_CreateSurface(_img_width, _img_height, SDL_PIXELFORMAT_RGBA32);
+    _image_surface = SDL_CreateSurface(_img_width, _img_height, SDL_PIXELFORMAT_RGBA8888);
     if (!_image_surface) {
         throw std::runtime_error{ std::format("SDL failed to create image surface: {}\n", SDL_GetError()) };
     }
@@ -61,26 +61,30 @@ void App::_worker_task() {
 }
 
 void App::_save_png() {
+
     std::vector<uint8_t> rgba_pixels(_img_width * _img_height * 4);
     int pixel_idx = 0;
-    for (const auto& entry : _pixels_map) {
-        const auto& row = entry.second;  
-
-        for (uint32_t pixel : row) {
+    for (auto& pair : _pixels_map) {
+        auto& row_pixels = pair.second;
+        for (auto pixel : row_pixels) {
             uint8_t r = (pixel >> 24) & 0xFF;  
             uint8_t g = (pixel >> 16) & 0xFF;  
             uint8_t b = (pixel >> 8) & 0xFF;   
-            uint8_t a = (pixel >> 0) & 0xFF;   
-
-            // Store in RGBA format
-            rgba_pixels[pixel_idx++] = r;  
-            rgba_pixels[pixel_idx++] = g;  
-            rgba_pixels[pixel_idx++] = b;  
-            rgba_pixels[pixel_idx++] = a;  
+            uint8_t a = (pixel >> 0) & 0xFF;  
+            
+            rgba_pixels[pixel_idx++] = r;
+            rgba_pixels[pixel_idx++] = g;
+            rgba_pixels[pixel_idx++] = b;
+            rgba_pixels[pixel_idx++] = a;
         }
     }
 
-    stbi_write_png(_outfile_name.c_str(), _img_width, _img_height, 4, rgba_pixels.data(), _img_width * 4);
+    auto ok = stbi_write_png(_outfile_name.c_str(), _img_width, _img_height, 4, rgba_pixels.data(), _img_width * 4);
+    if (!ok) {
+        std::cerr << "Failed to save .png file\n"; 
+    } else {
+        std::cout << std::format("Rendered image saved as: '{}'\n", _outfile_name);
+    }
 }
 
 App::~App() {
