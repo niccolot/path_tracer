@@ -65,6 +65,11 @@ void from_json(const njson& j, init_params_t& p) {
     } else {
         p.focus_dist = 10;
     }
+    if (j.count("vup") != 0) {
+        j.at("vup").get_to(p.vup);
+    } else {
+        p.vup = Vec3f(0, 1, 0);
+    }
     if (j.count("outfile_name") != 0) {
         j.at("outfile_name").get_to(p.outfile_name);
     } else {

@@ -9,10 +9,11 @@
 App::App(const std::string& file_path) {
     init_params_t init_pars = init_from_json(file_path);
 
-    _img_width = init_pars.img_width;
-    _img_height = init_pars.img_height;
-    _window_height = init_pars.window_height;
-    _window_width = init_pars.window_width;
+    //_img_width = init_pars.img_width;
+    //_img_height = init_pars.img_height;
+    //_window_height = init_pars.window_height;
+    //_window_width = init_pars.window_width;
+    _init_pars = std::move(init_pars);
     _outfile_name = init_pars.outfile_name;
 
     _init_app();
@@ -25,7 +26,7 @@ void App::_init_app() {
         throw std::runtime_error{ std::format("SDL failed to initialize: {}\n", SDL_GetError()) };
     }
 
-    success = SDL_CreateWindowAndRenderer("Path Tracer", _window_width, _window_height, SDL_WINDOW_RESIZABLE, &_window, &_renderer);
+    success = SDL_CreateWindowAndRenderer("Path Tracer", _init_pars.window_width, _init_pars.window_height, SDL_WINDOW_RESIZABLE, &_window, &_renderer);
     if (!success) {
         throw std::runtime_error{ std::format("SDL failed to create window and renderer: {}\n", SDL_GetError()) };
     }
@@ -35,7 +36,7 @@ void App::_init_app() {
         throw std::runtime_error{ std::format("SDL failed to position the window: {}\n", SDL_GetError()) };
     }
 
-    _image_surface = SDL_CreateSurface(_img_width, _img_height, SDL_PIXELFORMAT_RGBA8888);
+    _image_surface = SDL_CreateSurface(_init_pars.img_width, _init_pars.img_height, SDL_PIXELFORMAT_RGBA8888);
     if (!_image_surface) {
         throw std::runtime_error{ std::format("SDL failed to create image surface: {}\n", SDL_GetError()) };
     }
@@ -53,7 +54,7 @@ void App::_worker_task() {
         // if the rendering is particularly fast
         std::this_thread::sleep_for(std::chrono::milliseconds{ 1 });        
         _queue.push({ row_idx, _cam.render_row(row_idx) });
-        if (row_idx == _img_height) {
+        if (row_idx == _init_pars.img_height) {
             _done_rendering = true;
         }
         row_idx++;
@@ -61,8 +62,10 @@ void App::_worker_task() {
 }
 
 void App::_save_png() {
-
-    std::vector<uint8_t> rgba_pixels(_img_width * _img_height * 4);
+    /**
+     * @brief: assuming RGBA8888 big endian pixel format
+     */
+    std::vector<uint8_t> rgba_pixels(_init_pars.img_width * _init_pars.img_height * 4);
     int pixel_idx = 0;
     for (auto& pair : _pixels_map) {
         auto& row_pixels = pair.second;
@@ -79,7 +82,7 @@ void App::_save_png() {
         }
     }
 
-    auto ok = stbi_write_png(_outfile_name.c_str(), _img_width, _img_height, 4, rgba_pixels.data(), _img_width * 4);
+    auto ok = stbi_write_png(_outfile_name.c_str(), _init_pars.img_width, _init_pars.img_height, 4, rgba_pixels.data(), _init_pars.img_width * 4);
     if (!ok) {
         std::cerr << "Failed to save .png file\n"; 
     } else {

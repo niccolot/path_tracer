@@ -20,10 +20,7 @@ class App {
 private:
     std::atomic<bool> _quit_app{ false };
     std::atomic<bool> _done_rendering{ false };
-    uint32_t _img_width;
-    uint32_t _img_height;
-    uint32_t _window_width;
-    uint32_t _window_height;
+    init_params_t _init_pars;
     SDL_Window* _window{ nullptr };
     SDL_Renderer* _renderer{ nullptr };
     SDL_Surface* _image_surface{ nullptr };

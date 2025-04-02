@@ -23,35 +23,38 @@ Camera::Camera(
     float vfov,
     float focus_dist
 )  {   
-    _img_width = width;
-    _img_height = height;
-    _lookfrom = std::move(lookfrom);
-    _lookat = std::move(lookat);
-    _background = std::move(background);
-    _vfov = vfov;
-    _focus_dist = focus_dist;
+    _init_pars.img_width = width;
+    _init_pars.img_height = height;
+    _init_pars.lookfrom = std::move(lookfrom);
+    _init_pars.lookat = std::move(lookat);
+    _init_pars.background = std::move(background);
+    _init_pars.vfov = vfov;
+    _init_pars.focus_dist = focus_dist;
+    _init_pars.vup = Vec3f(0.f,1.f,0.f);
 
-    _vup = Vec3f(0.f,1.f,0.f);
+    _initialize();
+}
 
+void Camera::_initialize() {
     // antiparallel to view direction
-    _w = unit_vector(_lookfrom - _lookat);
+    _w = unit_vector(_init_pars.lookfrom - _init_pars.lookat);
     
     // perpendicular to view direction and _vup
-    _u = cross(_vup, _w);
+    _u = cross(_init_pars.vup, _w);
 
     // camera up direction in the global frame of reference
     _v = cross(_w, _u);
 
     // image plane
-    float h = std::tan(0.5f * degs_to_rads(_vfov));
-    float img_plane_height = 2.f * h * _focus_dist;
-    float img_plane_width = img_plane_height * float(_img_width) / float(_img_height);
+    float h = std::tan(0.5f * degs_to_rads(_init_pars.vfov));
+    float img_plane_height = 2.f * h * _init_pars.focus_dist;
+    float img_plane_width = img_plane_height * float(_init_pars.img_width) / float(_init_pars.img_height);
     Vec3f img_plane_u = img_plane_width * _u;
     Vec3 img_plane_v = -img_plane_height * _v;
     _pixel_delta_u = img_plane_u / img_plane_width;
     _pixel_delta_v = img_plane_v / img_plane_height;
-    Vec3f img_plane_upper_left = _lookfrom - 
-                                    _focus_dist * _w -
+    Vec3f img_plane_upper_left = _init_pars.lookfrom - 
+                                    _init_pars.focus_dist * _w -
                                     0.5f * (img_plane_u + img_plane_v);
     
     _pixel00_loc = img_plane_upper_left + 0.5f * (_pixel_delta_u + _pixel_delta_v);
@@ -59,8 +62,8 @@ Camera::Camera(
 
 std::vector<uint32_t> Camera::render_row(uint32_t row) {
     std::vector<uint32_t> row_colors;
-    row_colors.reserve(_img_width);
-    for (uint32_t i = 0; i < _img_width; ++i) {
+    row_colors.reserve(_init_pars.img_width);
+    for (uint32_t i = 0; i < _init_pars.img_width; ++i) {
         Color pixel_color;
         Ray r = _get_ray(i, row);
         pixel_color += _ray_color(r);
@@ -73,13 +76,13 @@ std::vector<uint32_t> Camera::render_row(uint32_t row) {
 Ray Camera::_get_ray(uint32_t i, uint32_t j) {
     Vec3f pixel = _pixel00_loc + (i * _pixel_delta_u) + (j * _pixel_delta_v);
 
-    return Ray{_lookfrom, pixel - _lookfrom};
+    return Ray{_init_pars.lookfrom, pixel - _init_pars.lookfrom};
 }
 
 Color Camera::_ray_color(const Ray& r) {
     float a = 0.5f * (unit_vector(r.direction()).y() + 1.f);
 
-    return (1.f - a) * Color(1.f,1.f,1.f) + a * _background;
+    return (1.f - a) * Color(1.f,1.f,1.f) + a * _init_pars.background;
 }
 
 void Camera::_write_color(Color& color, std::vector<uint32_t>& row_colors) {
