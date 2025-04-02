@@ -1,16 +1,10 @@
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h" 
+
 #include <format>
 
 #include "app.h"
 #include "input.h"
-
-App::App(uint32_t img_width, uint32_t img_height, uint32_t window_width, uint32_t window_height) {
-    _img_width = img_width;
-    _img_height = img_height;
-    _window_width = window_width;
-    _window_height = window_height;
-
-    _init_app();
-}
 
 App::App(const std::string& file_path) {
     init_params_t init_pars = init_from_json(file_path);
@@ -19,13 +13,10 @@ App::App(const std::string& file_path) {
     _img_height = init_pars.img_height;
     _window_height = init_pars.window_height;
     _window_width = init_pars.window_width;
-    _lookfrom = init_pars.lookfrom;
-    _lookat = init_pars.lookat;
-    _background = init_pars.background;
-    _vfov = init_pars.vfov;
-    _focus_dist = init_pars.focus_dist;
+    _outfile_name = init_pars.outfile_name;
 
     _init_app();
+    _init_cam(init_pars);
 }
 
 void App::_init_app() {
@@ -44,27 +35,52 @@ void App::_init_app() {
         throw std::runtime_error{ std::format("SDL failed to position the window: {}\n", SDL_GetError()) };
     }
 
-    _image_surface = SDL_CreateSurface(_img_width, _img_height, SDL_PIXELFORMAT_ARGB32);
+    _image_surface = SDL_CreateSurface(_img_width, _img_height, SDL_PIXELFORMAT_RGBA32);
     if (!_image_surface) {
         throw std::runtime_error{ std::format("SDL failed to create image surface: {}\n", SDL_GetError()) };
     }
+}
 
-    _cam = std::move(Camera{_img_width, _img_height});
+void App::_init_cam(const init_params_t& init_pars) {
+    _cam = std::move(Camera{ init_pars });
+    _cam.set_pixel_format(_image_surface->format);
 }
 
 void App::_worker_task() {
-    uint32_t row = 0;
+    uint32_t row_idx = 0;
     while (!_done_rendering) {
         // sleep for few millisecond to increase visual smoothness
         // if the rendering is particularly fast
         std::this_thread::sleep_for(std::chrono::milliseconds{ 1 });        
-        _queue.push({ row, std::move(_cam.render_row(row)) });
-        
-        if (row == _img_height) {
+        _queue.push({ row_idx, _cam.render_row(row_idx) });
+        if (row_idx == _img_height) {
             _done_rendering = true;
         }
-        row++;
+        row_idx++;
     }
+}
+
+void App::_save_png() {
+    std::vector<uint8_t> rgba_pixels(_img_width * _img_height * 4);
+    int pixel_idx = 0;
+    for (const auto& entry : _pixels_map) {
+        const auto& row = entry.second;  
+
+        for (uint32_t pixel : row) {
+            uint8_t r = (pixel >> 24) & 0xFF;  
+            uint8_t g = (pixel >> 16) & 0xFF;  
+            uint8_t b = (pixel >> 8) & 0xFF;   
+            uint8_t a = (pixel >> 0) & 0xFF;   
+
+            // Store in RGBA format
+            rgba_pixels[pixel_idx++] = r;  
+            rgba_pixels[pixel_idx++] = g;  
+            rgba_pixels[pixel_idx++] = b;  
+            rgba_pixels[pixel_idx++] = a;  
+        }
+    }
+
+    stbi_write_png(_outfile_name.c_str(), _img_width, _img_height, 4, rgba_pixels.data(), _img_width * 4);
 }
 
 App::~App() {
@@ -91,14 +107,15 @@ void App::run() {
             for (size_t i = 0; i < line_val.values.size(); i++) {
                 pixels[begin_pixel + i] = line_val.values[i];
             }
+            _pixels_map[line_val.row] = std::move(line_val.values);
             line = _queue.try_pop();
         }
 
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
-                if (e.type == SDL_EVENT_QUIT) {
-                    _quit_app = true;
-                }
+            if (e.type == SDL_EVENT_QUIT) {
+                _quit_app = true;
+            }
         }
 
         SDL_Texture* tex = SDL_CreateTextureFromSurface(_renderer, _image_surface);
@@ -106,4 +123,6 @@ void App::run() {
         SDL_DestroyTexture(tex);
         SDL_RenderPresent(_renderer);
     }
+
+    _save_png();
 }

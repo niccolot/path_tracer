@@ -4,3 +4,6 @@
 [submodule "vendor/nlohmann_json"]
 	path = vendor/nlohmann_json
 	url = https://github.com/nlohmann/json
+[submodule "vendor/stb"]
+	path = vendor/stb
+	url = https://github.com/nothings/stb.git

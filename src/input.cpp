@@ -65,6 +65,11 @@ void from_json(const njson& j, init_params_t& p) {
     } else {
         p.focus_dist = 10;
     }
+    if (j.count("outfile_name") != 0) {
+        j.at("outfile_name").get_to(p.outfile_name);
+    } else {
+        p.outfile_name = "image.jpg";
+    }
 }
 
 init_params_t init_from_json(const std::string& datapath) {

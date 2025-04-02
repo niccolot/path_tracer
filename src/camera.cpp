@@ -4,6 +4,16 @@
 #include "interval.h"
 #include "utils.h"
 
+Camera::Camera(const init_params_t& init_pars) :
+    Camera(
+        init_pars.img_width,
+        init_pars.img_height,
+        init_pars.lookfrom,
+        init_pars.lookat,
+        init_pars.background,
+        init_pars.vfov,
+        init_pars.focus_dist) {}
+
 Camera::Camera(
     uint32_t width,
     uint32_t height,
@@ -12,15 +22,15 @@ Camera::Camera(
     Color background,
     float vfov,
     float focus_dist
-) :
-    _img_width(width),
-    _img_height(height),
-    _lookfrom(lookfrom),
-    _lookat(lookat),
-    _background(background),
-    _vfov(vfov),
-    _focus_dist(focus_dist)
-{
+)  {   
+    _img_width = width;
+    _img_height = height;
+    _lookfrom = std::move(lookfrom);
+    _lookat = std::move(lookat);
+    _background = std::move(background);
+    _vfov = vfov;
+    _focus_dist = focus_dist;
+
     _vup = Vec3f(0.f,1.f,0.f);
 
     // antiparallel to view direction
@@ -52,29 +62,29 @@ std::vector<uint32_t> Camera::render_row(uint32_t row) {
     row_colors.reserve(_img_width);
     for (uint32_t i = 0; i < _img_width; ++i) {
         Color pixel_color;
-        Ray r = get_ray(i, row);
-        pixel_color += ray_color(r);
-        write_color(pixel_color, row_colors);
+        Ray r = _get_ray(i, row);
+        pixel_color += _ray_color(r);
+        _write_color(pixel_color, row_colors);
     }
     
     return row_colors;
 }
 
-Ray Camera::get_ray(uint32_t i, uint32_t j) {
+Ray Camera::_get_ray(uint32_t i, uint32_t j) {
     Vec3f pixel = _pixel00_loc + (i * _pixel_delta_u) + (j * _pixel_delta_v);
 
     return Ray{_lookfrom, pixel - _lookfrom};
 }
 
-Color Camera::ray_color(const Ray& r) {
+Color Camera::_ray_color(const Ray& r) {
     float a = 0.5f * (unit_vector(r.direction()).y() + 1.f);
 
     return (1.f - a) * Color(1.f,1.f,1.f) + a * _background;
 }
 
-void Camera::write_color(Color& color, std::vector<uint32_t>& row_colors) {
-    if (_gamma_correction) {
-        gamma_correction(color);
+void Camera::_write_color(Color& color, std::vector<uint32_t>& row_colors) {
+    if (_gamma_corr) {
+        _gamma_correction(color);
     }
     
     float r = color.x();
@@ -86,11 +96,11 @@ void Camera::write_color(Color& color, std::vector<uint32_t>& row_colors) {
     auto g_byte = uint8_t(intensity.clamp(g) * 256);
     auto b_byte = uint8_t(intensity.clamp(b) * 256);
 
-    uint32_t pixel = (0xffffffff << 24) | (r_byte << 16) | (g_byte << 8) | b_byte;
+    uint32_t pixel = SDL_MapRGBA(SDL_GetPixelFormatDetails(_pixel_format), NULL, r_byte, g_byte, b_byte, 255);
     row_colors.push_back(std::move(pixel));
 }
 
-void Camera::gamma_correction(Color& color) {
+void Camera::_gamma_correction(Color& color) {
     color.set_x(linear_to_gamma(color.x()));
     color.set_y(linear_to_gamma(color.y()));
     color.set_z(linear_to_gamma(color.z()));

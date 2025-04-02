@@ -1,7 +1,5 @@
-.vscode/
 main
-*.ppm
+*.png
 build
 path_tracer
 note.txt
-sdl_example.cpp

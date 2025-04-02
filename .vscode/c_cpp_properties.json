@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/vendor/SDL/include",
+                "${workspaceFolder}/vendor/SDL/include/SDL3",
+                "${workspaceFolder}/vendor/nlohmann_json",
+                "${workspaceFolder}/vendor/nlohmann_json/include",
+                "${workspaceFolder}/vendor/stb"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c17",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}

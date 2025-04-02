@@ -23,18 +23,17 @@ if [ "$build_type" == "debug" ]; then
     cmake -DCMAKE_BUILD_TYPE=Debug ..
     cmake --build . 
 elif [ "$build_type" == "release" ]; then
-    cmake -DCMAKE_BUILD_TYPE=Release .
+    cmake -DCMAKE_BUILD_TYPE=Release --log-level=WARNING ..
     cmake --build . 
 elif [ "$build_type" == "profile" ]; then
-    cmake -DCMAKE_BUILD_TYPE=Profile .
+    cmake -DCMAKE_BUILD_TYPE=Profile ..
     cmake --build .     
-
 fi
 
 if [ $? -eq 0 ]; then
     if [ "$run_after_build" = true ]; then
         start_time=$(date +%s)
-        ./path_tracer  > image.ppm
+        ./path_tracer
         end_time=$(date +%s) 
         elapsed_time=$((end_time - start_time))
         echo "Execution time: $elapsed_time seconds"

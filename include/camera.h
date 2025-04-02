@@ -3,14 +3,29 @@
 
 #include <cstdint>
 
+#include "SDL3/SDL.h"
+
 #include "vec3.h"
 #include "color.h"
 #include "ray.h"
 
+typedef struct InitParams {
+    uint32_t img_width;
+    uint32_t img_height;
+    uint32_t window_width;
+    uint32_t window_height;
+    float vfov;
+    float focus_dist;
+    Vec3f lookfrom;
+    Vec3f lookat;
+    Color background;
+    std::string outfile_name;
+} init_params_t;
+
 class Camera {
 
 private:
-    bool _gamma_correction = true;
+    bool _gamma_corr = true;
     uint32_t _img_width, _img_height;
     Vec3f _lookfrom, _lookat;
     Color _background;
@@ -20,11 +35,12 @@ private:
     Vec3f _u, _v, _w; // orthonormal basis
     Vec3f _pixel_delta_u, _pixel_delta_v; // image plane span vectors
     Vec3f _pixel00_loc; // coordinate of top-left pixel 
+    SDL_PixelFormat _pixel_format;
 
-    Ray get_ray(uint32_t i, uint32_t j);
-    Color ray_color(const Ray& r);
-    void write_color(Color& color, std::vector<uint32_t>& row_colors);
-    void gamma_correction(Color& color);    
+    Ray _get_ray(uint32_t i, uint32_t j);
+    Color _ray_color(const Ray& r);
+    void _write_color(Color& color, std::vector<uint32_t>& row_colors);
+    void _gamma_correction(Color& color);    
     
 public:
     Camera() = default;
@@ -37,6 +53,8 @@ public:
         float vfov = 90.f,
         float focus_dist = 10.f
     );
+
+    Camera(const init_params_t& pars);
     Camera(const Camera&) = delete;
     Camera& operator=(const Camera&) = delete;
     Camera(Camera&&) = default;
@@ -44,7 +62,7 @@ public:
     ~Camera() = default;
     
     void set_background(Color&& background) { _background = std::move(background); }
+    void set_pixel_format(SDL_PixelFormat format) { _pixel_format = format; }
     std::vector<uint32_t> render_row(uint32_t row);
 }; // class Camera
-
 #endif
