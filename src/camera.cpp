@@ -60,12 +60,12 @@ void Camera::_initialize() {
     _pixel00_loc = img_plane_upper_left + 0.5f * (_pixel_delta_u + _pixel_delta_v);
 }
 
-std::vector<uint32_t> Camera::render_row(uint32_t row) {
+std::vector<uint32_t> Camera::render_row(uint32_t j) {
     std::vector<uint32_t> row_colors;
     row_colors.reserve(_init_pars.img_width);
     for (uint32_t i = 0; i < _init_pars.img_width; ++i) {
         Color pixel_color;
-        Ray r = _get_ray(i, row);
+        Ray r = _get_ray(i, j);
         pixel_color += _ray_color(r);
         _write_color(pixel_color, row_colors);
     }
@@ -99,7 +99,7 @@ void Camera::_write_color(Color& color, std::vector<uint32_t>& row_colors) {
     auto g_byte = uint8_t(intensity.clamp(g) * 256);
     auto b_byte = uint8_t(intensity.clamp(b) * 256);
 
-    uint32_t pixel = SDL_MapRGBA(SDL_GetPixelFormatDetails(_pixel_format), NULL, r_byte, g_byte, b_byte, 255);
+    uint32_t pixel = SDL_MapRGBA(SDL_GetPixelFormatDetails(_pixel_format), NULL, r_byte, g_byte, b_byte, 0xff);
     row_colors.push_back(std::move(pixel));
 }
 

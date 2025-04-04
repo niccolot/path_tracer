@@ -16,22 +16,23 @@ TEST_CASE("ThreadSafeQueue class test single thread") {
     ThreadSafeQueue<test_struct_t> q;
     test_struct_t s;
     test_struct_t s2;
+    test_struct_t s3;
     
     SECTION("empty(), push() test") {
         REQUIRE(q.empty());
 
-        q.push(s);
+        q.push(std::move(s));
         REQUIRE(!q.empty());
     }
 
     SECTION("wait_and_pop() test") {
-        q.push(s);
+        q.push(std::move(s));
         auto res = q.wait_and_pop();
         REQUIRE(q.empty());
 
         s.n = 1;
-        s.vec = std::vector<double>(10, 1.5);
-        q.push(s);
+        s.vec = std::move(std::vector<double>(10, 1.5));
+        q.push(std::move(s));
         test_struct_t res2;
         q.wait_and_pop(res2);
         REQUIRE(q.empty());
@@ -40,17 +41,21 @@ TEST_CASE("ThreadSafeQueue class test single thread") {
         REQUIRE(res2.vec.size() == 10);
 
         s2.n = 2;
-        s2.vec = std::vector<double>(10, 2.5);
-        q.push(s);
-        q.push(s2);
+        s2.vec = std::move(std::vector<double>(10, 2.5));
+        s3.n = 3;
+        s3.vec = std::move(std::vector<double>(10, 3.5));
+        q.push(std::move(s2));
+        q.push(std::move(s3));
 
         q.wait_and_pop(res);
         q.wait_and_pop(res2);
 
-        REQUIRE(res.n == 1);
-        REQUIRE(res2.n == 2);
-        REQUIRE(res.vec[0] == 1.5);
-        REQUIRE(res2.vec[0] == 2.5);
+        REQUIRE(res.n == 2);
+        REQUIRE(res2.n == 3);
+        REQUIRE(res.vec[0] == 2.5);
+        REQUIRE(res.vec.size() == 10);
+        REQUIRE(res2.vec.size() == 10);
+        REQUIRE(res2.vec[0] == 3.5);
     }
 
     SECTION("try_pop() test") {
@@ -58,13 +63,13 @@ TEST_CASE("ThreadSafeQueue class test single thread") {
         REQUIRE(!q.try_pop(res));
         REQUIRE(!q.try_pop());
 
-        q.push(s);
+        q.push(std::move(s));
         auto res2 = q.try_pop();
         REQUIRE(res2);
 
         s.n = 1;
         s.vec = std::vector<double>(10, 1.5);
-        q.push(s);
+        q.push(std::move(s));
         test_struct_t res3;
 
         q.try_pop(res3);
@@ -73,18 +78,20 @@ TEST_CASE("ThreadSafeQueue class test single thread") {
         REQUIRE(res3.vec.size() == 10);
 
         s2.n = 2;
-        s2.vec = std::vector<double>(10, 2.5);
+        s2.vec = std::move(std::vector<double>(10, 2.5));
+        s3.n = 3;
+        s3.vec = std::move(std::vector<double>(10, 3.5));
 
-        q.push(s);
-        q.push(s2);
+        q.push(std::move(s2));
+        q.push(std::move(s3));
 
         auto res4 = q.try_pop();
         test_struct_t res5;
         q.try_pop(res5);
-        REQUIRE(res4 -> n == 1);
-        REQUIRE(res5.n == 2);
-        REQUIRE(res4 -> vec[0] == 1.5);
-        REQUIRE(res5.vec[0] == 2.5);
+        REQUIRE(res4 -> n == 2);
+        REQUIRE(res5.n == 3);
+        REQUIRE(res4 -> vec[0] == 2.5);
+        REQUIRE(res5.vec[0] == 3.5);
     }   
 }
 
@@ -98,13 +105,13 @@ TEST_CASE("Thread safe queue multithreaded") {
 
     SECTION("empty(), push() test") {
         threads.emplace_back(std::thread([&] {
-            q.push(s);
+            q.push(std::move(s));
         }));
         threads.emplace_back(std::thread([&] {
-            q.push(s2);
+            q.push(std::move(s2));
         }));
         threads.emplace_back(std::thread([&] {
-            q.push(s3);
+            q.push(std::move(s3));
         }));
 
         for (auto& t : threads) {
@@ -127,13 +134,13 @@ TEST_CASE("Thread safe queue multithreaded") {
         }));
 
         threads.emplace_back(std::thread([&] {
-            q.push(s);
+            q.push(std::move(s));
         }));
         threads.emplace_back(std::thread([&] {
-            q.push(s2);
+            q.push(std::move(s2));
         }));
         threads.emplace_back(std::thread([&] {
-            q.push(s3);
+            q.push(std::move(s3));
         }));
 
         for (auto& t : threads) {

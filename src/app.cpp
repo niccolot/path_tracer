@@ -9,10 +9,6 @@
 App::App(const std::string& file_path) {
     init_params_t init_pars = init_from_json(file_path);
 
-    //_img_width = init_pars.img_width;
-    //_img_height = init_pars.img_height;
-    //_window_height = init_pars.window_height;
-    //_window_width = init_pars.window_width;
     _init_pars = std::move(init_pars);
     _outfile_name = init_pars.outfile_name;
 
@@ -21,6 +17,11 @@ App::App(const std::string& file_path) {
 }
 
 void App::_init_app() {
+    /**
+     * @brief: initialized SDL variables,
+     * if pixel format is changed also the components
+     * decofing in _save_png() must be changed
+     */
     bool success{ SDL_Init( SDL_INIT_VIDEO ) };
     if (!success) {
         throw std::runtime_error{ std::format("SDL failed to initialize: {}\n", SDL_GetError()) };
@@ -48,12 +49,15 @@ void App::_init_cam(const init_params_t& init_pars) {
 }
 
 void App::_worker_task() {
+    /**
+     * @brief: where the actual rendering by the Cam object is actually being done
+     */
     uint32_t row_idx = 0;
     while (!_done_rendering) {
         // sleep for few millisecond to increase visual smoothness
         // if the rendering is particularly fast
         std::this_thread::sleep_for(std::chrono::milliseconds{ 1 });        
-        _queue.push({ row_idx, _cam.render_row(row_idx) });
+        _queue.push(scanline_t{ row_idx, std::move(_cam.render_row(row_idx)) });
         if (row_idx == _init_pars.img_height) {
             _done_rendering = true;
         }
@@ -104,6 +108,11 @@ App::~App() {
 }
 
 void App::run() {
+    /**
+     * @brief: calls the rendering job in a separate thread and then
+     * reconstruct the image on the screen while is being rendered, 
+     * a .png file is saved at the end
+     */
     _worker = std::thread{ &App::_worker_task, this};
     while(!_quit_app) {
         std::optional<scanline_t> line = _queue.try_pop();

@@ -1,33 +1,37 @@
-cmake_minimum_required(VERSION 3.8)
+# Ensure Catch2 is found in the vendor folder
+find_package(Catch2 REQUIRED)
 
-project(path_tracer_test
-    VERSION 2.0
-    DESCRIPTION "C++ path tracer tests"
-    LANGUAGES CXX)
+# Add each test file as a separate executable
+file(GLOB TEST_SOURCES "*.cpp")
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED True)  
+foreach(test_file ${TEST_SOURCES})
+    # Get the name of the test file without the extension
+    get_filename_component(test_name ${test_file} NAME_WE)
 
-find_package(Catch2 3 REQUIRED)
+    # Add an executable for each test file
+    add_executable(${test_name} ${test_file})
 
-file(GLOB SOURCES
-    ../src/*.cpp
-)
+    # Link Catch2 with the test executable
+    target_link_libraries(${test_name} PRIVATE Catch2::Catch2WithMain)
 
-add_executable(vec3_test vec3_test.cpp ${SOURCES})
-target_include_directories(vec3_test PUBLIC ../include)
-target_compile_features(vec3_test PUBLIC cxx_std_20)
-target_link_libraries(vec3_test Catch2::Catch2WithMain)
-set_target_properties(vec3_test PROPERTIES COMPILE_FLAGS "-g -Wall -Wextra -Wpedantic")
+    # Link any other libraries your tests need (e.g., your main project)
+    target_link_libraries(${test_name} PRIVATE ${CMAKE_PROJECT_NAME})
 
-add_executable(random_test random_test.cpp ${SOURCES})
-target_include_directories(random_test PUBLIC ../include)
-target_compile_features(random_test PUBLIC cxx_std_20)
-target_link_libraries(random_test Catch2::Catch2WithMain)
-set_target_properties(random_test PROPERTIES COMPILE_FLAGS "-g -Wall -Wextra -Wpedantic -Wno-unused-but-set-variable")
+    # Optionally, include directories for the test
+    target_include_directories(${test_name} PRIVATE ${CMAKE_SOURCE_DIR}/include)
+    target_include_directories(${test_name} PRIVATE ${CMAKE_BINARY_DIR}/vendor/stb)
+    target_include_directories(${test_name} PRIVATE ${CMAKE_SOURCE_DIR}/vendor/SDL/include)
+    target_include_directories(${test_name} PRIVATE ${CMAKE_BINARY_DIR}/vendor/SDL/include)
+    target_include_directories(${test_name} PRIVATE ${CMAKE_SOURCE_DIR}/vendor/nlohmann_json/include)
 
-add_executable(multithreading_test multithreading_test.cpp ${SOURCES})
-target_include_directories(multithreading_test PUBLIC ../include)
-target_compile_features(multithreading_test PUBLIC cxx_std_20)
-target_link_libraries(multithreading_test Catch2::Catch2WithMain)
-set_target_properties(multithreading_test PROPERTIES COMPILE_FLAGS "-g -Wall -Wextra -Wpedantic")
+    # If you want to set specific compile flags for tests, you can do it here.
+    target_compile_options(${test_name} PRIVATE -Wall -Wextra -Wpedantic)
+endforeach()
+
+# Enable testing and add all tests to the test suite
+include(CTest)
+foreach(test_file ${TEST_SOURCES})
+    get_filename_component(test_name ${test_file} NAME_WE)
+    add_test(NAME ${test_name} COMMAND ${test_name})
+endforeach()
+

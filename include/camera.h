@@ -37,7 +37,7 @@ private:
     Color _ray_color(const Ray& r);
     void _write_color(Color& color, std::vector<uint32_t>& row_colors);
     void _gamma_correction(Color& color); 
-    void _initialize();   
+    void _initialize();
     
 public:
     Camera() = default;
@@ -60,6 +60,6 @@ public:
     
     void set_background(Color&& background) { _init_pars.background = std::move(background); }
     void set_pixel_format(SDL_PixelFormat format) { _pixel_format = format; }
-    std::vector<uint32_t> render_row(uint32_t row);
+    std::vector<uint32_t> render_row(uint32_t j);
 }; // class Camera
 #endif
