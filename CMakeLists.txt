@@ -28,10 +28,8 @@ file(GLOB SOURCES
 set(SDL_SHARED OFF CACHE BOOL "" FORCE)
 set(SDL_STATIC ON CACHE BOOL "" FORCE)
 
-# Build path_tracer as a library instead of an executable
 add_library(${CMAKE_PROJECT_NAME} STATIC ${SOURCES})  
 
-# Link required libraries to the path_tracer library
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE 
     vendor/SDL/include
     ${CMAKE_BINARY_DIR}/vendor/SDL/include
@@ -39,7 +37,6 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_BINARY_DIR}/vendor/stb
 )
 
-# Disable warning caused by stb
 set_source_files_properties(src/app.cpp PROPERTIES COMPILE_OPTIONS -Wno-missing-field-initializers)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE SDL3::SDL3)
@@ -47,13 +44,10 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json
 
 target_compile_features(${CMAKE_PROJECT_NAME} PUBLIC cxx_std_20)
 
-# Create the main executable
 add_executable(${CMAKE_PROJECT_NAME}_app main.cpp)
 
-# Link the path_tracer library to the executable
 target_link_libraries(${CMAKE_PROJECT_NAME}_app PRIVATE ${CMAKE_PROJECT_NAME})
 
-# Custom target to copy the init folder
 set(INIT_FOLDER ${CMAKE_SOURCE_DIR}/init)
 set(BUILD_INIT_FOLDER ${CMAKE_BINARY_DIR}/init)
 
@@ -62,10 +56,8 @@ add_custom_target(copy_init ALL
     COMMENT "Copying init folder to build directory"
 )
 
-# CMake flags for different build types
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -Wpedantic")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_CXX_FLAGS_PROFILE "-g -O3")
 
-# Add the 'test' folder as a subdirectory to also build the tests
 add_subdirectory(test)

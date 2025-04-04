@@ -10,7 +10,7 @@ App::App(const std::string& file_path) {
     init_params_t init_pars = init_from_json(file_path);
 
     _init_pars = std::move(init_pars);
-    _outfile_name = init_pars.outfile_name;
+    _outfile_name = _init_pars.outfile_name;
 
     _init_app();
     _init_cam(init_pars);
@@ -113,7 +113,7 @@ void App::run() {
      * reconstruct the image on the screen while is being rendered, 
      * a .png file is saved at the end
      */
-    _worker = std::thread{ &App::_worker_task, this};
+    _worker = std::thread{ &App::_worker_task, this };
     while(!_quit_app) {
         std::optional<scanline_t> line = _queue.try_pop();
         while (line && !_done_rendering) {
