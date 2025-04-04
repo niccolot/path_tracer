@@ -75,6 +75,11 @@ void from_json(const njson& j, init_params_t& p) {
     } else {
         p.outfile_name = "image.png";
     }
+    if (j.count("depth") != 0) {
+        j.at("depth").get_to(p.depth);
+    } else {
+        p.depth = 10;
+    }
 }
 
 init_params_t init_from_json(const std::string& datapath) {

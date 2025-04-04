@@ -8,6 +8,7 @@
 #include "vec3.h"
 #include "color.h"
 #include "ray.h"
+#include "hittable.h"
 
 typedef struct InitParams {
     uint32_t img_width;
@@ -20,6 +21,7 @@ typedef struct InitParams {
     Vec3f lookat;
     Color background;
     Vec3f vup; // up direction in camera frame of reference
+    uint32_t depth;
     std::string outfile_name;
 } init_params_t;
 
@@ -34,7 +36,7 @@ private:
     init_params_t _init_pars;
 
     Ray _get_ray(uint32_t i, uint32_t j);
-    Color _ray_color(const Ray& r);
+    Color _trace(const Ray& r, uint32_t depth, const std::vector<Sphere>& objects);
     void _write_color(Color& color, std::vector<uint32_t>& row_colors);
     void _gamma_correction(Color& color); 
     void _initialize();
@@ -60,6 +62,6 @@ public:
     
     void set_background(Color&& background) { _init_pars.background = std::move(background); }
     void set_pixel_format(SDL_PixelFormat format) { _pixel_format = format; }
-    std::vector<uint32_t> render_row(uint32_t j);
+    std::vector<uint32_t> render_row(uint32_t j, const std::vector<Sphere>& objects);
 }; // class Camera
 #endif

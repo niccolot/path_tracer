@@ -60,13 +60,13 @@ void Camera::_initialize() {
     _pixel00_loc = img_plane_upper_left + 0.5f * (_pixel_delta_u + _pixel_delta_v);
 }
 
-std::vector<uint32_t> Camera::render_row(uint32_t j) {
+std::vector<uint32_t> Camera::render_row(uint32_t j, const std::vector<Sphere>& objects) {
     std::vector<uint32_t> row_colors;
     row_colors.reserve(_init_pars.img_width);
     for (uint32_t i = 0; i < _init_pars.img_width; ++i) {
         Color pixel_color;
         Ray r = _get_ray(i, j);
-        pixel_color += _ray_color(r);
+        pixel_color += _trace(r, _init_pars.depth, objects);
         _write_color(pixel_color, row_colors);
     }
     
@@ -79,10 +79,8 @@ Ray Camera::_get_ray(uint32_t i, uint32_t j) {
     return Ray{_init_pars.lookfrom, pixel - _init_pars.lookfrom};
 }
 
-Color Camera::_ray_color(const Ray& r) {
-    float a = 0.5f * (unit_vector(r.direction()).y() + 1.f);
-
-    return (1.f - a) * Color(1.f,1.f,1.f) + a * _init_pars.background;
+Color Camera::_trace(const Ray& r, uint32_t depth, const std::vector<Sphere>& objects) {
+    
 }
 
 void Camera::_write_color(Color& color, std::vector<uint32_t>& row_colors) {

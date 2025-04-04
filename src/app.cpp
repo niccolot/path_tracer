@@ -5,6 +5,7 @@
 
 #include "app.h"
 #include "input.h"
+#include "hittable.h"
 
 App::App(const std::string& file_path) {
     init_params_t init_pars = init_from_json(file_path);
@@ -53,11 +54,12 @@ void App::_worker_task() {
      * @brief: where the actual rendering by the Cam object is actually being done
      */
     uint32_t row_idx = 0;
+    std::vector<Sphere> objects{ Sphere(Vec3f(), 1, Color(0.1f, 0.0f, 0.8f)) };
     while (!_done_rendering) {
         // sleep for few millisecond to increase visual smoothness
         // if the rendering is particularly fast
         std::this_thread::sleep_for(std::chrono::milliseconds{ 1 });        
-        _queue.push(scanline_t{ row_idx, std::move(_cam.render_row(row_idx)) });
+        _queue.push(scanline_t{ row_idx, std::move(_cam.render_row(row_idx, std::move(objects))) });
         if (row_idx == _init_pars.img_height) {
             _done_rendering = true;
         }
