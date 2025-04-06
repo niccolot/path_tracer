@@ -28,9 +28,9 @@ file(GLOB SOURCES
 set(SDL_SHARED OFF CACHE BOOL "" FORCE)
 set(SDL_STATIC ON CACHE BOOL "" FORCE)
 
-add_library(${CMAKE_PROJECT_NAME} STATIC ${SOURCES})  
+add_library(${CMAKE_PROJECT_NAME}_lib STATIC ${SOURCES})  
 
-target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE 
+target_include_directories(${CMAKE_PROJECT_NAME}_lib PRIVATE 
     vendor/SDL/include
     ${CMAKE_BINARY_DIR}/vendor/SDL/include
     vendor/stb 
@@ -39,14 +39,14 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
 
 set_source_files_properties(src/app.cpp PROPERTIES COMPILE_OPTIONS -Wno-missing-field-initializers)
 
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE SDL3::SDL3)
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(${CMAKE_PROJECT_NAME}_lib PRIVATE SDL3::SDL3)
+target_link_libraries(${CMAKE_PROJECT_NAME}_lib PRIVATE nlohmann_json::nlohmann_json)
 
-target_compile_features(${CMAKE_PROJECT_NAME} PUBLIC cxx_std_20)
+target_compile_features(${CMAKE_PROJECT_NAME}_lib PUBLIC cxx_std_20)
 
 add_executable(${CMAKE_PROJECT_NAME}_app main.cpp)
 
-target_link_libraries(${CMAKE_PROJECT_NAME}_app PRIVATE ${CMAKE_PROJECT_NAME})
+target_link_libraries(${CMAKE_PROJECT_NAME}_app PRIVATE ${CMAKE_PROJECT_NAME}_lib)
 
 set(INIT_FOLDER ${CMAKE_SOURCE_DIR}/init)
 set(BUILD_INIT_FOLDER ${CMAKE_BINARY_DIR}/init)

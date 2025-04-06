@@ -80,7 +80,35 @@ Ray Camera::_get_ray(uint32_t i, uint32_t j) {
 }
 
 Color Camera::_trace(const Ray& r, uint32_t depth, const std::vector<Sphere>& objects) {
-    
+    if (depth <= 0) {
+        return Color();
+    }
+
+    HitRecord rec;
+    float shadow_acne_offset = 0.001;
+    if (!_hit(objects, r, Interval(shadow_acne_offset, inf), rec)) {
+        return _init_pars.background;
+    }
+
+    Color color_from_scatter = Color();
+    color_from_scatter += rec.get_color();
+
+    return color_from_scatter;
+}
+
+bool Camera::_hit(const std::vector<Sphere>& objects, const Ray& r_in, const Interval& ray_t, HitRecord& rec) {
+    HitRecord temp_rec;
+    bool hit_anything = false;
+    float closest_so_far = ray_t.max();
+    for (const auto& obj : objects) {
+        if (obj.hit(r_in, Interval(ray_t.min(), closest_so_far), temp_rec)) {
+            hit_anything = true;
+            closest_so_far = temp_rec.get_t();
+            rec = temp_rec;
+        }
+    }
+
+    return hit_anything;
 }
 
 void Camera::_write_color(Color& color, std::vector<uint32_t>& row_colors) {

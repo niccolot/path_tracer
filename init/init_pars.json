@@ -3,6 +3,6 @@
     "img_height": 540,
     "window_width": 940,
     "window_height": 540,
-    "background": [0, 0, 1],
+    "background": [0.5, 0.7, 1], 
     "outfile_name": "rendered_img.png"
 }

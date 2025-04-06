@@ -54,12 +54,12 @@ void App::_worker_task() {
      * @brief: where the actual rendering by the Cam object is actually being done
      */
     uint32_t row_idx = 0;
-    std::vector<Sphere> objects{ Sphere(Vec3f(), 1, Color(0.1f, 0.0f, 0.8f)) };
+    std::vector<Sphere> objects{ Sphere(Vec3f(0, 0, -1), 0.5, Color(0.7f, 0.1f, 0.2f)) };
     while (!_done_rendering) {
         // sleep for few millisecond to increase visual smoothness
         // if the rendering is particularly fast
         std::this_thread::sleep_for(std::chrono::milliseconds{ 1 });        
-        _queue.push(scanline_t{ row_idx, std::move(_cam.render_row(row_idx, std::move(objects))) });
+        _queue.push(scanline_t{ row_idx, std::move(_cam.render_row(row_idx, objects)) });
         if (row_idx == _init_pars.img_height) {
             _done_rendering = true;
         }
@@ -87,12 +87,12 @@ void App::_save_png() {
             rgba_pixels[pixel_idx++] = a;
         }
     }
-
-    auto ok = stbi_write_png(_outfile_name.c_str(), _init_pars.img_width, _init_pars.img_height, 4, rgba_pixels.data(), _init_pars.img_width * 4);
+    std::cout << _init_pars.outfile_name;
+    auto ok = stbi_write_png(_init_pars.outfile_name.c_str(), _init_pars.img_width, _init_pars.img_height, 4, rgba_pixels.data(), _init_pars.img_width * 4);
     if (!ok) {
-        std::cerr << "Failed to save .png file\n"; 
+        std::cerr << "\nFailed to save .png file\n"; 
     } else {
-        std::cout << std::format("Rendered image saved as: '{}'\n", _outfile_name);
+        std::cout << std::format("\nRendered image saved as: '{}'\n", _outfile_name);
     }
 }
 

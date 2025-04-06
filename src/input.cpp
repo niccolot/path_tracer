@@ -48,7 +48,7 @@ void from_json(const njson& j, init_params_t& p) {
     if (j.count("lookat") != 0) {
         j.at("lookat").get_to(p.lookat);
     } else {
-        p.lookat = Vec3f(0, 0, 1);
+        p.lookat = Vec3f(0, 0, -1);
     }
     if (j.count("background") != 0) {
         j.at("background").get_to(p.background);

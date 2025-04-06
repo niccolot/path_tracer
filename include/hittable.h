@@ -14,9 +14,9 @@ private:
 
 public:
     Sphere() = delete;
-    Sphere::Sphere(Vec3f center, float r, Color col) : 
+    Sphere(Vec3f center, float r, Color col) : 
         _center(center), _radius(r), _color(col) {}
-        
-    bool hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec);
+
+    bool hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const;
 }; // class Sphere
 #endif

@@ -9,7 +9,7 @@ foreach(test_file ${TEST_SOURCES})
 
     target_link_libraries(${test_name} PRIVATE Catch2::Catch2WithMain)
 
-    target_link_libraries(${test_name} PRIVATE ${CMAKE_PROJECT_NAME})
+    target_link_libraries(${test_name} PRIVATE ${CMAKE_PROJECT_NAME}_lib)
 
     target_include_directories(${test_name} PRIVATE ${CMAKE_SOURCE_DIR}/include)
     target_include_directories(${test_name} PRIVATE ${CMAKE_BINARY_DIR}/vendor/stb)

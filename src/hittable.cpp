@@ -2,7 +2,7 @@
 
 #include "hittable.h"
 
-bool Sphere::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) {
+bool Sphere::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const {
     Vec3 oc = _center - r_in.origin(); // vector from ray origin to sphere center
 
     // a = r_in.direction().length_squared(), here supposed already unitary
@@ -25,12 +25,12 @@ bool Sphere::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) {
     }
 
     hitrec.set_t(root);
-    hitrec.set_hit_point(std::move(r_in.at(root)));
+    hitrec.set_hit_point(r_in.at(root));
 
     // by spheres property dividing by radius avoid sqrt normalization
     Vec3f outward_normal = (hitrec.get_hit_point() - _center) / _radius;
-    hitrec.set_normal(std::move(outward_normal), std::move(r_in.direction()));
-    hitrec.set_color(std::move(_color));
+    hitrec.set_normal(outward_normal, r_in.direction());
+    hitrec.set_color(_color);
 
     return true;
 }

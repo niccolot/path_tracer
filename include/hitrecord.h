@@ -7,9 +7,9 @@
 
 class HitRecord {
 private:
-    float _t;
     Vec3f _hit_point;
     Vec3f _hitpt_normal;
+    float _t;
     Color _color;
 
 public:
@@ -24,10 +24,10 @@ public:
 
     void set_t(float t) { _t = t; }
     void set_hit_point(const Vec3f& p) { _hit_point = p; }
-    void set_hit_point(Vec3f&& p) { _hit_point = std::move(p); }
+    //void set_hit_point(Vec3f&& p) { _hit_point = std::move(p); }
     void set_normal(const Vec3f& n, const Vec3f& direction);
-    void set_normal(Vec3f&& n, Vec3f&& direction);
+    //void set_normal(Vec3f&& n, Vec3f&& direction);
     void set_color(const Color& col) { _color = col; }
-    void set_color(Color&& col) { _color = std::move(col); }
+    //void set_color(Color&& col) { _color = std::move(col); }
 }; // class HitRecord
 #endif

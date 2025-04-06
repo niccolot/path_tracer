@@ -40,6 +40,7 @@ private:
     void _write_color(Color& color, std::vector<uint32_t>& row_colors);
     void _gamma_correction(Color& color); 
     void _initialize();
+    bool _hit(const std::vector<Sphere>& objects, const Ray& r_in, const Interval& ray_t, HitRecord& rec);
     
 public:
     Camera() = default;
@@ -60,7 +61,6 @@ public:
     Camera& operator=(Camera&& other) = default;
     ~Camera() = default;
     
-    void set_background(Color&& background) { _init_pars.background = std::move(background); }
     void set_pixel_format(SDL_PixelFormat format) { _pixel_format = format; }
     std::vector<uint32_t> render_row(uint32_t j, const std::vector<Sphere>& objects);
 }; // class Camera
