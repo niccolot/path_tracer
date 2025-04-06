@@ -12,7 +12,7 @@ private:
 public:
     Ray() = delete;
     Ray(const Vec3f& o, const Vec3f& d) : 
-        _origin(o), _direction(unit_vector(d)), _t(0.f) {}
+        _origin(o), _direction(d), _t(0.f) {}
 
     const Vec3f& origin() const { return _origin; }
     const Vec3f& direction() const { return _direction; }

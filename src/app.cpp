@@ -14,7 +14,8 @@ App::App(const std::string& file_path) {
     _outfile_name = _init_pars.outfile_name;
 
     _init_app();
-    _init_cam(init_pars);
+    _cam = std::move(Camera{ init_pars });
+    _cam.set_pixel_format(_image_surface->format);
 }
 
 void App::_init_app() {
@@ -44,11 +45,6 @@ void App::_init_app() {
     }
 }
 
-void App::_init_cam(const init_params_t& init_pars) {
-    _cam = std::move(Camera{ init_pars });
-    _cam.set_pixel_format(_image_surface->format);
-}
-
 void App::_worker_task() {
     /**
      * @brief: where the actual rendering by the Cam object is actually being done
@@ -60,7 +56,7 @@ void App::_worker_task() {
         // if the rendering is particularly fast
         std::this_thread::sleep_for(std::chrono::milliseconds{ 1 });        
         _queue.push(scanline_t{ row_idx, std::move(_cam.render_row(row_idx, objects)) });
-        if (row_idx == _init_pars.img_height) {
+        if (row_idx == _init_pars.img_height - 1) {
             _done_rendering = true;
         }
         row_idx++;
@@ -87,7 +83,7 @@ void App::_save_png() {
             rgba_pixels[pixel_idx++] = a;
         }
     }
-    std::cout << _init_pars.outfile_name;
+
     auto ok = stbi_write_png(_init_pars.outfile_name.c_str(), _init_pars.img_width, _init_pars.img_height, 4, rgba_pixels.data(), _init_pars.img_width * 4);
     if (!ok) {
         std::cerr << "\nFailed to save .png file\n"; 

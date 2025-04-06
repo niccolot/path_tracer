@@ -1,8 +1,6 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include <cstdint>
-
 #include "SDL3/SDL.h"
 
 #include "vec3.h"
@@ -44,16 +42,6 @@ private:
     
 public:
     Camera() = default;
-    Camera(
-        uint32_t width,
-        uint32_t height,
-        Vec3f lookfrom = Vec3f(),
-        Vec3f lookat = Vec3f(0.f, 0.f, -1.f),
-        Color background = Color(),
-        float vfov = 90.f,
-        float focus_dist = 10.f
-    );
-
     Camera(const init_params_t& pars);
     Camera(const Camera&) = delete;
     Camera& operator=(const Camera&) = delete;

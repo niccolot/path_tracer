@@ -112,12 +112,12 @@ inline Vec3<T> operator/(T t, const Vec3<T>& v) {
 }
 
 template<typename T>
-inline T dot(const Vec3<T> u, const Vec3<T>& v) {
+inline T dot(const Vec3<T>& u, const Vec3<T>& v) {
     return u.x() * v.x() + u.y() * v.y() + u.z() * v.z();
 }
 
 template<typename T>
-inline Vec3<T> cross(const Vec3<T> u, const Vec3<T>& v) {
+inline Vec3<T> cross(const Vec3<T>& u, const Vec3<T>& v) {
     return Vec3<T>(
         u.y()*v.z() - u.z()*v.y(),
         u.z()*v.x() - u.x()*v.z(),

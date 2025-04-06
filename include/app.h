@@ -32,7 +32,6 @@ private:
     Camera _cam;
     void _worker_task();
     void _init_app();
-    void _init_cam(const init_params_t& init_pars);
     void _save_png();
 
 public:

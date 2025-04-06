@@ -4,43 +4,12 @@
 #include "interval.h"
 #include "utils.h"
 
-Camera::Camera(const init_params_t& init_pars) :
-    Camera(
-        init_pars.img_width,
-        init_pars.img_height,
-        init_pars.lookfrom,
-        init_pars.lookat,
-        init_pars.background,
-        init_pars.vfov,
-        init_pars.focus_dist) {}
-
-Camera::Camera(
-    uint32_t width,
-    uint32_t height,
-    Vec3f lookfrom,
-    Vec3f lookat,
-    Color background,
-    float vfov,
-    float focus_dist
-)  {   
-    _init_pars.img_width = width;
-    _init_pars.img_height = height;
-    _init_pars.lookfrom = std::move(lookfrom);
-    _init_pars.lookat = std::move(lookat);
-    _init_pars.background = std::move(background);
-    _init_pars.vfov = vfov;
-    _init_pars.focus_dist = focus_dist;
-    _init_pars.vup = Vec3f(0.f,1.f,0.f);
-
-    _initialize();
-}
-
-void Camera::_initialize() {
+Camera::Camera(const init_params_t& init_pars) : _init_pars(init_pars) {
     // antiparallel to view direction
     _w = unit_vector(_init_pars.lookfrom - _init_pars.lookat);
     
     // perpendicular to view direction and _vup
-    _u = cross(_init_pars.vup, _w);
+    _u = unit_vector(cross(_init_pars.vup, _w));
 
     // camera up direction in the global frame of reference
     _v = cross(_w, _u);
@@ -50,11 +19,11 @@ void Camera::_initialize() {
     float img_plane_height = 2.f * h * _init_pars.focus_dist;
     float img_plane_width = img_plane_height * float(_init_pars.img_width) / float(_init_pars.img_height);
     Vec3f img_plane_u = img_plane_width * _u;
-    Vec3 img_plane_v = -img_plane_height * _v;
-    _pixel_delta_u = img_plane_u / img_plane_width;
-    _pixel_delta_v = img_plane_v / img_plane_height;
+    Vec3 img_plane_v = img_plane_height * (-_v);
+    _pixel_delta_u = img_plane_u / _init_pars.img_width;
+    _pixel_delta_v = img_plane_v / _init_pars.img_height;
     Vec3f img_plane_upper_left = _init_pars.lookfrom - 
-                                    _init_pars.focus_dist * _w -
+                                    (_init_pars.focus_dist * _w) -
                                     0.5f * (img_plane_u + img_plane_v);
     
     _pixel00_loc = img_plane_upper_left + 0.5f * (_pixel_delta_u + _pixel_delta_v);
@@ -76,7 +45,7 @@ std::vector<uint32_t> Camera::render_row(uint32_t j, const std::vector<Sphere>& 
 Ray Camera::_get_ray(uint32_t i, uint32_t j) {
     Vec3f pixel = _pixel00_loc + (i * _pixel_delta_u) + (j * _pixel_delta_v);
 
-    return Ray{_init_pars.lookfrom, pixel - _init_pars.lookfrom};
+    return Ray{ _init_pars.lookfrom, pixel - _init_pars.lookfrom };
 }
 
 Color Camera::_trace(const Ray& r, uint32_t depth, const std::vector<Sphere>& objects) {
@@ -121,9 +90,9 @@ void Camera::_write_color(Color& color, std::vector<uint32_t>& row_colors) {
     float b = color.z();
 
     static const Interval intensity(0.000f, 0.999f);
-    auto r_byte = uint8_t(intensity.clamp(r) * 256);
-    auto g_byte = uint8_t(intensity.clamp(g) * 256);
-    auto b_byte = uint8_t(intensity.clamp(b) * 256);
+    auto r_byte = uint8_t(intensity.clamp(r) * 255);
+    auto g_byte = uint8_t(intensity.clamp(g) * 255);
+    auto b_byte = uint8_t(intensity.clamp(b) * 255);
 
     uint32_t pixel = SDL_MapRGBA(SDL_GetPixelFormatDetails(_pixel_format), NULL, r_byte, g_byte, b_byte, 0xff);
     row_colors.push_back(std::move(pixel));
