@@ -80,6 +80,11 @@ void from_json(const njson& j, init_params_t& p) {
     } else {
         p.depth = 10;
     }
+    if (j.count("samples_per_pixel") != 0) {
+        j.at("samples_per_pixel").get_to(p.samples_per_pixel);
+    } else {
+        p.samples_per_pixel = 10;
+    }
 }
 
 init_params_t init_from_json(const std::string& datapath) {

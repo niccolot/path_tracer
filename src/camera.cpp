@@ -5,6 +5,10 @@
 #include "utils.h"
 
 Camera::Camera(const init_params_t& init_pars) : _init_pars(init_pars) {
+    _samples_pp_sqrt = uint32_t(std::sqrt(_init_pars.samples_per_pixel));
+    _samples_pp_sqrt_inv = 1.f / float(_samples_pp_sqrt);
+    _sampling_scale = 1.f / float(_init_pars.samples_per_pixel);
+
     // antiparallel to view direction
     _w = unit_vector(_init_pars.lookfrom - _init_pars.lookat);
     
@@ -34,18 +38,38 @@ std::vector<uint32_t> Camera::render_row(uint32_t j, const std::vector<Sphere>& 
     row_colors.reserve(_init_pars.img_width);
     for (uint32_t i = 0; i < _init_pars.img_width; ++i) {
         Color pixel_color;
-        Ray r = _get_ray(i, j);
-        pixel_color += _trace(r, _init_pars.depth, objects);
+        for (uint32_t sj = 0; sj < _samples_pp_sqrt; ++sj) {
+            for (uint32_t si = 0; si < _samples_pp_sqrt; ++si) {
+                Ray r = _get_ray(i, j, si, sj);
+                pixel_color += _trace(r, _init_pars.depth, objects);
+            }
+        }
+        pixel_color *= _sampling_scale;
         _write_color(pixel_color, row_colors);
     }
     
     return row_colors;
 }
 
-Ray Camera::_get_ray(uint32_t i, uint32_t j) const {
-    Vec3f pixel = _pixel00_loc + (i * _pixel_delta_u) + (j * _pixel_delta_v);
+Ray Camera::_get_ray(uint32_t i, uint32_t j, uint32_t si, uint32_t sj) const {
+    Vec3f offset = _sample_square_stratified(si, sj);
+    Vec3f pixel = _pixel00_loc + 
+                    ((i + offset.x()) * _pixel_delta_u) + 
+                    ((j + offset.y()) * _pixel_delta_v);
 
     return Ray{ _init_pars.lookfrom, pixel - _init_pars.lookfrom };
+}
+
+Vec3f Camera::_sample_square_stratified(uint32_t si, uint32_t sj) const {
+    /**
+     * @brief returns the vector to a random point in the square
+     * subpixel specified by grid indices (s_i, s_j) for an 
+     * idealized unit square pixel [-0.5, -0.5] x [0.5, 0.5] 
+     */
+    float px = ((si + RandomUtils::random_float()) * _samples_pp_sqrt_inv) - 0.5;
+    float py = ((sj + RandomUtils::random_float()) * _samples_pp_sqrt_inv) - 0.5;
+
+    return Vec3f(px, py, 0);
 }
 
 Color Camera::_trace(const Ray& r, uint32_t depth, const std::vector<Sphere>& objects) const {
@@ -73,7 +97,7 @@ bool Camera::_hit(const std::vector<Sphere>& objects, const Ray& r_in, const Int
         if (obj.hit(r_in, Interval(ray_t.min(), closest_so_far), temp_rec)) {
             hit_anything = true;
             closest_so_far = temp_rec.get_t();
-            rec = temp_rec;
+            rec = std::move(temp_rec);
         }
     }
 
@@ -95,7 +119,7 @@ void Camera::_write_color(Color& color, std::vector<uint32_t>& row_colors) const
     auto b_byte = uint8_t(intensity.clamp(b) * 255);
 
     uint32_t pixel = SDL_MapRGBA(SDL_GetPixelFormatDetails(_pixel_format), NULL, r_byte, g_byte, b_byte, 0xff);
-    row_colors.push_back(std::move(pixel));
+    row_colors.emplace_back(std::move(pixel));
 }
 
 void Camera::_gamma_correction(Color& color) const {

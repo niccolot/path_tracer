@@ -20,6 +20,7 @@ typedef struct InitParams {
     Color background;
     Vec3f vup; // up direction in camera frame of reference
     uint32_t depth;
+    uint32_t samples_per_pixel;
     std::string outfile_name;
 } init_params_t;
 
@@ -31,8 +32,12 @@ private:
     Vec3f _pixel00_loc; // coordinate of top-left pixel 
     SDL_PixelFormat _pixel_format;
     init_params_t _init_pars;
+    uint32_t _samples_pp_sqrt; // sqrt of samples_per_pixel
+    float _samples_pp_sqrt_inv;
+    float _sampling_scale;
 
-    Ray _get_ray(uint32_t i, uint32_t j) const;
+    Ray _get_ray(uint32_t i, uint32_t j, uint32_t si, uint32_t sj) const;
+    Vec3f _sample_square_stratified(uint32_t si, uint32_t sj) const;
     Color _trace(const Ray& r, uint32_t depth, const std::vector<Sphere>& objects) const;
     void _write_color(Color& color, std::vector<uint32_t>& row_colors) const;
     void _gamma_correction(Color& color) const; 

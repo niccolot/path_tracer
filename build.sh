@@ -20,13 +20,13 @@ done
 cd build
 
 if [ "$build_type" == "debug" ]; then
-    cmake -DCMAKE_BUILD_TYPE=Debug ..
+    cmake -DCMAKE_BUILD_TYPE=Debug --log-level=WARNING ..
     cmake --build . 
 elif [ "$build_type" == "release" ]; then
     cmake -DCMAKE_BUILD_TYPE=Release --log-level=WARNING ..
     cmake --build . 
 elif [ "$build_type" == "profile" ]; then
-    cmake -DCMAKE_BUILD_TYPE=Profile ..
+    cmake -DCMAKE_BUILD_TYPE=Profile --log-level=WARNING ..
     cmake --build .     
 fi
 
