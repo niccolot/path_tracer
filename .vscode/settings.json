@@ -73,7 +73,10 @@
         "span": "cpp",
         "stop_token": "cpp",
         "cinttypes": "cpp",
-        "text_encoding": "cpp"
+        "text_encoding": "cpp",
+        "print": "cpp",
+        "__locale": "cpp",
+        "execution": "cpp"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/gcc-14"
 }

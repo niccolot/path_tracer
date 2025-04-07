@@ -20,8 +20,8 @@ Camera::Camera(const init_params_t& init_pars) : _init_pars(init_pars) {
     float img_plane_width = img_plane_height * float(_init_pars.img_width) / float(_init_pars.img_height);
     Vec3f img_plane_u = img_plane_width * _u;
     Vec3 img_plane_v = img_plane_height * (-_v);
-    _pixel_delta_u = img_plane_u / _init_pars.img_width;
-    _pixel_delta_v = img_plane_v / _init_pars.img_height;
+    _pixel_delta_u = img_plane_u / float(_init_pars.img_width);
+    _pixel_delta_v = img_plane_v / float(_init_pars.img_height);
     Vec3f img_plane_upper_left = _init_pars.lookfrom - 
                                     (_init_pars.focus_dist * _w) -
                                     0.5f * (img_plane_u + img_plane_v);
@@ -29,7 +29,7 @@ Camera::Camera(const init_params_t& init_pars) : _init_pars(init_pars) {
     _pixel00_loc = img_plane_upper_left + 0.5f * (_pixel_delta_u + _pixel_delta_v);
 }
 
-std::vector<uint32_t> Camera::render_row(uint32_t j, const std::vector<Sphere>& objects) {
+std::vector<uint32_t> Camera::render_row(uint32_t j, const std::vector<Sphere>& objects) const {
     std::vector<uint32_t> row_colors;
     row_colors.reserve(_init_pars.img_width);
     for (uint32_t i = 0; i < _init_pars.img_width; ++i) {
@@ -42,13 +42,13 @@ std::vector<uint32_t> Camera::render_row(uint32_t j, const std::vector<Sphere>& 
     return row_colors;
 }
 
-Ray Camera::_get_ray(uint32_t i, uint32_t j) {
+Ray Camera::_get_ray(uint32_t i, uint32_t j) const {
     Vec3f pixel = _pixel00_loc + (i * _pixel_delta_u) + (j * _pixel_delta_v);
 
     return Ray{ _init_pars.lookfrom, pixel - _init_pars.lookfrom };
 }
 
-Color Camera::_trace(const Ray& r, uint32_t depth, const std::vector<Sphere>& objects) {
+Color Camera::_trace(const Ray& r, uint32_t depth, const std::vector<Sphere>& objects) const {
     if (depth <= 0) {
         return Color();
     }
@@ -65,7 +65,7 @@ Color Camera::_trace(const Ray& r, uint32_t depth, const std::vector<Sphere>& ob
     return color_from_scatter;
 }
 
-bool Camera::_hit(const std::vector<Sphere>& objects, const Ray& r_in, const Interval& ray_t, HitRecord& rec) {
+bool Camera::_hit(const std::vector<Sphere>& objects, const Ray& r_in, const Interval& ray_t, HitRecord& rec) const {
     HitRecord temp_rec;
     bool hit_anything = false;
     float closest_so_far = ray_t.max();
@@ -80,7 +80,7 @@ bool Camera::_hit(const std::vector<Sphere>& objects, const Ray& r_in, const Int
     return hit_anything;
 }
 
-void Camera::_write_color(Color& color, std::vector<uint32_t>& row_colors) {
+void Camera::_write_color(Color& color, std::vector<uint32_t>& row_colors) const {
     if (_gamma_corr) {
         _gamma_correction(color);
     }
@@ -98,7 +98,7 @@ void Camera::_write_color(Color& color, std::vector<uint32_t>& row_colors) {
     row_colors.push_back(std::move(pixel));
 }
 
-void Camera::_gamma_correction(Color& color) {
+void Camera::_gamma_correction(Color& color) const {
     color.set_x(linear_to_gamma(color.x()));
     color.set_y(linear_to_gamma(color.y()));
     color.set_z(linear_to_gamma(color.z()));

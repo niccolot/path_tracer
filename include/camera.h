@@ -24,7 +24,6 @@ typedef struct InitParams {
 } init_params_t;
 
 class Camera {
-
 private:
     bool _gamma_corr = true;
     Vec3f _u, _v, _w; // orthonormal basis
@@ -33,12 +32,11 @@ private:
     SDL_PixelFormat _pixel_format;
     init_params_t _init_pars;
 
-    Ray _get_ray(uint32_t i, uint32_t j);
-    Color _trace(const Ray& r, uint32_t depth, const std::vector<Sphere>& objects);
-    void _write_color(Color& color, std::vector<uint32_t>& row_colors);
-    void _gamma_correction(Color& color); 
-    void _initialize();
-    bool _hit(const std::vector<Sphere>& objects, const Ray& r_in, const Interval& ray_t, HitRecord& rec);
+    Ray _get_ray(uint32_t i, uint32_t j) const;
+    Color _trace(const Ray& r, uint32_t depth, const std::vector<Sphere>& objects) const;
+    void _write_color(Color& color, std::vector<uint32_t>& row_colors) const;
+    void _gamma_correction(Color& color) const; 
+    bool _hit(const std::vector<Sphere>& objects, const Ray& r_in, const Interval& ray_t, HitRecord& rec) const;
     
 public:
     Camera() = default;
@@ -50,6 +48,6 @@ public:
     ~Camera() = default;
     
     void set_pixel_format(SDL_PixelFormat format) { _pixel_format = format; }
-    std::vector<uint32_t> render_row(uint32_t j, const std::vector<Sphere>& objects);
+    std::vector<uint32_t> render_row(uint32_t j, const std::vector<Sphere>& objects) const;
 }; // class Camera
 #endif
