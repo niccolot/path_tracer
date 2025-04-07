@@ -34,6 +34,9 @@ Camera::Camera(const init_params_t& init_pars) : _init_pars(init_pars) {
 }
 
 std::vector<uint32_t> Camera::render_row(uint32_t j, const std::vector<Sphere>& objects) const {
+    /**
+     * @brief: where the actual rendering is being done
+     */
     std::vector<uint32_t> row_colors;
     row_colors.reserve(_init_pars.img_width);
     for (uint32_t i = 0; i < _init_pars.img_width; ++i) {
@@ -52,6 +55,10 @@ std::vector<uint32_t> Camera::render_row(uint32_t j, const std::vector<Sphere>& 
 }
 
 Ray Camera::_get_ray(uint32_t i, uint32_t j, uint32_t si, uint32_t sj) const {
+    /**
+     * @brief: samples a ray through pixel (i,j) passing by the subpixel
+     * of indices (si,sj) for stratified sampling
+     */
     Vec3f offset = _sample_square_stratified(si, sj);
     Vec3f pixel = _pixel00_loc + 
                     ((i + offset.x()) * _pixel_delta_u) + 
@@ -90,6 +97,9 @@ Color Camera::_trace(const Ray& r, uint32_t depth, const std::vector<Sphere>& ob
 }
 
 bool Camera::_hit(const std::vector<Sphere>& objects, const Ray& r_in, const Interval& ray_t, HitRecord& rec) const {
+    /**
+     * @brief: calls the hit method on every hittable object in the scene
+     */
     HitRecord temp_rec;
     bool hit_anything = false;
     float closest_so_far = ray_t.max();
@@ -105,6 +115,10 @@ bool Camera::_hit(const std::vector<Sphere>& objects, const Ray& r_in, const Int
 }
 
 void Camera::_write_color(Color& color, std::vector<uint32_t>& row_colors) const {
+    /**
+     * @brief: processes the row's pixels and put them in the buffer in order to be
+     * rendered on the screen by SDL later
+     */
     if (_gamma_corr) {
         _gamma_correction(color);
     }

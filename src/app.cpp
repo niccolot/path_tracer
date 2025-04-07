@@ -20,9 +20,9 @@ App::App(const std::string& file_path) {
 
 void App::_init_app() {
     /**
-     * @brief: initialized SDL variables,
-     * if pixel format is changed also the components
-     * decofing in _save_png() must be changed
+     * @brief: initializes SDL variables,
+     * if pixel format is changed also the decoded 
+     * components in _save_png() must be changed
      */
     bool success{ SDL_Init( SDL_INIT_VIDEO ) };
     if (!success) {
@@ -47,7 +47,9 @@ void App::_init_app() {
 
 void App::_worker_task() {
     /**
-     * @brief: where the actual rendering by the Cam object is being done
+     * @brief: logic for the screen visualization, calls the camera renderind and
+     * pushes each row in a buffer. They will be visualized at screen
+     * asynchronously
      */
     uint32_t row_idx = 0;
     std::vector<Sphere> objects;
@@ -64,7 +66,7 @@ void App::_worker_task() {
 
 void App::_save_png() {
     /**
-     * @brief: assuming RGBA8888 big endian pixel format
+     * @detail: assuming RGBA8888 big endian pixel format
      */
     std::vector<uint8_t> rgba_pixels(_init_pars.img_width * _init_pars.img_height * 4);
     int pixel_idx = 0;
@@ -125,7 +127,7 @@ void App::run() {
         }
 
         SDL_Event e;
-        while (SDL_PollEvent(&e)) {
+        if (SDL_WaitEventTimeout(&e, _done_rendering ? 100 : 0)) {
             if (e.type == SDL_EVENT_QUIT) {
                 _quit_app = true;
             }
