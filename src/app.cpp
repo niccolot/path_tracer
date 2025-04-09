@@ -53,9 +53,11 @@ void App::_worker_task() {
      * asynchronously
      */
     uint32_t row_idx = 0;
-    std::vector<Sphere> objects;
-    objects.emplace_back(Sphere(Vec3f(0.5, 0, -1), 0.25, Color(0.7f, 0.1f, 0.2f)));
-    objects.emplace_back(Sphere(Vec3f(-0.5, 0, -1), 0.25, Color(0.1f, 0.7f, 0.2f)));
+    //std::vector<Sphere> objects;
+    //objects.emplace_back(Sphere(Vec3f(0.5, 0, -1), 0.25, Color(0.7f, 0.1f, 0.2f)));
+    //objects.emplace_back(Sphere(Vec3f(-0.5, 0, -1), 0.25, Color(0.1f, 0.7f, 0.2f)));
+    std::vector<Triangle> objects;
+    objects.emplace_back(Triangle(Vec3f(0, 0, -1), Vec3f(1, 0, -1), Vec3f(0, 1, -1), Color(0.7f, 0.1f, 0.2f)));
     while (!_done_rendering) {
         _queue.push(scanline_t{ row_idx, std::move(_cam.render_row(row_idx, std::move(objects))) });
         if (row_idx == _init_pars.img_height - 1) {

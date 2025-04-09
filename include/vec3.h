@@ -165,7 +165,7 @@ inline Vec3f rotate_spherically(const Vec3f& v1, const Vec3f& v2, float theta, f
     float x = r * std::sin(theta) * std::sin(phi);
     float y = r * std::cos(theta);
     float z = r * std::sin(theta) * std::cos(phi);
-    std::cout << "y: " << y << "\n";
+
     Vec3f v = v2;
     v.set_x(v.x() + x);
     v.set_y(v.y() + y);

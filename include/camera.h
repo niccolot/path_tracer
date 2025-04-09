@@ -50,10 +50,10 @@ private:
     void _pan_tilt_roll(Vec3f& v);
     Ray _get_ray(uint32_t i, uint32_t j, uint32_t si, uint32_t sj) const;
     Vec3f _sample_square_stratified(uint32_t si, uint32_t sj) const;
-    Color _trace(const Ray& r, uint32_t depth, const std::vector<Sphere>& objects) const;
+    Color _trace(const Ray& r, uint32_t depth, const std::vector<Triangle>& objects) const;
     void _write_color(Color& color, std::vector<uint32_t>& row_colors) const;
     void _gamma_correction(Color& color) const; 
-    bool _hit(const std::vector<Sphere>& objects, const Ray& r_in, const Interval& ray_t, HitRecord& rec) const;
+    bool _hit(const std::vector<Triangle>& objects, const Ray& r_in, const Interval& ray_t, HitRecord& rec) const;
     
 public:
     Camera() = default;
@@ -65,6 +65,6 @@ public:
     ~Camera() = default;
     
     void set_pixel_format(SDL_PixelFormat format) { _pixel_format = format; }
-    std::vector<uint32_t> render_row(uint32_t j, const std::vector<Sphere>& objects) const;
+    std::vector<uint32_t> render_row(uint32_t j, const std::vector<Triangle>& objects) const;
 }; // class Camera
 #endif

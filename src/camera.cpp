@@ -35,12 +35,9 @@ void Camera::_move() {
      */
 
     // movement in 3d space
-    std::cout << "lookfrom: " << _init_pars.lookfrom << "\n";
-    std::cout << "theta: " << _angles.theta << " phi: " << _angles.phi << "\n";
     _camera_center = rotate_spherically(_init_pars.lookfrom, _init_pars.lookat, degs_to_rads(_angles.theta), degs_to_rads(_angles.phi));
-    std::cout << "camera center: " << _camera_center << "\n";
     _w = unit_vector(_camera_center - _init_pars.lookat); // antiparallel to view direction
-    _u = unit_vector(cross(Vec3f(0,1,0), _w)); // perpendicular to view direction and _vup
+    _u = unit_vector(cross(Vec3f(0,1,0), _w)); // perpendicular to view direction and default up direction (0,1,0)
     _v = cross(_w, _u); // camera up direction in camera frame of reference
     
     // roll, tilt and pan
@@ -63,7 +60,7 @@ void Camera::_pan_tilt_roll(Vec3f& v) {
     mat_vec_prod_inplace(pan_rot, v);
 }
 
-std::vector<uint32_t> Camera::render_row(uint32_t j, const std::vector<Sphere>& objects) const {
+std::vector<uint32_t> Camera::render_row(uint32_t j, const std::vector<Triangle>& objects) const {
     /**
      * @brief: where the actual rendering is being done
      */
@@ -109,7 +106,7 @@ Vec3f Camera::_sample_square_stratified(uint32_t si, uint32_t sj) const {
     return Vec3f(px, py, 0);
 }
 
-Color Camera::_trace(const Ray& r, uint32_t depth, const std::vector<Sphere>& objects) const {
+Color Camera::_trace(const Ray& r, uint32_t depth, const std::vector<Triangle>& objects) const {
     if (depth <= 0) {
         return Color();
     }
@@ -126,7 +123,7 @@ Color Camera::_trace(const Ray& r, uint32_t depth, const std::vector<Sphere>& ob
     return color_from_scatter;
 }
 
-bool Camera::_hit(const std::vector<Sphere>& objects, const Ray& r_in, const Interval& ray_t, HitRecord& rec) const {
+bool Camera::_hit(const std::vector<Triangle>& objects, const Ray& r_in, const Interval& ray_t, HitRecord& rec) const {
     /**
      * @brief: calls the hit method on every hittable object in the scene
      */
