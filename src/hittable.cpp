@@ -26,12 +26,12 @@ bool Sphere::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) cons
     }
 
     hitrec.set_t(root);
-    hitrec.set_hit_point(std::move(r_in.at(root)));
+    hitrec.set_hit_point(r_in.at(root));
 
     // by spheres property dividing by radius avoid sqrt normalization
     Vec3f normal = (hitrec.get_hit_point() - _center) / _radius;
-    hitrec.set_normal(std::move(normal), std::move(r_in.direction()));
-    hitrec.set_color(std::move(_color) * std::fabs(dot(hitrec.get_normal(), r_in.direction())));
+    hitrec.set_normal(normal, r_in.direction());
+    hitrec.set_color(_color * std::fabs(dot(hitrec.get_normal(), r_in.direction())));
 
     return true;
 }
@@ -42,6 +42,9 @@ Triangle::Triangle(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2, const Colo
 }
 
 bool Triangle::hit(const Ray& r_in, [[maybe_unused]] const Interval& ray_t, HitRecord& hitrec) const {
+    /**
+     * @brief: ray-triangle intersection method using moller-trumbore algorithm
+     */
     constexpr float tol = 1e-8;
 
     Vec3f p_vec = cross(r_in.direction(), _v0v2);
@@ -68,7 +71,7 @@ bool Triangle::hit(const Ray& r_in, [[maybe_unused]] const Interval& ray_t, HitR
     hitrec.set_hit_point(r_in.at(t));
     Vec3f n = unit_vector(cross(_v0v1, _v0v2));
     hitrec.set_normal(n, r_in.direction());
-    hitrec.set_color(std::move(_color) * std::fabs(dot(hitrec.get_normal(), r_in.direction())));
+    hitrec.set_color(_color * std::fabs(dot(hitrec.get_normal(), r_in.direction())));
 
     return true;
 }

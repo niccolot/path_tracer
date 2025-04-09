@@ -109,6 +109,7 @@ init_params_t init_from_json(const std::string& datapath) {
     njson j;
     file >> j;
     lowercase_keys(j);
+    file.close();
 
     return j.get<init_params_t>();
 }
@@ -123,6 +124,7 @@ camera_angles_t angles_from_json(const std::string& datapath) {
     njson j;
     file >> j;
     lowercase_keys(j);
+    file.close();
 
     return j.get<camera_angles_t>();
 }
