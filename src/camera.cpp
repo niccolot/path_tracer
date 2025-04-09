@@ -3,20 +3,15 @@
 #include "camera.h"
 #include "interval.h"
 #include "utils.h"
+#include "mat3.h"
 
-Camera::Camera(const init_params_t& init_pars) : _init_pars(init_pars) {
+Camera::Camera(const init_params_t& init_pars, const camera_angles_t& angles) : 
+    _init_pars(init_pars), _angles(angles) 
+{
     _samples_pp_sqrt = uint32_t(std::sqrt(_init_pars.samples_per_pixel));
     _samples_pp_sqrt_inv = 1.f / float(_samples_pp_sqrt);
     _sampling_scale = 1.f / float(_init_pars.samples_per_pixel);
-
-    // antiparallel to view direction
-    _w = unit_vector(_init_pars.lookfrom - _init_pars.lookat);
-    
-    // perpendicular to view direction and _vup
-    _u = unit_vector(cross(_init_pars.vup, _w));
-
-    // camera up direction in the global frame of reference
-    _v = cross(_w, _u);
+    _move();
 
     // image plane
     float h = std::tan(0.5f * degs_to_rads(_init_pars.vfov));
@@ -26,11 +21,46 @@ Camera::Camera(const init_params_t& init_pars) : _init_pars(init_pars) {
     Vec3 img_plane_v = img_plane_height * (-_v);
     _pixel_delta_u = img_plane_u / float(_init_pars.img_width);
     _pixel_delta_v = img_plane_v / float(_init_pars.img_height);
-    Vec3f img_plane_upper_left = _init_pars.lookfrom - 
+    Vec3f img_plane_upper_left = _camera_center - 
                                     (_init_pars.focus_dist * _w) -
                                     0.5f * (img_plane_u + img_plane_v);
     
     _pixel00_loc = img_plane_upper_left + 0.5f * (_pixel_delta_u + _pixel_delta_v);
+}
+
+void Camera::_move() {
+    /**
+     * @brief: moves the camera in 3d space and in it's
+     * own frame according to camera angles
+     */
+
+    // movement in 3d space
+    std::cout << "lookfrom: " << _init_pars.lookfrom << "\n";
+    std::cout << "theta: " << _angles.theta << " phi: " << _angles.phi << "\n";
+    _camera_center = rotate_spherically(_init_pars.lookfrom, _init_pars.lookat, degs_to_rads(_angles.theta), degs_to_rads(_angles.phi));
+    std::cout << "camera center: " << _camera_center << "\n";
+    _w = unit_vector(_camera_center - _init_pars.lookat); // antiparallel to view direction
+    _u = unit_vector(cross(Vec3f(0,1,0), _w)); // perpendicular to view direction and _vup
+    _v = cross(_w, _u); // camera up direction in camera frame of reference
+    
+    // roll, tilt and pan
+    _rotate_frame();
+}
+
+void Camera::_rotate_frame() {
+    _pan_tilt_roll(_w);
+    _pan_tilt_roll(_u);
+    _pan_tilt_roll(_v);
+}
+
+void Camera::_pan_tilt_roll(Vec3f& v) {
+    Mat3 roll_rot = roll_rotation(degs_to_rads(_angles.roll));
+    Mat3 tilt_rot = tilt_rotation(degs_to_rads(_angles.tilt));
+    Mat3 pan_rot = pan_rotation(degs_to_rads(_angles.pan));
+
+    mat_vec_prod_inplace(roll_rot, v);
+    mat_vec_prod_inplace(tilt_rot, v);
+    mat_vec_prod_inplace(pan_rot, v);
 }
 
 std::vector<uint32_t> Camera::render_row(uint32_t j, const std::vector<Sphere>& objects) const {
@@ -64,7 +94,7 @@ Ray Camera::_get_ray(uint32_t i, uint32_t j, uint32_t si, uint32_t sj) const {
                     ((i + offset.x()) * _pixel_delta_u) + 
                     ((j + offset.y()) * _pixel_delta_v);
 
-    return Ray{ _init_pars.lookfrom, pixel - _init_pars.lookfrom };
+    return Ray{ _camera_center, pixel - _camera_center };
 }
 
 Vec3f Camera::_sample_square_stratified(uint32_t si, uint32_t sj) const {

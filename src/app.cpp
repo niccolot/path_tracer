@@ -8,13 +8,14 @@
 #include "hittable.h"
 
 App::App(const std::string& file_path) {
-    init_params_t init_pars = init_from_json(file_path);
+    init_params_t init_pars = init_from_json(file_path + "/init_pars.json");
+    camera_angles_t angles = angles_from_json(file_path + "/camera_angles.json");
 
     _init_pars = std::move(init_pars);
     _outfile_name = _init_pars.outfile_name;
 
     _init_app();
-    _cam = std::move(Camera{ init_pars });
+    _cam = std::move(Camera{ init_pars, angles });
     _cam.set_pixel_format(_image_surface->format);
 }
 

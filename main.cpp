@@ -6,7 +6,7 @@
 
 int main() {
     try {
-        App app("init/init_pars.json");
+        App app("init");
         app.run();
     } catch (const std::exception& e) {
         std::cerr << e.what() << "\n";

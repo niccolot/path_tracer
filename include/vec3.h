@@ -139,7 +139,7 @@ inline Vec3f random_vector(float min, float max) {
 
 inline Vec3f random_unit_vector() {
     /**
-     * @brief generates random vectors inside the unit square 
+     * @brief: generates random vectors inside the unit square 
      * containing the unit circle. Once a generated vector is
      * inside the circle and not too short for numerical overlow,
      * it is returned
@@ -153,4 +153,24 @@ inline Vec3f random_unit_vector() {
     }
 }
 
+inline Vec3f rotate_spherically(const Vec3f& v1, const Vec3f& v2, float theta, float phi) {
+    /**
+     * @brief: rotates a vector by angles (theta, phi) in spherical coordinates
+     * @details: by choice theta refers to the angle between the y axis (vertical by default)
+     * and the XZ plane
+     * @param r: radius of vector to rotate
+     */
+
+    float r = (v1 - v2).length();
+    float x = r * std::sin(theta) * std::sin(phi);
+    float y = r * std::cos(theta);
+    float z = r * std::sin(theta) * std::cos(phi);
+    std::cout << "y: " << y << "\n";
+    Vec3f v = v2;
+    v.set_x(v.x() + x);
+    v.set_y(v.y() + y);
+    v.set_z(v.z() + z);
+
+    return v;
+}
 #endif

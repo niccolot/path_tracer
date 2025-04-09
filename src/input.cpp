@@ -65,11 +65,6 @@ void from_json(const njson& j, init_params_t& p) {
     } else {
         p.focus_dist = 10;
     }
-    if (j.count("vup") != 0) {
-        j.at("vup").get_to(p.vup);
-    } else {
-        p.vup = Vec3f(0, 1, 0);
-    }
     if (j.count("outfile_name") != 0) {
         j.at("outfile_name").get_to(p.outfile_name);
     } else {
@@ -87,10 +82,28 @@ void from_json(const njson& j, init_params_t& p) {
     }
 }
 
+void from_json(const njson& j, camera_angles_t& angles) {
+    if (j.count("roll") != 0) {
+        j.at("roll").get_to(angles.roll);
+    }
+    if (j.count("tilt") != 0) {
+        j.at("tilt").get_to(angles.tilt);
+    }
+    if (j.count("pan") != 0) {
+        j.at("pan").get_to(angles.pan);
+    }
+    if (j.count("theta") != 0) {
+        j.at("theta").get_to(angles.theta);
+    }
+    if (j.count("phi") != 0) {
+        j.at("phi").get_to(angles.phi);
+    }
+}
+
 init_params_t init_from_json(const std::string& datapath) {
     std::ifstream file(datapath);
     if (!file) {
-        throw std::runtime_error{ std::format("Invalid input: file {} does not exists", datapath) };
+        throw std::runtime_error{ std::format("Invalid input: file '{}' does not exists", datapath) };
     }
 
     njson j;
@@ -98,4 +111,18 @@ init_params_t init_from_json(const std::string& datapath) {
     lowercase_keys(j);
 
     return j.get<init_params_t>();
+}
+
+camera_angles_t angles_from_json(const std::string& datapath) {
+    std::ifstream file(datapath);
+    if (!file) {
+        std::clog << std::format("Camera angles file '{}' not found, setting angles to default values\n", datapath);
+        return camera_angles_t{};
+    }
+
+    njson j;
+    file >> j;
+    lowercase_keys(j);
+
+    return j.get<camera_angles_t>();
 }

@@ -18,11 +18,18 @@ typedef struct InitParams {
     Vec3f lookfrom;
     Vec3f lookat;
     Color background;
-    Vec3f vup; // up direction in camera frame of reference
     uint32_t depth;
     uint32_t samples_per_pixel;
     std::string outfile_name;
 } init_params_t;
+
+typedef struct CameraAngles {
+    float roll = 0.f;
+    float tilt = 0.f;
+    float pan = 0.f;
+    float theta = 90.f;
+    float phi = 0.f;
+} camera_angles_t;
 
 class Camera {
 private:
@@ -30,12 +37,17 @@ private:
     Vec3f _u, _v, _w; // orthonormal basis
     Vec3f _pixel_delta_u, _pixel_delta_v; // image plane span vectors
     Vec3f _pixel00_loc; // coordinate of top-left pixel 
+    Vec3f _camera_center;
     SDL_PixelFormat _pixel_format;
     init_params_t _init_pars;
+    camera_angles_t _angles;
     uint32_t _samples_pp_sqrt; // sqrt of samples_per_pixel
     float _samples_pp_sqrt_inv;
     float _sampling_scale;
 
+    void _move();
+    void _rotate_frame();
+    void _pan_tilt_roll(Vec3f& v);
     Ray _get_ray(uint32_t i, uint32_t j, uint32_t si, uint32_t sj) const;
     Vec3f _sample_square_stratified(uint32_t si, uint32_t sj) const;
     Color _trace(const Ray& r, uint32_t depth, const std::vector<Sphere>& objects) const;
@@ -45,7 +57,7 @@ private:
     
 public:
     Camera() = default;
-    Camera(const init_params_t& pars);
+    Camera(const init_params_t& pars, const camera_angles_t& angles);
     Camera(const Camera&) = delete;
     Camera& operator=(const Camera&) = delete;
     Camera(Camera&&) = default;
