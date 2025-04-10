@@ -54,10 +54,16 @@ void App::_worker_task() {
     //std::vector<Sphere> objects;
     //objects.emplace_back(Sphere(Vec3f(0.5, 0, -1), 0.25, Color(0.7f, 0.1f, 0.2f)));
     //objects.emplace_back(Sphere(Vec3f(-0.5, 0, -1), 0.25, Color(0.1f, 0.7f, 0.2f)));
-    std::vector<Triangle> objects;
-    objects.emplace_back(Triangle(Vec3f(0, 0, -1), Vec3f(1, 0, -1), Vec3f(0, 1, -1), Color(0.7f, 0.1f, 0.2f)));
+    objl::Loader loader;
+    loader.LoadFile("init/box_stack.obj");
+    MeshList meshes(loader);
+    std::cout << "num meshes: " << meshes.get_meshes().size() << "\n";
+    for (const auto& mesh : meshes.get_meshes()) {
+        std::cout << "num tris: " << mesh.num_tris() << "\n";
+    }
+    //objects.emplace_back(Triangle(Vec3f(0, 0, -1), Vec3f(1, 0, -1), Vec3f(0, 1, -1), Color(0.7f, 0.1f, 0.2f)));
     while (!_done_rendering) {
-        _queue.push(scanline_t{ row_idx, std::move(_cam.render_row(row_idx, std::move(objects))) });
+        _queue.push(scanline_t{ row_idx, std::move(_cam.render_row(row_idx, std::move(meshes))) });
         if (row_idx == _init_pars.img_height - 1) {
             _done_rendering = true;
         }
@@ -130,6 +136,7 @@ void App::run() {
         SDL_Event e;
         if (SDL_WaitEventTimeout(&e, _done_rendering ? 100 : 0)) {
             if (e.type == SDL_EVENT_QUIT) {
+                _done_rendering = true;
                 _quit_app = true;
             }
         }

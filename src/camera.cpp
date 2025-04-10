@@ -5,8 +5,8 @@
 #include "utils.h"
 #include "mat3.h"
 
-Camera::Camera(const init_params_t& init_pars, const camera_angles_t& angles) : 
-    _init_pars(init_pars), _angles(angles) 
+Camera::Camera(const init_params_t& init_pars, const camera_angles_t& angles) 
+: _init_pars(init_pars), _angles(angles) 
 {
     _samples_pp_sqrt = uint32_t(std::sqrt(_init_pars.samples_per_pixel));
     _samples_pp_sqrt_inv = 1.f / float(_samples_pp_sqrt);
@@ -81,6 +81,24 @@ std::vector<uint32_t> Camera::render_row(uint32_t j, const std::vector<Triangle>
     return row_colors;
 }
 
+std::vector<uint32_t> Camera::render_row(uint32_t j, const MeshList& meshes) const {
+    std::vector<uint32_t> row_colors;
+    row_colors.reserve(_init_pars.img_width);
+    for (uint32_t i = 0; i < _init_pars.img_width; ++i) {
+        Color pixel_color;
+        for (uint32_t sj = 0; sj < _samples_pp_sqrt; ++sj) {
+            for (uint32_t si = 0; si < _samples_pp_sqrt; ++si) {
+                Ray r = _get_ray(i, j, si, sj);
+                pixel_color += _trace(r, _init_pars.depth, meshes);
+            }
+        }
+        pixel_color *= _sampling_scale;
+        _write_color(pixel_color, row_colors);
+    }
+    
+    return row_colors;
+}
+
 Ray Camera::_get_ray(uint32_t i, uint32_t j, uint32_t si, uint32_t sj) const {
     /**
      * @brief: samples a ray through pixel (i,j) passing by the subpixel
@@ -106,6 +124,23 @@ Vec3f Camera::_sample_square_stratified(uint32_t si, uint32_t sj) const {
     return Vec3f(px, py, 0);
 }
 
+Color Camera::_trace(const Ray& r, uint32_t depth, const MeshList& meshes) const {
+    if (depth <= 0) {
+        return Color();
+    }
+
+    HitRecord rec;
+    float shadow_acne_offset = 0.001;
+    if (!_hit(meshes, r, Interval(shadow_acne_offset, inf), rec)) {
+        return _init_pars.background;
+    }
+
+    Color color_from_scatter = Color();
+    color_from_scatter += rec.get_color();
+
+    return color_from_scatter;
+}
+
 Color Camera::_trace(const Ray& r, uint32_t depth, const std::vector<Triangle>& objects) const {
     if (depth <= 0) {
         return Color();
@@ -121,6 +156,10 @@ Color Camera::_trace(const Ray& r, uint32_t depth, const std::vector<Triangle>& 
     color_from_scatter += rec.get_color();
 
     return color_from_scatter;
+}
+
+bool Camera::_hit(const MeshList& meshes, const Ray& r_in, const Interval& ray_t, HitRecord& rec) const {
+    return meshes.hit(r_in, ray_t, rec);
 }
 
 bool Camera::_hit(const std::vector<Triangle>& objects, const Ray& r_in, const Interval& ray_t, HitRecord& rec) const {
