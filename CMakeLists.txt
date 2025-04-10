@@ -16,6 +16,8 @@ include_directories(${CMAKE_SOURCE_DIR}/vendor/nlohmann_json/include)
 include_directories(${CMAKE_BINARY_DIR}/vendor/nlohmann_json/include) 
 include_directories(${CMAKE_SOURCE_DIR}/vendor/stb)
 include_directories(${CMAKE_BINARY_DIR}/vendor/stb) 
+include_directories(${CMAKE_SOURCE_DIR}/vendor/OBJ-Loader/Source)
+include_directories(${CMAKE_BINARY_DIR}/vendor/OBJ-Loader/Source) 
 
 add_subdirectory(vendor/SDL)
 add_subdirectory(vendor/nlohmann_json)

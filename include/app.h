@@ -25,7 +25,6 @@ private:
     SDL_Renderer* _renderer{ nullptr };
     SDL_Surface* _image_surface{ nullptr };
     std::thread _worker;
-    std::string _outfile_name;
     std::map<uint32_t, std::vector<uint32_t>> _pixels_map;
     ThreadSafeQueue<scanline_t> _queue;
     Camera _cam;

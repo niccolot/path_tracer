@@ -8,7 +8,8 @@
                 "${workspaceFolder}/vendor/SDL/include/SDL3",
                 "${workspaceFolder}/vendor/nlohmann_json",
                 "${workspaceFolder}/vendor/nlohmann_json/include",
-                "${workspaceFolder}/vendor/stb"
+                "${workspaceFolder}/vendor/stb",
+                "${workspaceFolder}/vendor/OBJ-Loader/Source"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/g++",

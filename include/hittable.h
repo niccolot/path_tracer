@@ -1,6 +1,12 @@
 #ifndef HITTABLE_H
 #define HITTABLE_H
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-value"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#include <OBJ_Loader.h>
+#pragma GCC diagnostic pop
+
 #include "color.h"
 #include "ray.h"
 #include "interval.h"
@@ -33,4 +39,13 @@ public:
     Triangle(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2, const Color& col);
     bool hit(const Ray& r_in, [[maybe_unused]] const Interval& ray_t, HitRecord& hitrec) const;
 }; // class Triangle
+
+class Mesh {
+private:
+    std::vector<objl::Vertex> _vertices;
+    std::vector<uint32_t> _indices;
+
+public:
+    Mesh(const objl::Mesh& mesh);
+}; // class Mesh
 #endif

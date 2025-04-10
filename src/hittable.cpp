@@ -75,3 +75,22 @@ bool Triangle::hit(const Ray& r_in, [[maybe_unused]] const Interval& ray_t, HitR
 
     return true;
 }
+
+Mesh::Mesh(const objl::Mesh& mesh) {
+    _vertices = std::move(mesh.Vertices);
+    _indices = std::move(mesh.Indices);
+
+    std::ofstream file("temp.txt");
+    file << "Verices:\n";
+    for (uint32_t j = 0; j < _vertices.size(); ++j) {
+        file << "V" << j << ": " <<
+        "P(" << _vertices[j].Position.X << ", " << _vertices[j].Position.Y << ", " << _vertices[j].Position.Z << ") " <<
+        "N(" << _vertices[j].Normal.X << ", " << _vertices[j].Normal.Y << ", " << _vertices[j].Normal.Z << ") " <<
+        "TC(" << _vertices[j].TextureCoordinate.X << ", " << _vertices[j].TextureCoordinate.Y << ")\n"; 
+    }
+
+    file << "Indices:\n";
+    for (uint32_t j = 0; j < _indices.size(); j += 3) {
+        file << "T" << j / 3 << ": " << _indices[j] << ", " << _indices[j + 1] << ", " << _indices[j + 2] << "\n";
+    }
+}

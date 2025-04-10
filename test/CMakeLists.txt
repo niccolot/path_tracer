@@ -18,6 +18,8 @@ foreach(test_file ${TEST_SOURCES})
     target_include_directories(${test_name} PRIVATE ${CMAKE_SOURCE_DIR}/vendor/SDL/include)
     target_include_directories(${test_name} PRIVATE ${CMAKE_BINARY_DIR}/vendor/SDL/include)
     target_include_directories(${test_name} PRIVATE ${CMAKE_SOURCE_DIR}/vendor/nlohmann_json/include)
+    target_include_directories(${test_name} PRIVATE ${CMAKE_BINARY_DIR}/vendor/OBJ-Loader/Source)
+    target_include_directories(${test_name} PRIVATE ${CMAKE_SOURCE_DIR}/vendor/OBJ-Loader/Source)
 
     if (${test_name} STREQUAL "random_test")
         target_compile_options(${test_name} PRIVATE -Wno-unused-but-set-variable)

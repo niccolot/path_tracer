@@ -12,8 +12,6 @@ App::App(const std::string& file_path) {
     camera_angles_t angles = angles_from_json(file_path + "/camera_angles.json");
 
     _init_pars = std::move(init_pars);
-    _outfile_name = _init_pars.outfile_name;
-
     _init_app();
     _cam = std::move(Camera{ init_pars, angles });
     _cam.set_pixel_format(_image_surface->format);
@@ -92,7 +90,7 @@ void App::_save_png() {
     if (!ok) {
         std::cerr << "\nFailed to save .png file\n"; 
     } else {
-        std::cout << std::format("\nRendered image saved as: '{}'\n", _outfile_name);
+        std::cout << std::format("\nRendered image saved as: '{}'\n", _init_pars.outfile_name);
     }
 }
 
