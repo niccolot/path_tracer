@@ -5,7 +5,7 @@
 #include "hittable.h"
 
 bool Sphere::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const {
-    Vec3 oc = _center - r_in.origin(); // vector from ray origin to sphere center
+    Vec3f oc = _center - r_in.origin(); // vector from ray origin to sphere center
 
     // a = r_in.direction().length_squared(), here assumed already unitary
     // for the Ray class constructor

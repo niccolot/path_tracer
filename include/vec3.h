@@ -7,125 +7,109 @@
 
 #include "random.h"
 
-template<typename T>
-class Vec3 {
-
+class Vec3f {
 private:
-    T e[3];
+    float _e[3];
 
 public:
-    Vec3() : e{0, 0, 0} {}
-    Vec3(T x, T y, T z) : e{x, y, z} {}
-    
-    Vec3(const Vec3<T>&) = default;
+    Vec3f() : _e{0.f, 0.f, 0.f} {}
+    Vec3f(float x, float y, float z) : _e{x, y, z} {}
+    Vec3f(const Vec3f&) = default;
 
-    T x() const { return e[0]; }
-    T y() const { return e[1]; }
-    T z() const { return e[2]; }
+    float x() const { return _e[0]; }
+    float y() const { return _e[1]; }
+    float z() const { return _e[2]; }
 
-    void set_x(T x) { e[0] = x; }
-    void set_y(T y) { e[1] = y; }
-    void set_z(T z) { e[2] = z; }
+    void set_x(float x) { _e[0] = x; }
+    void set_y(float y) { _e[1] = y; }
+    void set_z(float z) { _e[2] = z; }
 
-    T operator[](uint32_t i) const { return e[i]; }
-    T& operator[](uint32_t i) { return e[i]; }
+    float operator[](uint32_t i) const { return _e[i]; }
+    float& operator[](uint32_t i) { return _e[i]; }
 
-    Vec3<T> operator=(const Vec3<T>& v) {
-        e[0] = v.x();
-        e[1] = v.y();
-        e[2] = v.z();
-
-        return *this;
-    }
-
-    Vec3<T> operator-() const { return Vec3<T>(-e[0], -e[1], -e[2]); }
-    
-    Vec3<T> operator+=(const Vec3<T>& v) {
-        e[0] += v.x();
-        e[1] += v.y();
-        e[2] += v.z();
+    Vec3f operator=(const Vec3f& v) {
+        _e[0] = v.x();
+        _e[1] = v.y();
+        _e[2] = v.z();
 
         return *this;
     }
 
-    Vec3<T> operator-=(const Vec3<T>& v) {
+    Vec3f operator-() const { return Vec3f(-_e[0], -_e[1], -_e[2]); }
+
+    Vec3f operator+=(const Vec3f& v) {
+        _e[0] += v.x();
+        _e[1] += v.y();
+        _e[2] += v.z();
+
+        return *this;
+    }
+
+    Vec3f operator-=(const Vec3f& v) {
         return *this += -v;
     }
 
-    Vec3<T> operator*=(T t) {
-        e[0] *= t;
-        e[1] *= t;
-        e[2] *= t;
+    Vec3f operator*=(float t) {
+        _e[0] *= t;
+        _e[1] *= t;
+        _e[2] *= t;
 
         return *this;
     } 
 
-    Vec3<T> operator/=(T t) {
+    Vec3f operator/=(float t) {
         return *this *= 1/t;
     }
 
-    T length_squared() const {
-        return e[0] * e[0] + e[1] * e[1] + e[2] * e[2];
+    float length_squared() const {
+        return _e[0] * _e[0] + _e[1] * _e[1] + _e[2] * _e[2];
     }
 
-    T length() const {
+    float length() const {
         return std::sqrt(length_squared());
     }
-}; // class Vec3
+}; // class Vec3f
 
-using Vec3f = Vec3<float>;
-using Vec3Double = Vec3<double>;
-
-template<typename T>
-inline std::ostream& operator<<(std::ostream& out, const Vec3<T>& v) {
+inline std::ostream& operator<<(std::ostream& out, const Vec3f& v) {
     return out << v.x() << ' ' << v.y() << ' ' << v.z();
 }
 
-template<typename T>
-inline Vec3<T> operator+(const Vec3<T>& u, const Vec3<T>& v) {
-    return Vec3<T>(u.x() + v.x(), u.y() + v.y(), u.z() + v.z());
+inline Vec3f operator+(const Vec3f& u, const Vec3f& v) {
+    return Vec3f(u.x() + v.x(), u.y() + v.y(), u.z() + v.z());
 }
 
-template<typename T>
-inline Vec3<T> operator-(const Vec3<T>& u, const Vec3<T>& v) {
+inline Vec3f operator-(const Vec3f& u, const Vec3f& v) {
     return u + (-v);
 }
 
-template<typename T, typename U>
-inline Vec3<T> operator*(const Vec3<T>& v, U t) {
-    return Vec3<T>(v.x() * t, v.y() * t, v.z() * t);
+inline Vec3f operator*(const Vec3f& v, float t) {
+    return Vec3f(v.x() * t, v.y() * t, v.z() * t);
 }
 
-template<typename T, typename U>
-inline Vec3<T> operator*(U t, const Vec3<T>& v) {
+inline Vec3f operator*(float t, const Vec3f& v) {
     return v * t;
 }
 
-template<typename T, typename U>
-inline Vec3<T> operator/(const Vec3<T>& v, U t) {
+inline Vec3f operator/(const Vec3f& v, float t) {
     return v * (1/t);
 }
 
-template<typename T, typename U>
-inline Vec3<T> operator/(T t, const Vec3<T>& v) {
+inline Vec3f operator/(float t, const Vec3f& v) {
     return v / t;
 }
 
-template<typename T>
-inline T dot(const Vec3<T>& u, const Vec3<T>& v) {
+inline float dot(const Vec3f& u, const Vec3f& v) {
     return u.x() * v.x() + u.y() * v.y() + u.z() * v.z();
 }
 
-template<typename T>
-inline Vec3<T> cross(const Vec3<T>& u, const Vec3<T>& v) {
-    return Vec3<T>(
+inline Vec3f cross(const Vec3f& u, const Vec3f& v) {
+    return Vec3f(
         u.y()*v.z() - u.z()*v.y(),
         u.z()*v.x() - u.x()*v.z(),
         u.x()*v.y() - u.y()*v.x());
 }
 
-template<typename T>
-inline Vec3<T> unit_vector(const Vec3<T>& v) {
+inline Vec3f unit_vector(const Vec3f& v) {
     return v / v.length();
 }
 

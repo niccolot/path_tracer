@@ -6,24 +6,16 @@
 
 #include "vec3.h"
 
-TEST_CASE("Vec3 basic operations") {
+TEST_CASE("Vec3f basic operations") {
     SECTION("Construction, destruction, overloaded operators") {
-        Vec3<float> a;
-        Vec3<double> b;
         Vec3f c;
-        Vec3Double e;
 
         c.set_x(1.f);
-        e.set_x(1.);
         Vec3f f;
-        Vec3Double g;
         f += c;
-        g -= e;
 
         REQUIRE(f.x() == 1.f);
-        REQUIRE(g.x() == -1.);
         REQUIRE(typeid(f.x()) == typeid(float));
-        REQUIRE(typeid(g.x()) == typeid(double));
 
         f *= 2;
         REQUIRE(f.x() == 2.f);

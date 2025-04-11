@@ -1,7 +1,5 @@
 #include <iostream>
 
-#include <nlohmann/json.hpp>
-
 #include "app.h"
 
 int main() {

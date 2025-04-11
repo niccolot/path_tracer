@@ -18,7 +18,7 @@ Camera::Camera(const init_params_t& init_pars, const camera_angles_t& angles)
     float img_plane_height = 2.f * h * _init_pars.focus_dist;
     float img_plane_width = img_plane_height * float(_init_pars.img_width) / float(_init_pars.img_height);
     Vec3f img_plane_u = img_plane_width * _u;
-    Vec3 img_plane_v = img_plane_height * (-_v);
+    Vec3f img_plane_v = img_plane_height * (-_v);
     _pixel_delta_u = img_plane_u / float(_init_pars.img_width);
     _pixel_delta_v = img_plane_v / float(_init_pars.img_height);
     Vec3f img_plane_upper_left = _camera_center - 
