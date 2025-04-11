@@ -54,20 +54,17 @@ private:
     Color _color;
     std::vector<Triangle> _triangles;
 
-    void _init_triangles();
-
 public:
     Mesh() = default;
     Mesh(const objl::Mesh& mesh);
 
-    uint32_t num_tris() const { return _triangles.size(); }
-
-    bool hit(const Ray& r_in, [[maybe_unused]] const Interval& ray_t, HitRecord& hitrec) const;
+    std::vector<Triangle> get_triangles() const { return _triangles; }
 }; // class Mesh
 
 class MeshList {
 private:
     std::vector<Mesh> _mesh_list;
+    std::vector<Triangle> _triangles;
 
 public:
     MeshList(const objl::Loader& loader);

@@ -1,5 +1,6 @@
 #include <memory>
 #include <cassert>
+#include <algorithm>
 
 #include "hittable.h"
 
@@ -112,25 +113,14 @@ Mesh::Mesh(const objl::Mesh& mesh) {
     }
 }
 
-bool Mesh::hit(const Ray& r_in, [[maybe_unused]] const Interval& ray_t, HitRecord& hitrec) const {
-    HitRecord temp_rec;
-    bool hit_anything = false;
-    float closest_so_far = ray_t.max();
-    for (const auto& tri : _triangles) {
-        if (tri.hit(r_in, Interval(ray_t.min(), closest_so_far), temp_rec)) {
-            hit_anything = true;
-            closest_so_far = temp_rec.get_t();
-            hitrec = std::move(temp_rec);
-        }
-    }
-
-    return hit_anything;
-}
-
 MeshList::MeshList(const objl::Loader& loader) {
     for (const auto& mesh : loader.LoadedMeshes) {
         Mesh m(mesh);
         _mesh_list.emplace_back(m);
+        _triangles.reserve(m.get_triangles().size());
+        for (const auto& tri : m.get_triangles()) {
+            _triangles.emplace_back(tri);
+        }
     }
 }
 
@@ -138,8 +128,8 @@ bool MeshList::hit(const Ray& r_in, [[maybe_unused]] const Interval& ray_t, HitR
     HitRecord temp_rec;
     bool hit_anything = false;
     float closest_so_far = ray_t.max();
-    for (const auto& mesh : _mesh_list) {
-        if (mesh.hit(r_in, Interval(ray_t.min(), closest_so_far), temp_rec)) {
+    for (const auto& tri : _triangles) {
+        if (tri.hit(r_in, Interval(ray_t.min(), closest_so_far), temp_rec) && temp_rec.get_t() < closest_so_far) {
             hit_anything = true;
             closest_so_far = temp_rec.get_t();
             hitrec = std::move(temp_rec);
