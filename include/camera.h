@@ -13,13 +13,14 @@ typedef struct InitParams {
     uint32_t img_height;
     uint32_t window_width;
     uint32_t window_height;
+    uint32_t depth;
+    uint32_t samples_per_pixel;
     float vfov; // vertical aperture
     float focus_dist; // distance from camera to image plane
     Vec3f lookfrom;
     Vec3f lookat;
     Color background;
-    uint32_t depth;
-    uint32_t samples_per_pixel;
+    std::string obj_file;
     std::string outfile_name;
 } init_params_t;
 
@@ -44,17 +45,16 @@ private:
     uint32_t _samples_pp_sqrt; // sqrt of samples_per_pixel
     float _samples_pp_sqrt_inv;
     float _sampling_scale;
+    MeshList _meshes;
 
     void _move();
     void _rotate_frame();
     void _pan_tilt_roll(Vec3f& v);
     Ray _get_ray(uint32_t i, uint32_t j, uint32_t si, uint32_t sj) const;
     Vec3f _sample_square_stratified(uint32_t si, uint32_t sj) const;
-    Color _trace(const Ray& r, uint32_t depth, const std::vector<Triangle>& objects) const;
     Color _trace(const Ray& r, uint32_t depth, const MeshList& meshes) const;
     void _write_color(Color& color, std::vector<uint32_t>& row_colors) const;
     void _gamma_correction(Color& color) const; 
-    bool _hit(const std::vector<Triangle>& objects, const Ray& r_in, const Interval& ray_t, HitRecord& rec) const;
     bool _hit(const MeshList& meshes, const Ray& r_in, const Interval& ray_t, HitRecord& rec) const;
     
 public:
@@ -66,8 +66,8 @@ public:
     Camera& operator=(Camera&& other) = default;
     ~Camera() = default;
     
+    void set_meshes(const MeshList& meshes) { _meshes = meshes; }
     void set_pixel_format(SDL_PixelFormat format) { _pixel_format = format; }
-    std::vector<uint32_t> render_row(uint32_t j, const std::vector<Triangle>& objects) const;
-    std::vector<uint32_t> render_row(uint32_t j, const MeshList& meshes) const;
+    std::vector<uint32_t> render_row(uint32_t j) const;
 }; // class Camera
 #endif

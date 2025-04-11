@@ -45,7 +45,7 @@ Triangle::Triangle(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2, const Vec3
     _v0v2 = _v2 - _v0;
 }
 
-bool Triangle::hit(const Ray& r_in, [[maybe_unused]] const Interval& ray_t, HitRecord& hitrec) const {
+bool Triangle::hit(const Ray& r_in, HitRecord& hitrec) const {
     /**
      * @brief: ray-triangle intersection method using moller-trumbore algorithm
      */
@@ -73,7 +73,6 @@ bool Triangle::hit(const Ray& r_in, [[maybe_unused]] const Interval& ray_t, HitR
     float t = dot(_v0v2, q_vec) * det_inv;
     hitrec.set_t(t);
     hitrec.set_hit_point(r_in.at(t));
-    Vec3f n = unit_vector(cross(_v0v1, _v0v2));
     hitrec.set_normal(get_face_normal());
     hitrec.set_color(_color * std::fabs(dot(hitrec.get_normal(), r_in.direction())));
 
@@ -87,12 +86,10 @@ Mesh::Mesh(const objl::Mesh& mesh) {
     float g = mesh.MeshMaterial.Ka.Y;
     float b = mesh.MeshMaterial.Ka.Z;
     _color = Color(r,g,b);
-    uint32_t num_vertices = _vertices.size();
-    uint32_t num_indices = _indices.size();
     
     assert(_vertices.size() % 3 == 0);
 
-    _triangles.reserve(num_vertices / 3);
+    _triangles.reserve(_vertices.size() / 3);
     for (uint32_t i = 0; i <_indices.size(); i += 3) {
         auto v0 = _vertices[_indices[i]];
         auto v0_pos = v0.Position;
@@ -103,10 +100,14 @@ Mesh::Mesh(const objl::Mesh& mesh) {
         auto v2 = _vertices[_indices[i + 2]];
         auto v2_pos = v2.Position;
         auto v2_normal = v2.Normal;
+        float nx = (v0_normal.X + v1_normal.X + v2_normal.X) / 3.f;
+        float ny = (v0_normal.Y + v1_normal.Y + v2_normal.Y) / 3.f;
+        float nz = (v0_normal.Z + v1_normal.Z + v2_normal.Z) / 3.f;
         Triangle tri = Triangle(
             Vec3f(v0_pos.X, v0_pos.Y, v0_pos.Z), 
             Vec3f(v1_pos.X, v1_pos.Y, v1_pos.Z),
             Vec3f(v2_pos.X, v2_pos.Y, v2_pos.Z),
+            Vec3f(nx, ny, nz),
             _color);       
 
         _triangles.emplace_back(tri);
@@ -124,12 +125,12 @@ MeshList::MeshList(const objl::Loader& loader) {
     }
 }
 
-bool MeshList::hit(const Ray& r_in, [[maybe_unused]] const Interval& ray_t, HitRecord& hitrec) const {
+bool MeshList::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const {
     HitRecord temp_rec;
     bool hit_anything = false;
     float closest_so_far = ray_t.max();
     for (const auto& tri : _triangles) {
-        if (tri.hit(r_in, Interval(ray_t.min(), closest_so_far), temp_rec) && temp_rec.get_t() < closest_so_far) {
+        if (tri.hit(r_in, temp_rec) && temp_rec.get_t() < closest_so_far) {
             hit_anything = true;
             closest_so_far = temp_rec.get_t();
             hitrec = std::move(temp_rec);

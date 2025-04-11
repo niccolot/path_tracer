@@ -10,11 +10,18 @@
 App::App(const std::string& file_path) {
     init_params_t init_pars = init_from_json(file_path + "/init_pars.json");
     camera_angles_t angles = angles_from_json(file_path + "/camera_angles.json");
+    objl::Loader loader;
+    bool ok = loader.LoadFile(file_path + "/meshes/" + init_pars.obj_file);
+    if (!ok) {
+        std::runtime_error{ std::format("failed to load '{}' file", init_pars.obj_file) };
+    }
 
+    MeshList meshes(loader);
     _init_pars = std::move(init_pars);
     _init_app();
     _cam = std::move(Camera{ init_pars, angles });
     _cam.set_pixel_format(_image_surface->format);
+    _cam.set_meshes(std::move(meshes));
 }
 
 void App::_init_app() {
@@ -51,11 +58,8 @@ void App::_worker_task() {
      * asynchronously
      */
     uint32_t row_idx = 0;
-    objl::Loader loader;
-    loader.LoadFile("init/box_stack.obj");
-    MeshList meshes(loader);
     while (!_done_rendering) {
-        _queue.push(scanline_t{ row_idx, std::move(_cam.render_row(row_idx, std::move(meshes))) });
+        _queue.push(scanline_t{ row_idx, std::move(_cam.render_row(row_idx)) });
         if (row_idx == _init_pars.img_height - 1) {
             _done_rendering = true;
         }

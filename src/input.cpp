@@ -40,6 +40,7 @@ void from_json(const njson& j, init_params_t& p) {
     j.at("img_height").get_to(p.img_height);
     j.at("window_width").get_to(p.window_width);
     j.at("window_height").get_to(p.window_height);
+    j.at("obj_file").get_to(p.obj_file);
     if (j.count("lookfrom") != 0) {
         j.at("lookfrom").get_to(p.lookfrom);
     } else {

@@ -44,7 +44,7 @@ public:
 
     Vec3f get_face_normal() const { return _face_normal; }
 
-    bool hit(const Ray& r_in, [[maybe_unused]] const Interval& ray_t, HitRecord& hitrec) const;
+    bool hit(const Ray& r_in, HitRecord& hitrec) const;
 }; // class Triangle
 
 class Mesh {
@@ -67,12 +67,13 @@ private:
     std::vector<Triangle> _triangles;
 
 public:
+    MeshList() = default;
     MeshList(const objl::Loader& loader);
 
     void add(const objl::Loader& loader);
 
     const std::vector<Mesh>& get_meshes() const { return _mesh_list; }
 
-    bool hit(const Ray& r_in, [[maybe_unused]] const Interval& ray_t, HitRecord& hitrec) const;
+    bool hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const;
 }; // class MeshList
 #endif

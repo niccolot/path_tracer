@@ -60,10 +60,7 @@ void Camera::_pan_tilt_roll(Vec3f& v) {
     mat_vec_prod_inplace(pan_rot, v);
 }
 
-std::vector<uint32_t> Camera::render_row(uint32_t j, const std::vector<Triangle>& objects) const {
-    /**
-     * @brief: where the actual rendering is being done
-     */
+std::vector<uint32_t> Camera::render_row(uint32_t j) const {
     std::vector<uint32_t> row_colors;
     row_colors.reserve(_init_pars.img_width);
     for (uint32_t i = 0; i < _init_pars.img_width; ++i) {
@@ -71,25 +68,7 @@ std::vector<uint32_t> Camera::render_row(uint32_t j, const std::vector<Triangle>
         for (uint32_t sj = 0; sj < _samples_pp_sqrt; ++sj) {
             for (uint32_t si = 0; si < _samples_pp_sqrt; ++si) {
                 Ray r = _get_ray(i, j, si, sj);
-                pixel_color += _trace(r, _init_pars.depth, objects);
-            }
-        }
-        pixel_color *= _sampling_scale;
-        _write_color(pixel_color, row_colors);
-    }
-    
-    return row_colors;
-}
-
-std::vector<uint32_t> Camera::render_row(uint32_t j, const MeshList& meshes) const {
-    std::vector<uint32_t> row_colors;
-    row_colors.reserve(_init_pars.img_width);
-    for (uint32_t i = 0; i < _init_pars.img_width; ++i) {
-        Color pixel_color;
-        for (uint32_t sj = 0; sj < _samples_pp_sqrt; ++sj) {
-            for (uint32_t si = 0; si < _samples_pp_sqrt; ++si) {
-                Ray r = _get_ray(i, j, si, sj);
-                pixel_color += _trace(r, _init_pars.depth, meshes);
+                pixel_color += _trace(r, _init_pars.depth, _meshes);
             }
         }
         pixel_color *= _sampling_scale;
@@ -141,43 +120,8 @@ Color Camera::_trace(const Ray& r, uint32_t depth, const MeshList& meshes) const
     return color_from_scatter;
 }
 
-Color Camera::_trace(const Ray& r, uint32_t depth, const std::vector<Triangle>& objects) const {
-    if (depth <= 0) {
-        return Color();
-    }
-
-    HitRecord rec;
-    float shadow_acne_offset = 0.001;
-    if (!_hit(objects, r, Interval(shadow_acne_offset, inf), rec)) {
-        return _init_pars.background;
-    }
-
-    Color color_from_scatter = Color();
-    color_from_scatter += rec.get_color();
-
-    return color_from_scatter;
-}
-
 bool Camera::_hit(const MeshList& meshes, const Ray& r_in, const Interval& ray_t, HitRecord& rec) const {
     return meshes.hit(r_in, ray_t, rec);
-}
-
-bool Camera::_hit(const std::vector<Triangle>& objects, const Ray& r_in, const Interval& ray_t, HitRecord& rec) const {
-    /**
-     * @brief: calls the hit method on every hittable object in the scene
-     */
-    HitRecord temp_rec;
-    bool hit_anything = false;
-    float closest_so_far = ray_t.max();
-    for (const auto& obj : objects) {
-        if (obj.hit(r_in, Interval(ray_t.min(), closest_so_far), temp_rec)) {
-            hit_anything = true;
-            closest_so_far = temp_rec.get_t();
-            rec = std::move(temp_rec);
-        }
-    }
-
-    return hit_anything;
 }
 
 void Camera::_write_color(Color& color, std::vector<uint32_t>& row_colors) const {
