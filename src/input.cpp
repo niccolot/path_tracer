@@ -40,7 +40,6 @@ void from_json(const njson& j, init_params_t& p) {
     j.at("img_height").get_to(p.img_height);
     j.at("window_width").get_to(p.window_width);
     j.at("window_height").get_to(p.window_height);
-    j.at("obj_file").get_to(p.obj_file);
     if (j.count("lookfrom") != 0) {
         j.at("lookfrom").get_to(p.lookfrom);
     } else {
@@ -101,6 +100,25 @@ void from_json(const njson& j, camera_angles_t& angles) {
     }
 }
 
+void from_json(const njson& j, geometry_params_t& g) {
+    j.at("obj_file").get_to(g.obj_file);
+    if (j.count("alpha") != 0) {
+        j.at("alpha").get_to(g.alpha);
+    }
+    if (j.count("beta") != 0) {
+        j.at("beta").get_to(g.beta);
+    }
+    if (j.count("gamma") != 0) {
+        j.at("gamma").get_to(g.gamma);
+    }
+    if (j.count("scale") != 0) {
+        j.at("scale").get_to(g.scale);
+    }
+    if (j.count("t") != 0) {
+        j.at("t").get_to(g.t);
+    }
+}
+
 init_params_t init_from_json(const std::string& datapath) {
     std::ifstream file(datapath);
     if (!file) {
@@ -128,4 +146,18 @@ camera_angles_t angles_from_json(const std::string& datapath) {
     file.close();
 
     return j.get<camera_angles_t>();
+}
+
+geometry_params_t geometry_from_json(const std::string& datapath) {
+    std::ifstream file(datapath);
+    if (!file) {
+        throw std::runtime_error{ std::format("Invalid input: file '{}' does not exists", datapath) };
+    }
+
+    njson j;
+    file >> j;
+    lowercase_keys(j);
+    file.close();
+
+    return j.get<geometry_params_t>();
 }

@@ -49,10 +49,12 @@ bool Triangle::hit(const Ray& r_in, HitRecord& hitrec) const {
     /**
      * @brief: ray-triangle intersection method using moller-trumbore algorithm
      */
-    constexpr float tol = 1e-8;
+    const float tol = 1e-8;
 
     Vec3f p_vec = cross(r_in.direction(), _v0v2);
     float det = dot(_v0v1, p_vec);
+
+    // use std::fabs(det) < tol to disable backface culling
     if (det < tol) {
         return false;
     }
@@ -79,7 +81,7 @@ bool Triangle::hit(const Ray& r_in, HitRecord& hitrec) const {
     return true;
 }
 
-Mesh::Mesh(const objl::Mesh& mesh) {
+Mesh::Mesh(const objl::Mesh& mesh, const Mat4& m, const Mat4& m_inv) {
     _vertices = std::move(mesh.Vertices);
     _indices = std::move(mesh.Indices);
     float r = mesh.MeshMaterial.Ka.X;
@@ -103,20 +105,25 @@ Mesh::Mesh(const objl::Mesh& mesh) {
         float nx = (v0_normal.X + v1_normal.X + v2_normal.X) / 3.f;
         float ny = (v0_normal.Y + v1_normal.Y + v2_normal.Y) / 3.f;
         float nz = (v0_normal.Z + v1_normal.Z + v2_normal.Z) / 3.f;
-        Triangle tri = Triangle(
-            Vec3f(v0_pos.X, v0_pos.Y, v0_pos.Z), 
-            Vec3f(v1_pos.X, v1_pos.Y, v1_pos.Z),
-            Vec3f(v2_pos.X, v2_pos.Y, v2_pos.Z),
-            Vec3f(nx, ny, nz),
-            _color);       
+        
+        Vec3f v00(v0_pos.X, v0_pos.Y, v0_pos.Z);
+        Vec3f v11(v1_pos.X, v1_pos.Y, v1_pos.Z);
+        Vec3f v22(v2_pos.X, v2_pos.Y, v2_pos.Z);
+        Vec3f n(nx, ny, nz);
+        mat4_vec3_prod_inplace(m, v00);
+        mat4_vec3_prod_inplace(m, v11);
+        mat4_vec3_prod_inplace(m, v22);
+        mat4_vec3_prod_inplace(m_inv, n);
+
+        Triangle tri = Triangle(v00, v11, v22, n, _color);       
 
         _triangles.emplace_back(tri);
     }
 }
 
-MeshList::MeshList(const objl::Loader& loader) {
+MeshList::MeshList(const objl::Loader& loader, const Mat4& transf, const Mat4& transf_inv) {
     for (const auto& mesh : loader.LoadedMeshes) {
-        Mesh m(mesh);
+        Mesh m(mesh, transf, transf_inv);
         _mesh_list.emplace_back(m);
         _triangles.reserve(m.get_triangles().size());
         for (const auto& tri : m.get_triangles()) {

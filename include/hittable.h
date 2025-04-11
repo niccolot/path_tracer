@@ -11,6 +11,7 @@
 #include "ray.h"
 #include "interval.h"
 #include "hitrecord.h"
+#include "matrix.h"
 
 class Sphere {
 private:
@@ -53,10 +54,12 @@ private:
     std::vector<uint32_t> _indices;
     Color _color;
     std::vector<Triangle> _triangles;
+    Mat4 _transf;
+    Mat4 _transf_inv;
 
 public:
     Mesh() = default;
-    Mesh(const objl::Mesh& mesh);
+    Mesh(const objl::Mesh& mesh, const Mat4& transf, const Mat4& transf_inv);
 
     std::vector<Triangle> get_triangles() const { return _triangles; }
 }; // class Mesh
@@ -68,7 +71,7 @@ private:
 
 public:
     MeshList() = default;
-    MeshList(const objl::Loader& loader);
+    MeshList(const objl::Loader& loader, const Mat4& transf, const Mat4& transf_inv);
 
     void add(const objl::Loader& loader);
 

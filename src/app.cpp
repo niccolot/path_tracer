@@ -10,18 +10,19 @@
 App::App(const std::string& file_path) {
     init_params_t init_pars = init_from_json(file_path + "/init_pars.json");
     camera_angles_t angles = angles_from_json(file_path + "/camera_angles.json");
+    geometry_params_t geometry = geometry_from_json(file_path + "/geometry.json");
+
     objl::Loader loader;
-    bool ok = loader.LoadFile(file_path + "/meshes/" + init_pars.obj_file);
+    bool ok = loader.LoadFile(file_path + "/meshes/" + geometry.obj_file);
     if (!ok) {
-        std::runtime_error{ std::format("failed to load '{}' file", init_pars.obj_file) };
+        throw std::runtime_error{ std::format("failed to load '{}' file", geometry.obj_file) };
     }
 
-    MeshList meshes(loader);
     _init_pars = std::move(init_pars);
     _init_app();
-    _cam = std::move(Camera{ init_pars, angles });
+    _cam = std::move(Camera{ init_pars, angles, geometry });
     _cam.set_pixel_format(_image_surface->format);
-    _cam.set_meshes(std::move(meshes));
+    _cam.set_meshes(loader);
 }
 
 void App::_init_app() {

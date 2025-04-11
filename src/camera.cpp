@@ -3,14 +3,16 @@
 #include "camera.h"
 #include "interval.h"
 #include "utils.h"
-#include "mat3.h"
+#include "matrix.h"
 
-Camera::Camera(const init_params_t& init_pars, const camera_angles_t& angles) 
-: _init_pars(init_pars), _angles(angles) 
+Camera::Camera(const init_params_t& init_pars, const camera_angles_t& angles, const geometry_params_t& g_pars) 
+: _init_pars(init_pars), _angles(angles), _geometry_params(g_pars)
 {
     _samples_pp_sqrt = uint32_t(std::sqrt(_init_pars.samples_per_pixel));
     _samples_pp_sqrt_inv = 1.f / float(_samples_pp_sqrt);
     _sampling_scale = 1.f / float(_init_pars.samples_per_pixel);
+
+    // camera frame transformation
     _move();
 
     // image plane
@@ -26,6 +28,21 @@ Camera::Camera(const init_params_t& init_pars, const camera_angles_t& angles)
                                     0.5f * (img_plane_u + img_plane_v);
     
     _pixel00_loc = img_plane_upper_left + 0.5f * (_pixel_delta_u + _pixel_delta_v);
+
+    // objects transformations
+    _transformation = frame_transformation(
+        _geometry_params.alpha,
+        _geometry_params.beta,
+        _geometry_params.gamma,
+        _geometry_params.scale,
+        _geometry_params.t);
+
+    _transformation_inv = frame_transformation_inv(
+        _geometry_params.alpha,
+        _geometry_params.beta,
+        _geometry_params.gamma,
+        _geometry_params.scale,
+        _geometry_params.t);
 }
 
 void Camera::_move() {
@@ -45,37 +62,15 @@ void Camera::_move() {
 }
 
 void Camera::_rotate_frame() {
-    _pan_tilt_roll(_w);
-    _pan_tilt_roll(_u);
-    _pan_tilt_roll(_v);
-}
-
-void Camera::_pan_tilt_roll(Vec3f& v) {
-    Mat3 roll_rot = roll_rotation(degs_to_rads(_angles.roll));
-    Mat3 tilt_rot = tilt_rotation(degs_to_rads(_angles.tilt));
-    Mat3 pan_rot = pan_rotation(degs_to_rads(_angles.pan));
-
-    mat_vec_prod_inplace(roll_rot, v);
-    mat_vec_prod_inplace(tilt_rot, v);
-    mat_vec_prod_inplace(pan_rot, v);
-}
-
-std::vector<uint32_t> Camera::render_row(uint32_t j) const {
-    std::vector<uint32_t> row_colors;
-    row_colors.reserve(_init_pars.img_width);
-    for (uint32_t i = 0; i < _init_pars.img_width; ++i) {
-        Color pixel_color;
-        for (uint32_t sj = 0; sj < _samples_pp_sqrt; ++sj) {
-            for (uint32_t si = 0; si < _samples_pp_sqrt; ++si) {
-                Ray r = _get_ray(i, j, si, sj);
-                pixel_color += _trace(r, _init_pars.depth, _meshes);
-            }
-        }
-        pixel_color *= _sampling_scale;
-        _write_color(pixel_color, row_colors);
-    }
-    
-    return row_colors;
+    /**
+     * @brief: rotates the camera's frame of reference
+     * @details: tilt is intended as rotation around x axis,
+     * pan around y axis and roll around z axis
+     */
+    Mat3 general_rot = frame_rotation(degs_to_rads(_angles.tilt), degs_to_rads(_angles.pan) , degs_to_rads(_angles.roll));
+    mat_vec_prod_inplace(general_rot, _w);
+    mat_vec_prod_inplace(general_rot, _u);
+    mat_vec_prod_inplace(general_rot, _v);
 }
 
 Ray Camera::_get_ray(uint32_t i, uint32_t j, uint32_t si, uint32_t sj) const {
@@ -103,14 +98,14 @@ Vec3f Camera::_sample_square_stratified(uint32_t si, uint32_t sj) const {
     return Vec3f(px, py, 0);
 }
 
-Color Camera::_trace(const Ray& r, uint32_t depth, const MeshList& meshes) const {
+Color Camera::_trace(const Ray& r, uint32_t depth) const {
     if (depth <= 0) {
         return Color();
     }
 
     HitRecord rec;
     float shadow_acne_offset = 0.001;
-    if (!_hit(meshes, r, Interval(shadow_acne_offset, inf), rec)) {
+    if (!_meshes.hit(r, Interval(shadow_acne_offset, inf), rec)) {
         return _init_pars.background;
     }
 
@@ -150,4 +145,26 @@ void Camera::_gamma_correction(Color& color) const {
     color.set_x(linear_to_gamma(color.x()));
     color.set_y(linear_to_gamma(color.y()));
     color.set_z(linear_to_gamma(color.z()));
+}
+
+void Camera::set_meshes(const objl::Loader& loader) {
+    _meshes = MeshList(loader, _transformation, _transformation_inv);
+}
+
+std::vector<uint32_t> Camera::render_row(uint32_t j) const {
+    std::vector<uint32_t> row_colors;
+    row_colors.reserve(_init_pars.img_width);
+    for (uint32_t i = 0; i < _init_pars.img_width; ++i) {
+        Color pixel_color;
+        for (uint32_t sj = 0; sj < _samples_pp_sqrt; ++sj) {
+            for (uint32_t si = 0; si < _samples_pp_sqrt; ++si) {
+                Ray r = _get_ray(i, j, si, sj);
+                pixel_color += _trace(r, _init_pars.depth);
+            }
+        }
+        pixel_color *= _sampling_scale;
+        _write_color(pixel_color, row_colors);
+    }
+    
+    return row_colors;
 }

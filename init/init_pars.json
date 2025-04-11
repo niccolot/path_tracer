@@ -6,6 +6,6 @@
     "obj_file": "low_poly_sphere.obj",
     "background": [0.5, 0.7, 1], 
     "outfile_name": "rendered_img.png",
-    "lookfrom": [2, 2, 2],
-    "vfov": 45
+    "lookfrom": [2, 2, 0],
+    "vfov": 90
 }
