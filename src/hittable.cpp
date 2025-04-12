@@ -39,11 +39,24 @@ bool Sphere::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) cons
     return true;
 }
 
-Triangle::Triangle(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2, const Vec3f& n, const Color& col) 
-: _v0(v0), _v1(v1), _v2(v2), _face_normal(n), _color(col)
-{
-    _v0v1 = _v1 - _v0;
-    _v0v2 = _v2 - _v0;
+//Triangle::Triangle(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2, const Vec3f& n, const Color& col) {
+//    _v0 = Vertex{v0};
+//    _v1 = Vertex{v1};
+//    _v2 = Vertex{v2};
+//    _face_normal = n;
+//    _color = col;
+//    _v0v1 = _v1.pos - _v0.pos;
+//    _v0v2 = _v2.pos - _v0.pos;
+//}
+
+Triangle::Triangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, const Color&col) {
+    _v0 = v0;
+    _v1 = v1;
+    _v2 = v2;
+    _v0v1 = v1.pos - v0.pos;
+    _v0v2 = v2.pos - v0.pos;
+    _face_normal = unit_vector(_v0.normal + _v1.normal + _v2.normal);
+    _color = col;
 }
 
 bool Triangle::hit(const Ray& r_in, HitRecord& hitrec) const {
@@ -61,7 +74,7 @@ bool Triangle::hit(const Ray& r_in, HitRecord& hitrec) const {
     }
 
     float det_inv = 1.f / det;
-    Vec3f t_vec = r_in.origin() - _v0;
+    Vec3f t_vec = r_in.origin() - _v0.pos;
     float u = dot(t_vec, p_vec) * det_inv;
     if (u < 0 || u > 1) {
         return false;
@@ -72,19 +85,23 @@ bool Triangle::hit(const Ray& r_in, HitRecord& hitrec) const {
     if (v < 0 || u + v > 1) {
         return false;
     }
-
+    
     float t = dot(_v0v2, q_vec) * det_inv;
+    hitrec.set_u(u);
+    hitrec.set_v(v);
     hitrec.set_t(t);
     hitrec.set_hit_point(r_in.at(t));
-    hitrec.set_normal(get_face_normal());
+    hitrec.set_normal((1.f - u - v) * _v0.normal + u * _v1.normal + v * _v2.normal);
     hitrec.set_color(_color * std::fabs(dot(hitrec.get_normal(), r_in.direction())));
 
     return true;
 }
 
-Mesh::Mesh(const objl::Mesh& mesh, const Mat4& m, const Mat4& m_inv) {
-    _vertices = std::move(mesh.Vertices);
-    _indices = std::move(mesh.Indices);
+Mesh::Mesh(const objl::Mesh& mesh, Mat4&& m, Mat4&& m_inv) {
+    _vertices = mesh.Vertices;
+    _indices = mesh.Indices;
+    _transf = std::move(m);
+    _transf_inv = std::move(m_inv);
     float r = mesh.MeshMaterial.Ka.X;
     float g = mesh.MeshMaterial.Ka.Y;
     float b = mesh.MeshMaterial.Ka.Z;
@@ -103,39 +120,43 @@ Mesh::Mesh(const objl::Mesh& mesh, const Mat4& m, const Mat4& m_inv) {
         auto v2 = _vertices[_indices[i + 2]];
         auto v2_pos = Vec3f(v2.Position);
         auto v2_normal = Vec3f(v2.Normal);
-        Vec3f n = unit_vector((v0_normal + v1_normal + v2_normal) / 3.f);
         
-        mat4_vec3_prod_inplace(m, v0_pos);
-        mat4_vec3_prod_inplace(m, v1_pos);
-        mat4_vec3_prod_inplace(m, v2_pos);
-        mat4_vec3_prod_inplace(m_inv, n);
+        mat4_vec3_prod_inplace(_transf, v0_pos);
+        mat4_vec3_prod_inplace(_transf, v1_pos);
+        mat4_vec3_prod_inplace(_transf, v2_pos);
+        mat4_vec3_prod_inplace(_transf_inv, v0_normal);
+        mat4_vec3_prod_inplace(_transf_inv, v1_normal);
+        mat4_vec3_prod_inplace(_transf_inv, v2_normal);
 
-        Triangle tri = Triangle(v0_pos, v1_pos, v2_pos, n, _color);       
-
-        _triangles.emplace_back(std::move(tri));
+        _triangles.emplace_back(
+            Vertex{v0_pos, v0_normal}, 
+            Vertex{v1_pos, v1_normal}, 
+            Vertex{v2_pos, v2_normal}, 
+            _color
+        );
     }
 }
 
 void MeshList::add(const objl::Loader& loader, const geometry_params_t& g) {
     for (const auto& mesh : loader.LoadedMeshes) {
-        const auto transformation = frame_transformation(
+        Mat4 transformation = frame_transformation(
             degs_to_rads(g.alpha),
             degs_to_rads(g.beta),
             degs_to_rads(g.gamma),
             g.scale,
             g.t);
 
-        const auto transformation_inv = frame_transformation_inv(
+        Mat4 transformation_inv = frame_transformation_inv(
             degs_to_rads(g.alpha),
             degs_to_rads(g.beta),
             degs_to_rads(g.gamma),
             g.scale,
             g.t);
 
-        Mesh m(mesh, transformation, transformation_inv);
+        Mesh m(mesh, std::move(transformation), std::move(transformation_inv));
         _triangles.reserve(m.get_triangles().size());
         for (const auto& tri : m.get_triangles()) {
-            _triangles.emplace_back(std::move(tri));
+            _triangles.push_back(std::move(tri));
         }
     }
 }
@@ -149,6 +170,7 @@ bool MeshList::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) co
             hit_anything = true;
             closest_so_far = temp_rec.get_t();
             hitrec = std::move(temp_rec);
+            temp_rec = HitRecord();
         }
     }
 

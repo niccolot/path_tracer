@@ -165,7 +165,7 @@ std::vector<geometry_params_t> geometries_from_json(const std::string& datapath)
     std::vector<geometry_params_t> g_vec;
     g_vec.reserve(geometries.size());
     for (auto& g : geometries) {
-        g_vec.emplace_back(std::move(get_geometry(g)));
+        g_vec.push_back(std::move(get_geometry(g)));
     }
 
     return g_vec;

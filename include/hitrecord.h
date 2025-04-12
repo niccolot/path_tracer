@@ -11,9 +11,10 @@ private:
     Vec3f _hitpt_normal;
     float _t;
     Color _color;
+    float _u, _v; // baricentric coords for ray-triangle intersection
 
 public:
-    HitRecord() {}
+    HitRecord() = default;
     HitRecord(const Vec3f& hit_pt, const Vec3f& n, float t) :
         _hit_point(hit_pt), _hitpt_normal(n), _t(t) {}
 
@@ -27,5 +28,7 @@ public:
     void set_normal(const Vec3f& n, const Vec3f& direction);
     void set_normal(const Vec3f& n) { _hitpt_normal = n; }
     void set_color(const Color& col) { _color = col; }
+    void set_u(float u) { _u = u; }
+    void set_v(float v) { _v = v; } 
 }; // class HitRecord
 #endif

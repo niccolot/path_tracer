@@ -13,7 +13,7 @@ App::App() {
 
     _init_pars = init_pars;
     _init_app();
-    _cam = std::move(Camera{ init_pars, angles, geometries });
+    _cam = Camera{ init_pars, angles, geometries };
     _cam.set_pixel_format(_image_surface->format);
     _cam.set_meshes();
 }
@@ -53,7 +53,7 @@ void App::_worker_task() {
      */
     uint32_t row_idx = 0;
     while (!_done_rendering) {
-        _queue.push(scanline_t{ row_idx, std::move(_cam.render_row(row_idx)) });
+        _queue.push(scanline_t{ row_idx, _cam.render_row(row_idx) });
         if (row_idx == _init_pars.img_height - 1) {
             _done_rendering = true;
         }

@@ -67,7 +67,7 @@ void Camera::_rotate_frame() {
         degs_to_rads(_angles.pan), 
         degs_to_rads(_angles.roll)
     );
-    
+
     mat_vec_prod_inplace(general_rot, _w);
     mat_vec_prod_inplace(general_rot, _u);
     mat_vec_prod_inplace(general_rot, _v);
@@ -138,7 +138,7 @@ void Camera::_write_color(Color& color, std::vector<uint32_t>& row_colors) const
     auto b_byte = uint8_t(intensity.clamp(b) * 255);
 
     uint32_t pixel = SDL_MapRGBA(SDL_GetPixelFormatDetails(_pixel_format), NULL, r_byte, g_byte, b_byte, 0xff);
-    row_colors.emplace_back(std::move(pixel));
+    row_colors.push_back(pixel);
 }
 
 void Camera::_gamma_correction(Color& color) const {

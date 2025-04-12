@@ -17,6 +17,6 @@ public:
     const Vec3f& origin() const { return _origin; }
     const Vec3f& direction() const { return _direction; }
     float time() const { return _t; }
-    const Vec3f at(float t) const { return _origin + t * _direction; } 
+    Vec3f at(float t) const { return _origin + t * _direction; } 
 }; // class Ray
 #endif
