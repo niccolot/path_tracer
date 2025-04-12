@@ -30,6 +30,8 @@ Mat3 rotation_3d(float t, const Vec3f& n) {
 Mat3 frame_rotation(float a, float b, float c) {
     /**
      * @brief: frame of reference rotation matrix
+     * @details: this rotation is implemented as a composition of x_rot, y_rot, z_rot
+     * in this order
      * @param a: angle around x axis
      * @param b: angle around y axis
      * @param c: angle around z axis
@@ -89,7 +91,7 @@ Mat4 frame_transformation_inv(float a, float b, float c, float s, const Vec3f& t
     float s_inv = 1.f/s;
     Mat4 m{
         std::array{ s_inv * rot[0][0], s_inv * rot[1][0], s_inv * rot[2][0], 0.0f },
-        std::array{ s_inv * rot[0][1], s_inv * rot[1][1], s_inv * rot[1][2], 0.0f },
+        std::array{ s_inv * rot[0][1], s_inv * rot[1][1], s_inv * rot[2][1], 0.0f },
         std::array{ s_inv * rot[0][2], s_inv * rot[1][2], s_inv * rot[2][2], 0.0f },
         std::array{ -t.x(), -t.y(), -t.z(), 1.f }
     };

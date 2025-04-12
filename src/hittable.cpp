@@ -40,7 +40,7 @@ bool Sphere::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) cons
 }
 
 Triangle::Triangle(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2, const Vec3f& n, const Color& col) 
-: _v0(v0), _v1(v1), _v2(v2), _face_normal(n), _color(std::move(col))
+: _v0(v0), _v1(v1), _v2(v2), _face_normal(n), _color(col)
 {
     _v0v1 = _v1 - _v0;
     _v0v2 = _v2 - _v0;
@@ -95,28 +95,22 @@ Mesh::Mesh(const objl::Mesh& mesh, const Mat4& m, const Mat4& m_inv) {
     _triangles.reserve(_vertices.size() / 3);
     for (uint32_t i = 0; i <_indices.size(); i += 3) {
         auto v0 = _vertices[_indices[i]];
-        auto v0_pos = v0.Position;
-        auto v0_normal = v0.Normal;
+        auto v0_pos = Vec3f(v0.Position);
+        auto v0_normal = Vec3f(v0.Normal);
         auto v1 = _vertices[_indices[i + 1]];
-        auto v1_pos = v1.Position;
-        auto v1_normal = v1.Normal;
+        auto v1_pos = Vec3f(v1.Position);
+        auto v1_normal = Vec3f(v1.Normal);
         auto v2 = _vertices[_indices[i + 2]];
-        auto v2_pos = v2.Position;
-        auto v2_normal = v2.Normal;
-        float nx = (v0_normal.X + v1_normal.X + v2_normal.X) / 3.f;
-        float ny = (v0_normal.Y + v1_normal.Y + v2_normal.Y) / 3.f;
-        float nz = (v0_normal.Z + v1_normal.Z + v2_normal.Z) / 3.f;
+        auto v2_pos = Vec3f(v2.Position);
+        auto v2_normal = Vec3f(v2.Normal);
+        Vec3f n = unit_vector((v0_normal + v1_normal + v2_normal) / 3.f);
         
-        Vec3f v00(v0_pos.X, v0_pos.Y, v0_pos.Z);
-        Vec3f v11(v1_pos.X, v1_pos.Y, v1_pos.Z);
-        Vec3f v22(v2_pos.X, v2_pos.Y, v2_pos.Z);
-        Vec3f n(nx, ny, nz);
-        mat4_vec3_prod_inplace(m, v00);
-        mat4_vec3_prod_inplace(m, v11);
-        mat4_vec3_prod_inplace(m, v22);
+        mat4_vec3_prod_inplace(m, v0_pos);
+        mat4_vec3_prod_inplace(m, v1_pos);
+        mat4_vec3_prod_inplace(m, v2_pos);
         mat4_vec3_prod_inplace(m_inv, n);
 
-        Triangle tri = Triangle(v00, v11, v22, n, _color);       
+        Triangle tri = Triangle(v0_pos, v1_pos, v2_pos, n, _color);       
 
         _triangles.emplace_back(std::move(tri));
     }

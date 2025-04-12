@@ -5,6 +5,12 @@
 #include <cmath>
 #include <limits>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-value"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#include <OBJ_Loader.h>
+#pragma GCC diagnostic pop
+
 #include "random.h"
 
 class Vec3f {
@@ -15,6 +21,7 @@ public:
     Vec3f() : _e{0.f, 0.f, 0.f} {}
     Vec3f(float x, float y, float z) : _e{x, y, z} {}
     Vec3f(const Vec3f&) = default;
+    Vec3f(const objl::Vector3& v) : _e{v.X, v.Y, v.Z} {}
 
     float x() const { return _e[0]; }
     float y() const { return _e[1]; }

@@ -41,7 +41,7 @@ private:
 public:
     Triangle() = default;
     Triangle(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2, const Color& col) : 
-        Triangle(v0, v1, v2, unit_vector(cross(v0-v1, v0-v2)), col) {}
+        Triangle(v0, v1, v2, unit_vector(cross(v1-v0, v2-v0)), col) {}
 
     Triangle(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2, const Vec3f& n, const Color& col);
 

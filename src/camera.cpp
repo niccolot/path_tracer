@@ -41,7 +41,13 @@ void Camera::_move() {
      */
 
     // movement in 3d space
-    _camera_center = rotate_spherically(_init_pars.lookfrom, _init_pars.lookat, degs_to_rads(_angles.theta), degs_to_rads(_angles.phi));
+    _camera_center = rotate_spherically(
+        _init_pars.lookfrom,
+        _init_pars.lookat,
+        degs_to_rads(_angles.theta),
+        degs_to_rads(_angles.phi)
+    );
+    
     _w = unit_vector(_camera_center - _init_pars.lookat); // antiparallel to view direction
     _u = unit_vector(cross(Vec3f(0,1,0), _w)); // perpendicular to view direction and default up direction (0,1,0)
     _v = cross(_w, _u); // camera up direction in camera frame of reference
@@ -56,7 +62,12 @@ void Camera::_rotate_frame() {
      * @details: tilt is intended as rotation around x axis,
      * pan around y axis and roll around z axis
      */
-    Mat3 general_rot = frame_rotation(degs_to_rads(_angles.tilt), degs_to_rads(_angles.pan) , degs_to_rads(_angles.roll));
+    Mat3 general_rot = frame_rotation(
+        degs_to_rads(_angles.tilt), 
+        degs_to_rads(_angles.pan), 
+        degs_to_rads(_angles.roll)
+    );
+    
     mat_vec_prod_inplace(general_rot, _w);
     mat_vec_prod_inplace(general_rot, _u);
     mat_vec_prod_inplace(general_rot, _v);

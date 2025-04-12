@@ -1,15 +1,7 @@
 {
     "geometries": [
         {
-            "obj_file": "low_poly_sphere.obj",
-            "scale": 2,
-            "t": [1, 0, 0]
-        },
-        {
-            "obj_file": "low_poly_sphere.obj",
-            "scale": 2,
-            "beta": 45,
-            "t": [-1, 0, 0]
+            "obj_file": "low_poly_sphere.obj"
         }
     ]
 }

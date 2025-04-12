@@ -26,20 +26,20 @@ typedef struct InitParams {
 } init_params_t;
 
 typedef struct CameraAngles {
-    float roll = 0.f;
-    float tilt = 0.f;
-    float pan = 0.f;
-    float theta = 90.f;
-    float phi = 0.f;
+    float tilt = 0.f; // rotates camera around x
+    float pan = 0.f; // rotates camera around y
+    float roll = 0.f; // rotates camera around z
+    float theta = 90.f; // moves camera on the YZ plane
+    float phi = 0.f; // moves camera on the XZ plane
 } camera_angles_t;
 
 typedef struct GeometryParams {
     std::string obj_file;
-    float alpha = 0.f;
-    float beta = 0.f;
-    float gamma = 0.f;
+    float alpha = 0.f; // rotates mesh around x
+    float beta = 0.f; // rotates mesh around y
+    float gamma = 0.f; // rotates mesh around z
     float scale = 1.f;
-    Vec3f t = Vec3f();
+    Vec3f t = Vec3f(); // translates mesh
 } geometry_params_t;
 
 void from_json(const njson& j, Vec3f& v);
