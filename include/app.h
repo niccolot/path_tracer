@@ -11,6 +11,7 @@
 
 #include "SDL3/SDL.h"
 
+#include "input.h"
 #include "multithreading.h"
 #include "camera.h"
 #include "vec3.h"
@@ -33,7 +34,7 @@ private:
     void _save_png();
 
 public:
-    App(const std::string& file_path);
+    App();
     ~App();
 
     void run();

@@ -148,16 +148,25 @@ camera_angles_t angles_from_json(const std::string& datapath) {
     return j.get<camera_angles_t>();
 }
 
-geometry_params_t geometry_from_json(const std::string& datapath) {
+geometry_params_t get_geometry(njson& j) {
+    lowercase_keys(j);
+
+    return j.get<geometry_params_t>();
+}
+
+std::vector<geometry_params_t> geometries_from_json(const std::string& datapath) {
     std::ifstream file(datapath);
     if (!file) {
         throw std::runtime_error{ std::format("Invalid input: file '{}' does not exists", datapath) };
     }
 
-    njson j;
-    file >> j;
-    lowercase_keys(j);
-    file.close();
+    njson j = njson::parse(file);
+    auto& geometries = j["geometries"];
+    std::vector<geometry_params_t> g_vec;
+    g_vec.reserve(geometries.size());
+    for (auto& g : geometries) {
+        g_vec.emplace_back(std::move(get_geometry(g)));
+    }
 
-    return j.get<geometry_params_t>();
+    return g_vec;
 }

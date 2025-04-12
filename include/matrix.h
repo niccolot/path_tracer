@@ -44,14 +44,14 @@ inline void mat4_vec3_prod_inplace(const Mat4& m, Vec3f& v) {
     float z{};
 
     for (uint32_t i = 0; i < 3; ++i) {
-        x += v[i]*(m[0][i] + m[3][0]);
-        y += v[i]*(m[1][i] + m[3][1]);
-        z += v[i]*(m[2][i] + m[3][2]);
+        x += v[i]*(m[0][i]);
+        y += v[i]*(m[1][i]);
+        z += v[i]*(m[2][i]);
     }
 
-    v.set_x(x);
-    v.set_y(y);
-    v.set_z(z);
+    v.set_x(x + m[3][0]);
+    v.set_y(y + m[3][1]);
+    v.set_z(z + m[3][2]);
 }
 
 Mat3 rotation_3d(float t, const Vec3f& n);

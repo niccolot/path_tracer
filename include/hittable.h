@@ -7,11 +7,13 @@
 #include <OBJ_Loader.h>
 #pragma GCC diagnostic pop
 
+#include "input.h"
 #include "color.h"
 #include "ray.h"
 #include "interval.h"
 #include "hitrecord.h"
 #include "matrix.h"
+
 
 class Sphere {
 private:
@@ -66,16 +68,12 @@ public:
 
 class MeshList {
 private:
-    std::vector<Mesh> _mesh_list;
     std::vector<Triangle> _triangles;
 
 public:
     MeshList() = default;
-    MeshList(const objl::Loader& loader, const Mat4& transf, const Mat4& transf_inv);
 
-    void add(const objl::Loader& loader);
-
-    const std::vector<Mesh>& get_meshes() const { return _mesh_list; }
+    void add(const objl::Loader& loader, const geometry_params_t& g);
 
     bool hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const;
 }; // class MeshList

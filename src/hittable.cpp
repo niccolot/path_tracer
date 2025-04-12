@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "hittable.h"
+#include "utils.h"
 
 bool Sphere::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const {
     Vec3f oc = _center - r_in.origin(); // vector from ray origin to sphere center
@@ -117,17 +118,30 @@ Mesh::Mesh(const objl::Mesh& mesh, const Mat4& m, const Mat4& m_inv) {
 
         Triangle tri = Triangle(v00, v11, v22, n, _color);       
 
-        _triangles.emplace_back(tri);
+        _triangles.emplace_back(std::move(tri));
     }
 }
 
-MeshList::MeshList(const objl::Loader& loader, const Mat4& transf, const Mat4& transf_inv) {
+void MeshList::add(const objl::Loader& loader, const geometry_params_t& g) {
     for (const auto& mesh : loader.LoadedMeshes) {
-        Mesh m(mesh, transf, transf_inv);
-        _mesh_list.emplace_back(m);
+        const auto transformation = frame_transformation(
+            degs_to_rads(g.alpha),
+            degs_to_rads(g.beta),
+            degs_to_rads(g.gamma),
+            g.scale,
+            g.t);
+
+        const auto transformation_inv = frame_transformation_inv(
+            degs_to_rads(g.alpha),
+            degs_to_rads(g.beta),
+            degs_to_rads(g.gamma),
+            g.scale,
+            g.t);
+
+        Mesh m(mesh, transformation, transformation_inv);
         _triangles.reserve(m.get_triangles().size());
         for (const auto& tri : m.get_triangles()) {
-            _triangles.emplace_back(tri);
+            _triangles.emplace_back(std::move(tri));
         }
     }
 }

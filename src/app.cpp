@@ -4,25 +4,18 @@
 #include <format>
 
 #include "app.h"
-#include "input.h"
 #include "hittable.h"
 
-App::App(const std::string& file_path) {
-    init_params_t init_pars = init_from_json(file_path + "/init_pars.json");
-    camera_angles_t angles = angles_from_json(file_path + "/camera_angles.json");
-    geometry_params_t geometry = geometry_from_json(file_path + "/geometry.json");
+App::App() {
+    init_params_t init_pars = init_from_json("init/init_pars.json");
+    camera_angles_t angles = angles_from_json("init/camera_angles.json");
+    std::vector<geometry_params_t> geometries = geometries_from_json("init/geometry.json");
 
-    objl::Loader loader;
-    bool ok = loader.LoadFile(file_path + "/meshes/" + geometry.obj_file);
-    if (!ok) {
-        throw std::runtime_error{ std::format("failed to load '{}' file", geometry.obj_file) };
-    }
-
-    _init_pars = std::move(init_pars);
+    _init_pars = init_pars;
     _init_app();
-    _cam = std::move(Camera{ init_pars, angles, geometry });
+    _cam = std::move(Camera{ init_pars, angles, geometries });
     _cam.set_pixel_format(_image_surface->format);
-    _cam.set_meshes(loader);
+    _cam.set_meshes();
 }
 
 void App::_init_app() {

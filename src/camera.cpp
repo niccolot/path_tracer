@@ -1,12 +1,16 @@
 #include <cmath>
+#include <format>
 
 #include "camera.h"
 #include "interval.h"
 #include "utils.h"
 #include "matrix.h"
 
-Camera::Camera(const init_params_t& init_pars, const camera_angles_t& angles, const geometry_params_t& g_pars) 
-: _init_pars(init_pars), _angles(angles), _geometry_params(g_pars)
+Camera::Camera(
+    const init_params_t& init_pars, 
+    const camera_angles_t& angles, 
+    const std::vector<geometry_params_t>& geometries) 
+: _init_pars(init_pars), _angles(angles), _geometries(geometries)
 {
     _samples_pp_sqrt = uint32_t(std::sqrt(_init_pars.samples_per_pixel));
     _samples_pp_sqrt_inv = 1.f / float(_samples_pp_sqrt);
@@ -28,21 +32,6 @@ Camera::Camera(const init_params_t& init_pars, const camera_angles_t& angles, co
                                     0.5f * (img_plane_u + img_plane_v);
     
     _pixel00_loc = img_plane_upper_left + 0.5f * (_pixel_delta_u + _pixel_delta_v);
-
-    // objects transformations
-    _transformation = frame_transformation(
-        _geometry_params.alpha,
-        _geometry_params.beta,
-        _geometry_params.gamma,
-        _geometry_params.scale,
-        _geometry_params.t);
-
-    _transformation_inv = frame_transformation_inv(
-        _geometry_params.alpha,
-        _geometry_params.beta,
-        _geometry_params.gamma,
-        _geometry_params.scale,
-        _geometry_params.t);
 }
 
 void Camera::_move() {
@@ -147,8 +136,16 @@ void Camera::_gamma_correction(Color& color) const {
     color.set_z(linear_to_gamma(color.z()));
 }
 
-void Camera::set_meshes(const objl::Loader& loader) {
-    _meshes = MeshList(loader, _transformation, _transformation_inv);
+void Camera::set_meshes() {
+    for (const auto& g : _geometries) {
+        objl::Loader loader;
+        bool ok = loader.LoadFile("init/meshes/low_poly_sphere.obj");
+        if (!ok) {
+            throw std::runtime_error{ std::format("failed to load '{}' file", g.obj_file) };
+        }
+
+        _meshes.add(loader, g);
+    }
 }
 
 std::vector<uint32_t> Camera::render_row(uint32_t j) const {

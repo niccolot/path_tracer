@@ -8,38 +8,7 @@
 #include "ray.h"
 #include "hittable.h"
 #include "matrix.h"
-
-typedef struct InitParams {
-    uint32_t img_width;
-    uint32_t img_height;
-    uint32_t window_width;
-    uint32_t window_height;
-    uint32_t depth;
-    uint32_t samples_per_pixel;
-    float vfov; // vertical aperture
-    float focus_dist; // distance from camera to image plane
-    Vec3f lookfrom;
-    Vec3f lookat;
-    Color background;
-    std::string outfile_name;
-} init_params_t;
-
-typedef struct CameraAngles {
-    float roll = 0.f;
-    float tilt = 0.f;
-    float pan = 0.f;
-    float theta = 90.f;
-    float phi = 0.f;
-} camera_angles_t;
-
-typedef struct GeometryParams {
-    std::string obj_file;
-    float alpha = 0.f;
-    float beta = 0.f;
-    float gamma = 0.f;
-    float scale = 1.f;
-    Vec3f t = Vec3f();
-} geometry_params_t;
+#include "input.h"
 
 class Camera {
 private:
@@ -48,12 +17,10 @@ private:
     Vec3f _pixel_delta_u, _pixel_delta_v; // image plane span vectors
     Vec3f _pixel00_loc; // coordinate of top-left pixel 
     Vec3f _camera_center;
-    Mat4 _transformation;
-    Mat4 _transformation_inv;
     SDL_PixelFormat _pixel_format;
     init_params_t _init_pars;
     camera_angles_t _angles;
-    geometry_params_t _geometry_params;
+    std::vector<geometry_params_t> _geometries;
     uint32_t _samples_pp_sqrt; // sqrt of samples_per_pixel
     float _samples_pp_sqrt_inv;
     float _sampling_scale;
@@ -71,14 +38,18 @@ private:
     
 public:
     Camera() = default;
-    Camera(const init_params_t& init_pars, const camera_angles_t& angles, const geometry_params_t& g_pars);
+    Camera(
+        const init_params_t& init_pars, 
+        const camera_angles_t& angles, 
+        const std::vector<geometry_params_t>& geometries
+    );
     Camera(const Camera&) = delete;
     Camera& operator=(const Camera&) = delete;
     Camera(Camera&&) = default;
     Camera& operator=(Camera&& other) = default;
     ~Camera() = default;
     
-    void set_meshes(const objl::Loader& loader);
+    void set_meshes();
     void set_pixel_format(SDL_PixelFormat format) { _pixel_format = format; }
     std::vector<uint32_t> render_row(uint32_t j) const;
 }; // class Camera
