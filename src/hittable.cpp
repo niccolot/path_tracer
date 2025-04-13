@@ -39,16 +39,6 @@ bool Sphere::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) cons
     return true;
 }
 
-//Triangle::Triangle(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2, const Vec3f& n, const Color& col) {
-//    _v0 = Vertex{v0};
-//    _v1 = Vertex{v1};
-//    _v2 = Vertex{v2};
-//    _face_normal = n;
-//    _color = col;
-//    _v0v1 = _v1.pos - _v0.pos;
-//    _v0v2 = _v2.pos - _v0.pos;
-//}
-
 Triangle::Triangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, const Color&col) {
     _v0 = v0;
     _v1 = v1;
@@ -91,8 +81,9 @@ bool Triangle::hit(const Ray& r_in, HitRecord& hitrec) const {
     hitrec.set_v(v);
     hitrec.set_t(t);
     hitrec.set_hit_point(r_in.at(t));
-    hitrec.set_normal((1.f - u - v) * _v0.normal + u * _v1.normal + v * _v2.normal);
-    hitrec.set_color(_color * std::fabs(dot(hitrec.get_normal(), r_in.direction())));
+    hitrec.set_normal(unit_vector((1.f - u - v) * _v0.normal + u * _v1.normal + v * _v2.normal));
+    hitrec.set_color(_color * std::max(0.f, -dot(hitrec.get_normal(), r_in.direction())));
+
 
     return true;
 }

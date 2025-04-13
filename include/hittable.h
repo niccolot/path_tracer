@@ -16,7 +16,7 @@
 
 typedef struct Vertex {
     Vec3f pos;
-    Vec3f normal = Vec3f();
+    Vec3f normal;
 } vertex_t;  
 
 class Sphere {
@@ -44,10 +44,6 @@ private:
 
 public:
     Triangle() = default;
-    //Triangle(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2, const Color& col) : 
-    //    Triangle(v0, v1, v2, unit_vector(cross(v1-v0, v2-v0)), col) {}
-//
-    //Triangle(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2, const Vec3f& n, const Color& col);
     Triangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, const Color&col);
 
     const Vec3f& get_face_normal() const { return _face_normal; }

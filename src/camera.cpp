@@ -150,7 +150,7 @@ void Camera::_gamma_correction(Color& color) const {
 void Camera::set_meshes() {
     for (const auto& g : _geometries) {
         objl::Loader loader;
-        bool ok = loader.LoadFile("init/meshes/low_poly_sphere.obj");
+        bool ok = loader.LoadFile("init/meshes/" + g.obj_file);
         if (!ok) {
             throw std::runtime_error{ std::format("failed to load '{}' file", g.obj_file) };
         }

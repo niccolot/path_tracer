@@ -1,4 +1,4 @@
-newmtl mat_lowpoly_sphere
+newmtl mat_sphere
 Ka 1.000000 0.000000 0.000000
 Kd 1.000000 0.000000 0.000000
 Ks 0.500000 0.500000 0.500000

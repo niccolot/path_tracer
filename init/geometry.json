@@ -1,8 +1,7 @@
 {
     "geometries": [
         {
-            "obj_file": "low_poly_sphere.obj",
-            "alpha": 30
+            "obj_file": "sphere.obj"
         }
     ]
 }

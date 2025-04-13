@@ -3,8 +3,8 @@
 
 mtllib low_poly_sphere.mtl
 
-usemtl mat_sphere
-o sphere
+usemtl mat_lowpoly_sphere
+o lowpoly_sphere
 v 0.000000 0.500000 -0.000000
 v 0.250000 0.433000 -0.000000
 v 0.433000 0.250000 -0.000000
