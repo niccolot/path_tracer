@@ -134,14 +134,8 @@ Mesh::Mesh(const objl::Mesh& mesh, Mat4&& m, Mat4&& m_inv) {
         );
     }
 
-    mat4_vec3_prod_inplace(_transf, _p_min);
-    mat4_vec3_prod_inplace(_transf, _p_max);
     _bounds[0] = _p_min;
     _bounds[1] = _p_max;
-    float span_x = _bounds[1].x() - _bounds[0].x();
-    float span_y = _bounds[1].y() - _bounds[0].y();
-    float span_z = _bounds[1].z() - _bounds[0].z();
-    std::cout << "bbox volume: " << span_x * span_y * span_z << "\n";
 }
 
 void Mesh::_set_min_max(const Vec3f& v) {
@@ -163,7 +157,7 @@ bool Mesh::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const 
     float ty_min = (_bounds[r_in.sign_y()].y() - r_in.origin().y()) * r_in.inv_dir().y();
     float ty_max = (_bounds[1 - r_in.sign_y()].y() - r_in.origin().y()) * r_in.inv_dir().y();
 
-    if ((t_min > ty_max) | (ty_min > t_max)) {
+    if ((t_min > ty_max) || (ty_min > t_max)) {
         return false;
     }
 
@@ -179,18 +173,19 @@ bool Mesh::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const 
 
     t_min = std::fmax(tz_min, t_min);
     t_max = std::fmin(tz_max, t_max);
-    //if (!(ray_t.contains(t_min) && ray_t.contains(t_max))) {
-    //    return false;
-    //}
-    float t = t_min;
-    if (t < 0) {
-        t = t_max;
-        if (t < 0) {
+
+    if (t_min < 0) {
+        t_min = t_max;
+        if (t_min < 0) {
             return false;
         }
     }
 
-    hitrec.set_t(t); 
+    if (!ray_t.contains(t_min)) {
+        return false;
+    }
+
+    hitrec.set_t(t_min); 
 
     return true;
 }
@@ -214,13 +209,7 @@ void MeshList::add(const objl::Loader& loader, const geometry_params_t& g) {
         _logger->add_mesh_obj();
         Mesh m(mesh, std::move(transformation), std::move(transformation_inv));
         _logger->add_tris(m.get_triangles().size());
-        _meshes.push_back(m);
-        //Mesh m(mesh, std::move(transformation), std::move(transformation_inv));
-        //_logger->add_tris(m.get_triangles().size());
-        //_triangles.reserve(m.get_triangles().size());
-        //for (const auto& tri : m.get_triangles()) {
-        //    _triangles.push_back(std::move(tri));
-        //}
+        _meshes.push_back(std::move(m));
     }
 }
 
@@ -230,14 +219,13 @@ bool MeshList::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) co
     float closest_so_far = ray_t.max();
     for (const auto& mesh : _meshes) {
         if (mesh.hit(
-            r_in, 
-            Interval(ray_t.min(), closest_so_far),
-            temp_rec) 
-            && temp_rec.get_t() < closest_so_far) 
+                r_in, 
+                Interval(ray_t.min(), closest_so_far),
+                temp_rec)) 
         {
             for (const auto& tri : mesh.get_triangles()) {
                 _logger->add_ray_tri_int();
-                if (tri.hit(r_in, temp_rec) && temp_rec.get_t() < closest_so_far ) {
+                if (tri.hit(r_in, temp_rec) && temp_rec.get_t() < closest_so_far) {
                     _logger->add_true_ray_tri_int();
                     hit_anything = true;
                     closest_so_far = temp_rec.get_t();
@@ -251,21 +239,3 @@ bool MeshList::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) co
 
     return hit_anything;
 }
-
-//bool MeshList::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const {
-//    HitRecord temp_rec;
-//    bool hit_anything = false;
-//    float closest_so_far = ray_t.max();
-//    for (const auto& tri : _triangles) {
-//        _logger->add_ray_tri_int();
-//        if (tri.hit(r_in, temp_rec) && temp_rec.get_t() < closest_so_far) {
-//            _logger->add_true_ray_tri_int();
-//            hit_anything = true;
-//            closest_so_far = temp_rec.get_t();
-//            hitrec = std::move(temp_rec);
-//            temp_rec = HitRecord();
-//        }
-//    }
-//
-//    return hit_anything;
-//}

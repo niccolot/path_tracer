@@ -83,7 +83,7 @@ Ray Camera::_get_ray(uint32_t i, uint32_t j, uint32_t si, uint32_t sj) const {
     Vec3f pixel = _pixel00_loc + 
                     ((i + offset.x()) * _pixel_delta_u) + 
                     ((j + offset.y()) * _pixel_delta_v);
-
+    
     return Ray{ _camera_center, pixel - _camera_center };
 }
 
