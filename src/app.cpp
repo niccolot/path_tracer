@@ -2,9 +2,11 @@
 #include "stb_image_write.h" 
 
 #include <format>
+#include <chrono>
 
 #include "app.h"
 #include "hittable.h"
+#include "utils.h"
 
 App::App() {
     init_params_t init_pars = init_from_json("init/init_pars.json");
@@ -12,13 +14,16 @@ App::App() {
     std::vector<geometry_params_t> geometries = geometries_from_json("init/geometry.json");
 
     _init_pars = init_pars;
-    _init_app();
-    _cam = Camera{ init_pars, angles, geometries };
+    _init_sdl();
+    auto outdir = "output/" + Utils::strip_extenstions(_init_pars.outfile_name) + "/";
+    Utils::set_directory(outdir);
+    _logger = std::make_shared<Logger>(outdir, _init_pars.outfile_name);
+    _cam = Camera{ init_pars, angles, geometries, _logger };
     _cam.set_pixel_format(_image_surface->format);
     _cam.set_meshes();
 }
 
-void App::_init_app() {
+void App::_init_sdl() {
     /**
      * @brief: initializes SDL variables,
      * if pixel format is changed also the decoded 
@@ -47,18 +52,26 @@ void App::_init_app() {
 
 void App::_worker_task() {
     /**
-     * @brief: logic for the screen visualization, calls the camera renderind and
+     * @brief: logic for the screen visualization, calls the camera rendering and
      * pushes each row in a buffer. They will be visualized at screen
      * asynchronously
      */
+    auto t_start = std::chrono::steady_clock::now();
     uint32_t row_idx = 0;
     while (!_done_rendering) {
+        //scanline_t scanline{ row_idx, _cam.render_row(row_idx) };
         _queue.push(scanline_t{ row_idx, _cam.render_row(row_idx) });
+        //_queue.push_ref(scanline);
         if (row_idx == _init_pars.img_height - 1) {
             _done_rendering = true;
         }
         row_idx++;
     }
+
+    auto t_end = std::chrono::steady_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(t_end - t_start).count();
+    _logger->set_rendertime(elapsed);
+    _logger->log();
 }
 
 void App::_save_png() {
@@ -82,11 +95,19 @@ void App::_save_png() {
         }
     }
 
-    auto ok = stbi_write_png(_init_pars.outfile_name.c_str(), _init_pars.img_width, _init_pars.img_height, 4, rgba_pixels.data(), _init_pars.img_width * 4);
+    auto img_path = "output/" + Utils::strip_extenstions(_init_pars.outfile_name) + "/" + _init_pars.outfile_name;
+    auto ok = stbi_write_png(
+        (img_path).c_str(), 
+        _init_pars.img_width, 
+        _init_pars.img_height, 
+        4, 
+        rgba_pixels.data(), 
+        _init_pars.img_width * 4);
+
     if (!ok) {
         std::cerr << "\nFailed to save .png file\n"; 
     } else {
-        std::cout << std::format("\nRendered image saved as: '{}'\n", _init_pars.outfile_name);
+        std::cout << std::format("\nRendered image saved as: '{}'\n", img_path);
     }
 }
 
@@ -123,6 +144,11 @@ void App::run() {
             line = _queue.try_pop();
         }
 
+        if (_done_rendering && !_img_saved) {
+            _save_png();
+            _img_saved = true;
+        }
+
         SDL_Event e;
         if (SDL_WaitEventTimeout(&e, _done_rendering ? 100 : 0)) {
             if (e.type == SDL_EVENT_QUIT) {
@@ -136,6 +162,4 @@ void App::run() {
         SDL_DestroyTexture(tex);
         SDL_RenderPresent(_renderer);
     }
-
-    _save_png();
 }

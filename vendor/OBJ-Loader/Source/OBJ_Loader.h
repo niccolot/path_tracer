@@ -477,7 +477,7 @@ namespace objl
 							<< "\t| texcoords > " << TCoords.size()
 							<< "\t| normals > " << Normals.size()
 							<< "\t| triangles > " << (Vertices.size() / 3)
-							<< (!MeshMatNames.empty() ? "\t| material: " + MeshMatNames.back() : "");
+							<< (!MeshMatNames.empty() ? "\t| material: " + MeshMatNames.back() : "") << "\n";
 					}
 				}
 				#endif

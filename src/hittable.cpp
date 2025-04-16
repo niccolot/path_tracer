@@ -82,13 +82,16 @@ bool Triangle::hit(const Ray& r_in, HitRecord& hitrec) const {
     hitrec.set_t(t);
     hitrec.set_hit_point(r_in.at(t));
     hitrec.set_normal(unit_vector((1.f - u - v) * _v0.normal + u * _v1.normal + v * _v2.normal));
-    hitrec.set_color(_color * std::max(0.f, -dot(hitrec.get_normal(), r_in.direction())));
-
+    hitrec.set_color(_color * std::fmax(0.f, -dot(hitrec.get_normal(), r_in.direction())));
 
     return true;
 }
 
 Mesh::Mesh(const objl::Mesh& mesh, Mat4&& m, Mat4&& m_inv) {
+    _p_min = Vec3f(inf, inf, inf);
+    _p_max = Vec3f(-inf, -inf, -inf);
+    _bounds.reserve(2);
+
     _vertices = mesh.Vertices;
     _indices = mesh.Indices;
     _transf = std::move(m);
@@ -119,6 +122,13 @@ Mesh::Mesh(const objl::Mesh& mesh, Mat4&& m, Mat4&& m_inv) {
         mat4_vec3_prod_inplace(_transf_inv, v1_normal);
         mat4_vec3_prod_inplace(_transf_inv, v2_normal);
 
+        _set_min_max(v0_pos);
+        _set_min_max(v1_pos);
+        _set_min_max(v2_pos);
+        
+        _bounds.push_back(_p_min);
+        _bounds.push_back(_p_max);
+
         _triangles.emplace_back(
             Vertex{v0_pos, v0_normal}, 
             Vertex{v1_pos, v1_normal}, 
@@ -128,27 +138,82 @@ Mesh::Mesh(const objl::Mesh& mesh, Mat4&& m, Mat4&& m_inv) {
     }
 }
 
+void Mesh::_set_min_max(const Vec3f& v) {
+    _p_min.set_x(std::min(_p_min.x(), v.x()));
+    _p_min.set_y(std::min(_p_min.y(), v.y()));
+    _p_min.set_z(std::min(_p_min.z(), v.z()));
+
+    _p_max.set_x(std::max(_p_max.x(), v.x()));
+    _p_max.set_y(std::max(_p_max.y(), v.y()));
+    _p_max.set_z(std::max(_p_max.z(), v.z()));
+}
+
+bool Mesh::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const {
+    /**
+     * @brief: ray-mesh bounding box intersection algorithm
+     */
+    float t_min = (_bounds[r_in.sign_x()].x() - r_in.origin().x()) * r_in.inv_dir().x();
+    float t_max = (_bounds[1 - r_in.sign_x()].x() - r_in.origin().x()) * r_in.inv_dir().x();
+    float ty_min = (_bounds[r_in.sign_y()].y() - r_in.origin().y()) * r_in.inv_dir().y();
+    float ty_max = (_bounds[1 - r_in.sign_y()].y() - r_in.origin().y()) * r_in.inv_dir().y();
+
+    if ((t_min > ty_max) | (ty_min > t_max)) {
+        return false;
+    }
+
+    t_min = std::fmax(ty_min, t_min);
+    t_max = std::fmin(ty_max, t_max);
+
+    float tz_min = (_bounds[r_in.sign_z()].z() - r_in.origin().z()) * r_in.inv_dir().z();
+    float tz_max = (_bounds[1 - r_in.sign_z()].z() - r_in.origin().z()) * r_in.inv_dir().z();
+
+    if ((t_min > tz_max) || (tz_min > t_max)) {
+        return false;
+    }
+
+    t_min = std::fmax(tz_min, t_min);
+    t_max = std::fmin(tz_max, t_max);
+    //if (!(ray_t.contains(t_min) && ray_t.contains(t_max))) {
+    //    return false;
+    //}
+    float t = t_min;
+    if (t < 0) {
+        t = t_max;
+        if (t < 0) {
+            return false;
+        }
+    }
+
+    hitrec.set_t(t); 
+
+    return true;
+}
+
 void MeshList::add(const objl::Loader& loader, const geometry_params_t& g) {
     for (const auto& mesh : loader.LoadedMeshes) {
         Mat4 transformation = frame_transformation(
-            degs_to_rads(g.alpha),
-            degs_to_rads(g.beta),
-            degs_to_rads(g.gamma),
+            Utils::degs_to_rads(g.alpha),
+            Utils::degs_to_rads(g.beta),
+            Utils::degs_to_rads(g.gamma),
             g.scale,
             g.t);
 
         Mat4 transformation_inv = frame_transformation_inv(
-            degs_to_rads(g.alpha),
-            degs_to_rads(g.beta),
-            degs_to_rads(g.gamma),
+            Utils::degs_to_rads(g.alpha),
+            Utils::degs_to_rads(g.beta),
+            Utils::degs_to_rads(g.gamma),
             g.scale,
             g.t);
 
+        _logger->add_mesh_obj();
         Mesh m(mesh, std::move(transformation), std::move(transformation_inv));
-        _triangles.reserve(m.get_triangles().size());
-        for (const auto& tri : m.get_triangles()) {
-            _triangles.push_back(std::move(tri));
-        }
+        _logger->add_tris(m.get_triangles().size());
+        _meshes.push_back(m);
+        //Mesh m(mesh, std::move(transformation), std::move(transformation_inv));
+        //_triangles.reserve(m.get_triangles().size());
+        //for (const auto& tri : m.get_triangles()) {
+        //    _triangles.push_back(std::move(tri));
+        //}
     }
 }
 
@@ -156,14 +221,44 @@ bool MeshList::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) co
     HitRecord temp_rec;
     bool hit_anything = false;
     float closest_so_far = ray_t.max();
-    for (const auto& tri : _triangles) {
-        if (tri.hit(r_in, temp_rec) && temp_rec.get_t() < closest_so_far) {
-            hit_anything = true;
-            closest_so_far = temp_rec.get_t();
-            hitrec = std::move(temp_rec);
-            temp_rec = HitRecord();
+    for (auto& mesh : _meshes) {
+        if (mesh.hit(
+            r_in, 
+            Interval(ray_t.min(), closest_so_far),
+            temp_rec) 
+            && temp_rec.get_t() < closest_so_far) 
+        {
+            for (const auto& tri : mesh.get_triangles()) {
+                _logger->add_ray_tri_int();
+                if (tri.hit(r_in, temp_rec) && temp_rec.get_t() < closest_so_far ) {
+                    _logger->add_true_ray_tri_int();
+                    hit_anything = true;
+                    closest_so_far = temp_rec.get_t();
+                    hitrec = std::move(temp_rec);
+                    temp_rec = HitRecord();
+                }
+            }
+            
         }
     }
 
     return hit_anything;
 }
+
+//bool MeshList::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const {
+//    HitRecord temp_rec;
+//    bool hit_anything = false;
+//    float closest_so_far = ray_t.max();
+//    for (const auto& tri : _triangles) {
+//        _logger.add_ray_tri_int();
+//        if (tri.hit(r_in, temp_rec) && temp_rec.get_t() < closest_so_far) {
+//            _logger.add_true_ray_tri_int();
+//            hit_anything = true;
+//            closest_so_far = temp_rec.get_t();
+//            hitrec = std::move(temp_rec);
+//            temp_rec = HitRecord();
+//        }
+//    }
+//
+//    return hit_anything;
+//}

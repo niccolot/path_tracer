@@ -102,7 +102,7 @@ inline Vec3f operator/(const Vec3f& v, float t) {
 }
 
 inline Vec3f operator/(float t, const Vec3f& v) {
-    return v / t;
+    return Vec3f(t / v.x(), t / v.y(), t / v.z());
 }
 
 inline float dot(const Vec3f& u, const Vec3f& v) {

@@ -1,6 +1,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include <memory>
+
 #include "SDL3/SDL.h"
 
 #include "vec3.h"
@@ -9,6 +11,7 @@
 #include "hittable.h"
 #include "matrix.h"
 #include "input.h"
+#include "logger.h"
 
 class Camera {
 private:
@@ -21,6 +24,7 @@ private:
     init_params_t _init_pars;
     camera_angles_t _angles;
     std::vector<geometry_params_t> _geometries;
+    std::shared_ptr<Logger> _logger;
     uint32_t _samples_pp_sqrt; // sqrt of samples_per_pixel
     float _samples_pp_sqrt_inv;
     float _sampling_scale;
@@ -28,20 +32,19 @@ private:
 
     void _move();
     void _rotate_frame();
-    void _pan_tilt_roll(Vec3f& v);
     Ray _get_ray(uint32_t i, uint32_t j, uint32_t si, uint32_t sj) const;
     Vec3f _sample_square_stratified(uint32_t si, uint32_t sj) const;
     Color _trace(const Ray& r, uint32_t depth) const;
     void _write_color(Color& color, std::vector<uint32_t>& row_colors) const;
     void _gamma_correction(Color& color) const; 
-    bool _hit(const MeshList& meshes, const Ray& r_in, const Interval& ray_t, HitRecord& rec) const;
     
 public:
     Camera() = default;
     Camera(
         const init_params_t& init_pars, 
         const camera_angles_t& angles, 
-        const std::vector<geometry_params_t>& geometries
+        const std::vector<geometry_params_t>& geometries,
+        std::shared_ptr<Logger> logger
     );
     Camera(const Camera&) = delete;
     Camera& operator=(const Camera&) = delete;
@@ -51,6 +54,6 @@ public:
     
     void set_meshes();
     void set_pixel_format(SDL_PixelFormat format) { _pixel_format = format; }
-    std::vector<uint32_t> render_row(uint32_t j) const;
+    std::vector<uint32_t> render_row(uint32_t j);
 }; // class Camera
 #endif

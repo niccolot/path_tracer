@@ -9,18 +9,19 @@
 Camera::Camera(
     const init_params_t& init_pars, 
     const camera_angles_t& angles, 
-    const std::vector<geometry_params_t>& geometries) 
-: _init_pars(init_pars), _angles(angles), _geometries(geometries)
+    const std::vector<geometry_params_t>& geometries,
+    std::shared_ptr<Logger> logger) 
+: _init_pars(init_pars), _angles(angles), _geometries(geometries), _logger(logger)
 {
     _samples_pp_sqrt = uint32_t(std::sqrt(_init_pars.samples_per_pixel));
     _samples_pp_sqrt_inv = 1.f / float(_samples_pp_sqrt);
     _sampling_scale = 1.f / float(_init_pars.samples_per_pixel);
 
-    // camera frame transformation
+    // camera frame transformations
     _move();
 
     // image plane
-    float h = std::tan(0.5f * degs_to_rads(_init_pars.vfov));
+    float h = std::tan(0.5f * Utils::degs_to_rads(_init_pars.vfov));
     float img_plane_height = 2.f * h * _init_pars.focus_dist;
     float img_plane_width = img_plane_height * float(_init_pars.img_width) / float(_init_pars.img_height);
     Vec3f img_plane_u = img_plane_width * _u;
@@ -44,8 +45,8 @@ void Camera::_move() {
     _camera_center = rotate_spherically(
         _init_pars.lookfrom,
         _init_pars.lookat,
-        degs_to_rads(_angles.theta),
-        degs_to_rads(_angles.phi)
+        Utils::degs_to_rads(_angles.theta),
+        Utils::degs_to_rads(_angles.phi)
     );
     
     _w = unit_vector(_camera_center - _init_pars.lookat); // antiparallel to view direction
@@ -63,9 +64,9 @@ void Camera::_rotate_frame() {
      * pan around y axis and roll around z axis
      */
     Mat3 general_rot = frame_rotation(
-        degs_to_rads(_angles.tilt), 
-        degs_to_rads(_angles.pan), 
-        degs_to_rads(_angles.roll)
+        Utils::degs_to_rads(_angles.tilt), 
+        Utils::degs_to_rads(_angles.pan), 
+        Utils::degs_to_rads(_angles.roll)
     );
 
     mat_vec_prod_inplace(general_rot, _w);
@@ -115,10 +116,6 @@ Color Camera::_trace(const Ray& r, uint32_t depth) const {
     return color_from_scatter;
 }
 
-bool Camera::_hit(const MeshList& meshes, const Ray& r_in, const Interval& ray_t, HitRecord& rec) const {
-    return meshes.hit(r_in, ray_t, rec);
-}
-
 void Camera::_write_color(Color& color, std::vector<uint32_t>& row_colors) const {
     /**
      * @brief: processes the row's pixels and put them in the buffer in order to be
@@ -148,6 +145,7 @@ void Camera::_gamma_correction(Color& color) const {
 }
 
 void Camera::set_meshes() {
+    _meshes.set_logger(_logger);
     for (const auto& g : _geometries) {
         objl::Loader loader;
         bool ok = loader.LoadFile("init/meshes/" + g.obj_file);
@@ -159,7 +157,7 @@ void Camera::set_meshes() {
     }
 }
 
-std::vector<uint32_t> Camera::render_row(uint32_t j) const {
+std::vector<uint32_t> Camera::render_row(uint32_t j) {
     std::vector<uint32_t> row_colors;
     row_colors.reserve(_init_pars.img_width);
     for (uint32_t i = 0; i < _init_pars.img_width; ++i) {
@@ -170,6 +168,7 @@ std::vector<uint32_t> Camera::render_row(uint32_t j) const {
                 pixel_color += _trace(r, _init_pars.depth);
             }
         }
+        
         pixel_color *= _sampling_scale;
         _write_color(pixel_color, row_colors);
     }
