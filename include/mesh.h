@@ -1,5 +1,5 @@
-#ifndef HITTABLE_H
-#define HITTABLE_H
+#ifndef MESH_H
+#define MESH_H
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-value"
@@ -15,50 +15,11 @@
 #include "interval.h"
 #include "hitrecord.h"
 #include "matrix.h"
-#include "boundingbox.h"
 #include "logger.h"
-
-typedef struct Vertex {
-    Vec3f pos;
-    Vec3f normal;
-} vertex_t;  
-
-class Sphere {
-private:
-    Vec3f _center;
-    float _radius;
-    Color _color;
-
-public:
-    Sphere() = delete;
-    Sphere(Vec3f center, float r, Color col) : 
-        _center(center), _radius(r), _color(col) {}
-
-    bool hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const;
-}; // class Sphere
-
-
-class Triangle {
-private:
-    Vertex _v0, _v1, _v2; // vertices
-    Vec3f _face_normal;
-    Color _color;
-    Vec3f _v0v1; // axis from v0 to v1 
-    Vec3f _v0v2; // axis from v0 to v2
-
-public:
-    Triangle() = default;
-    Triangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, const Color&col);
-
-    const Vec3f& get_face_normal() const { return _face_normal; }
-
-    bool hit(const Ray& r_in, HitRecord& hitrec) const;
-}; // class Triangle
+#include "triangle.h"
 
 class Mesh {
 private:
-    std::vector<objl::Vertex> _vertices;
-    std::vector<uint32_t> _indices;
     Color _color;
     std::vector<Triangle> _triangles;
     Mat4 _transf;
@@ -81,7 +42,6 @@ public:
 
 class MeshList {
 private:
-    std::vector<Triangle> _triangles;
     std::vector<Mesh> _meshes;
     std::shared_ptr<Logger> _logger;
 

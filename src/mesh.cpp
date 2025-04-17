@@ -2,98 +2,14 @@
 #include <cassert>
 #include <algorithm>
 
-#include "hittable.h"
+#include "mesh.h"
 #include "utils.h"
 
-bool Sphere::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const {
-    Vec3f oc = _center - r_in.origin(); // vector from ray origin to sphere center
-
-    // a = r_in.direction().length_squared(), here assumed already unitary
-    // for the Ray class constructor
-    const float a = 1; 
-    float h = dot(r_in.direction(), oc); // h = -b/2 in 2nd order eq roots formula
-    float c = oc.length_squared() - _radius * _radius;
-
-    float delta = h * h - a * c;
-    if (delta < 0) {
-        return false;
-    }
-
-    float delta_sqrt = std::sqrt(delta);
-    float root = (h - delta_sqrt) / a;
-    if (!ray_t.surrounds(root)) {
-        root = (h + delta_sqrt) / a;
-        if (!ray_t.surrounds(root)) {
-            return false;
-        }
-    }
-
-    hitrec.set_t(root);
-    hitrec.set_hit_point(r_in.at(root));
-
-    // by spheres property dividing by radius avoid sqrt normalization
-    Vec3f normal = (hitrec.get_hit_point() - _center) / _radius;
-    hitrec.set_normal(normal, r_in.direction());
-    hitrec.set_color(_color * std::fabs(dot(hitrec.get_normal(), r_in.direction())));
-
-    return true;
-}
-
-Triangle::Triangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, const Color&col) {
-    _v0 = v0;
-    _v1 = v1;
-    _v2 = v2;
-    _v0v1 = v1.pos - v0.pos;
-    _v0v2 = v2.pos - v0.pos;
-    _face_normal = unit_vector(_v0.normal + _v1.normal + _v2.normal);
-    _color = col;
-}
-
-bool Triangle::hit(const Ray& r_in, HitRecord& hitrec) const {
-    /**
-     * @brief: ray-triangle intersection method using moller-trumbore algorithm
-     */
-    const float tol = 1e-8;
-
-    Vec3f p_vec = cross(r_in.direction(), _v0v2);
-    float det = dot(_v0v1, p_vec);
-
-    // use std::fabs(det) < tol to disable backface culling
-    if (det < tol) {
-        return false;
-    }
-
-    float det_inv = 1.f / det;
-    Vec3f t_vec = r_in.origin() - _v0.pos;
-    float u = dot(t_vec, p_vec) * det_inv;
-    if (u < 0 || u > 1) {
-        return false;
-    }
-
-    Vec3f q_vec = cross(t_vec, _v0v1);
-    float v = dot(r_in.direction(), q_vec) * det_inv;
-    if (v < 0 || u + v > 1) {
-        return false;
-    }
-    
-    float t = dot(_v0v2, q_vec) * det_inv;
-    hitrec.set_u(u);
-    hitrec.set_v(v);
-    hitrec.set_t(t);
-    hitrec.set_hit_point(r_in.at(t));
-    hitrec.set_normal(unit_vector((1.f - u - v) * _v0.normal + u * _v1.normal + v * _v2.normal));
-    hitrec.set_color(_color * std::fmax(0.f, -dot(hitrec.get_normal(), r_in.direction())));
-
-    return true;
-}
-
 Mesh::Mesh(const objl::Mesh& mesh, Mat4&& m, Mat4&& m_inv) {
-    _p_min = Vec3f(inf, inf, inf);
-    _p_max = Vec3f(-inf, -inf, -inf);
     _bounds.resize(2);
+    _bounds[0] = Vec3f(inf, inf, inf);
+    _bounds[1] = Vec3f(-inf, -inf, -inf);
 
-    _vertices = mesh.Vertices;
-    _indices = mesh.Indices;
     _transf = std::move(m);
     _transf_inv = std::move(m_inv);
     float r = mesh.MeshMaterial.Ka.X;
@@ -101,17 +17,17 @@ Mesh::Mesh(const objl::Mesh& mesh, Mat4&& m, Mat4&& m_inv) {
     float b = mesh.MeshMaterial.Ka.Z;
     _color = Color(r,g,b);
     
-    assert(_vertices.size() % 3 == 0);
+    assert(mesh.Vertices.size() % 3 == 0);
 
-    _triangles.reserve(_vertices.size() / 3);
-    for (uint32_t i = 0; i <_indices.size(); i += 3) {
-        auto v0 = _vertices[_indices[i]];
+    _triangles.reserve(mesh.Vertices.size() / 3);
+    for (uint32_t i = 0; i < mesh.Indices.size(); i += 3) {
+        auto v0 = mesh.Vertices[mesh.Indices[i]];
         auto v0_pos = Vec3f(v0.Position);
         auto v0_normal = Vec3f(v0.Normal);
-        auto v1 = _vertices[_indices[i + 1]];
+        auto v1 = mesh.Vertices[mesh.Indices[i + 1]];
         auto v1_pos = Vec3f(v1.Position);
         auto v1_normal = Vec3f(v1.Normal);
-        auto v2 = _vertices[_indices[i + 2]];
+        auto v2 = mesh.Vertices[mesh.Indices[i + 2]];
         auto v2_pos = Vec3f(v2.Position);
         auto v2_normal = Vec3f(v2.Normal);
         
@@ -133,19 +49,16 @@ Mesh::Mesh(const objl::Mesh& mesh, Mat4&& m, Mat4&& m_inv) {
             _color
         );
     }
-
-    _bounds[0] = _p_min;
-    _bounds[1] = _p_max;
 }
 
 void Mesh::_set_min_max(const Vec3f& v) {
-    _p_min.set_x(std::min(_p_min.x(), v.x()));
-    _p_min.set_y(std::min(_p_min.y(), v.y()));
-    _p_min.set_z(std::min(_p_min.z(), v.z()));
+    _bounds[0].set_x(std::min(_bounds[0].x(), v.x()));
+    _bounds[0].set_y(std::min(_bounds[0].y(), v.y()));
+    _bounds[0].set_z(std::min(_bounds[0].z(), v.z()));
 
-    _p_max.set_x(std::max(_p_max.x(), v.x()));
-    _p_max.set_y(std::max(_p_max.y(), v.y()));
-    _p_max.set_z(std::max(_p_max.z(), v.z()));
+    _bounds[1].set_x(std::max(_bounds[1].x(), v.x()));
+    _bounds[1].set_y(std::max(_bounds[1].y(), v.y()));
+    _bounds[1].set_z(std::max(_bounds[1].z(), v.z()));
 }
 
 bool Mesh::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const {
@@ -161,8 +74,8 @@ bool Mesh::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const 
         return false;
     }
 
-    t_min = std::fmax(ty_min, t_min);
-    t_max = std::fmin(ty_max, t_max);
+    t_min = t_min > ty_min ? t_min : ty_min;
+    t_max = t_max < ty_max ? t_max : ty_max;
 
     float tz_min = (_bounds[r_in.sign_z()].z() - r_in.origin().z()) * r_in.inv_dir().z();
     float tz_max = (_bounds[1 - r_in.sign_z()].z() - r_in.origin().z()) * r_in.inv_dir().z();
@@ -171,14 +84,12 @@ bool Mesh::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const 
         return false;
     }
 
-    t_min = std::fmax(tz_min, t_min);
-    t_max = std::fmin(tz_max, t_max);
+    t_min = t_min > tz_min ? t_min : tz_min;
+    t_max = t_max < tz_max ? t_max : tz_max;
 
+    t_min = t_min > 0 ? t_min : t_max;
     if (t_min < 0) {
-        t_min = t_max;
-        if (t_min < 0) {
             return false;
-        }
     }
 
     if (!ray_t.contains(t_min)) {

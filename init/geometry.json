@@ -1,24 +1,7 @@
 {
     "geometries": [
         {
-            "obj_file": "sphere.obj",
-            "scale": 0.5,
-            "t": [1,1,0]
-        },
-        {
-            "obj_file": "sphere.obj",
-            "scale": 0.5,
-            "t": [1,-1,0]
-        },
-        {
-            "obj_file": "sphere.obj",
-            "scale": 0.5,
-            "t": [-1,1,0]
-        },
-        {
-            "obj_file": "sphere.obj",
-            "scale": 0.5,
-            "t": [-1,-1,0]
+            "obj_file": "sphere.obj"
         }
     ]
 }

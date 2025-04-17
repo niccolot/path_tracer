@@ -8,7 +8,7 @@
 #include "vec3.h"
 #include "color.h"
 #include "ray.h"
-#include "hittable.h"
+#include "mesh.h"
 #include "matrix.h"
 #include "input.h"
 #include "logger.h"

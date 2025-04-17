@@ -5,7 +5,7 @@
 #include <chrono>
 
 #include "app.h"
-#include "hittable.h"
+#include "mesh.h"
 #include "utils.h"
 
 App::App() {
