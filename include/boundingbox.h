@@ -11,7 +11,7 @@ private:
     Interval _span_z;
     float _volume;
     std::vector<Vec3f> _bounds;
-    std::vector<Triangle> _triangles;
+    //std::vector<Triangle> _triangles;
 
 public:
     BoundingBox() = default;
@@ -25,7 +25,7 @@ public:
     float size_z() const { return _span_z.size(); }
     float volume() const { return _volume; }
     const std::vector<Vec3f>& bounds() const { return _bounds; }
-    uint32_t num_tris() const { return _triangles.size(); }
+    //uint32_t num_tris() const { return _triangles.size(); }
 
     bool hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const;
 }; // class BoundginBox

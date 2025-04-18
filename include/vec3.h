@@ -82,7 +82,7 @@ inline std::ostream& operator<<(std::ostream& out, const Vec3f& v) {
 }
 
 inline Vec3f operator+(const Vec3f& u, const Vec3f& v) {
-    return Vec3f(u.x() + v.x(), u.y() + v.y(), u.z() + v.z());
+    return Vec3f{ u.x() + v.x(), u.y() + v.y(), u.z() + v.z() };
 }
 
 inline Vec3f operator-(const Vec3f& u, const Vec3f& v) {
@@ -90,7 +90,7 @@ inline Vec3f operator-(const Vec3f& u, const Vec3f& v) {
 }
 
 inline Vec3f operator*(const Vec3f& v, float t) {
-    return Vec3f(v.x() * t, v.y() * t, v.z() * t);
+    return Vec3f{ v.x() * t, v.y() * t, v.z() * t };
 }
 
 inline Vec3f operator*(float t, const Vec3f& v) {
@@ -102,7 +102,15 @@ inline Vec3f operator/(const Vec3f& v, float t) {
 }
 
 inline Vec3f operator/(float t, const Vec3f& v) {
-    return Vec3f(t / v.x(), t / v.y(), t / v.z());
+    return Vec3f{ t / v.x(), t / v.y(), t / v.z() };
+}
+
+inline Vec3f operator*(const Vec3f& u, const Vec3f& v) {
+    return Vec3f{ u.x() * v.x(), u.y() * v.y(), u.z() * v.z() };
+}
+
+inline Vec3f operator/(const Vec3f& u, const Vec3f& v) {
+    return u * (1.f / v);
 }
 
 inline float dot(const Vec3f& u, const Vec3f& v) {
@@ -121,11 +129,11 @@ inline Vec3f unit_vector(const Vec3f& v) {
 }
 
 inline Vec3f random_vector() {
-    return Vec3f(RandomUtils::random_float(), RandomUtils::random_float(), RandomUtils::random_float());
+    return Vec3f{ RandomUtils::random_float(), RandomUtils::random_float(), RandomUtils::random_float() };
 }
 
 inline Vec3f random_vector(float min, float max) {
-    return Vec3f(RandomUtils::random_float(min, max), RandomUtils::random_float(min, max), RandomUtils::random_float(min, max));
+    return Vec3f{ RandomUtils::random_float(min, max), RandomUtils::random_float(min, max), RandomUtils::random_float(min, max) };
 }
 
 inline Vec3f random_unit_vector() {

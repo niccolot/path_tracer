@@ -64,7 +64,7 @@ namespace RandomUtils {
          * @brief returns an uint32_t in the range [min, max]
          */
 
-        return uint32_t(random_float(min, max, mt));
+        return static_cast<uint32_t>(random_float(min, max, mt));
     }
 } // namespace RandomUtils
 #endif

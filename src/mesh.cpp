@@ -65,10 +65,10 @@ bool Mesh::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const 
     /**
      * @brief: ray-mesh bounding box intersection algorithm
      */
-    float t_min = (_bounds[r_in.sign_x()].x() - r_in.origin().x()) * r_in.inv_dir().x();
-    float t_max = (_bounds[1 - r_in.sign_x()].x() - r_in.origin().x()) * r_in.inv_dir().x();
-    float ty_min = (_bounds[r_in.sign_y()].y() - r_in.origin().y()) * r_in.inv_dir().y();
-    float ty_max = (_bounds[1 - r_in.sign_y()].y() - r_in.origin().y()) * r_in.inv_dir().y();
+    float t_min{ (_bounds[r_in.sign_x()].x() - r_in.origin().x()) * r_in.inv_dir().x() };
+    float t_max{ (_bounds[1 - r_in.sign_x()].x() - r_in.origin().x()) * r_in.inv_dir().x() };
+    float ty_min{ (_bounds[r_in.sign_y()].y() - r_in.origin().y()) * r_in.inv_dir().y() };
+    float ty_max{ (_bounds[1 - r_in.sign_y()].y() - r_in.origin().y()) * r_in.inv_dir().y() };
 
     if ((t_min > ty_max) || (ty_min > t_max)) {
         return false;
@@ -77,8 +77,8 @@ bool Mesh::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const 
     t_min = t_min > ty_min ? t_min : ty_min;
     t_max = t_max < ty_max ? t_max : ty_max;
 
-    float tz_min = (_bounds[r_in.sign_z()].z() - r_in.origin().z()) * r_in.inv_dir().z();
-    float tz_max = (_bounds[1 - r_in.sign_z()].z() - r_in.origin().z()) * r_in.inv_dir().z();
+    float tz_min{ (_bounds[r_in.sign_z()].z() - r_in.origin().z()) * r_in.inv_dir().z() };
+    float tz_max{ (_bounds[1 - r_in.sign_z()].z() - r_in.origin().z()) * r_in.inv_dir().z() };
 
     if ((t_min > tz_max) || (tz_min > t_max)) {
         return false;
@@ -126,8 +126,8 @@ void MeshList::add(const objl::Loader& loader, const geometry_params_t& g) {
 
 bool MeshList::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const {
     HitRecord temp_rec;
-    bool hit_anything = false;
-    float closest_so_far = ray_t.max();
+    bool hit_anything{ false };
+    float closest_so_far{ ray_t.max() };
     for (const auto& mesh : _meshes) {
         if (mesh.hit(
                 r_in, 

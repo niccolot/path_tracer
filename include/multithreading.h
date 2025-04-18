@@ -62,12 +62,6 @@ public:
         cv.notify_one();
     }
 
-    void push_ref(T& val) {
-        std::lock_guard<std::mutex> lk(mut);
-        data_queue.push(val);
-        cv.notify_one();
-    }
-
     bool empty() const {
         std::lock_guard<std::mutex> lk(mut);
 

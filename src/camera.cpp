@@ -13,9 +13,9 @@ Camera::Camera(
     std::shared_ptr<Logger> logger) 
 : _init_pars(init_pars), _angles(angles), _geometries(geometries), _logger(logger)
 {
-    _samples_pp_sqrt = uint32_t(std::sqrt(_init_pars.samples_per_pixel));
-    _samples_pp_sqrt_inv = 1.f / float(_samples_pp_sqrt);
-    _sampling_scale = 1.f / float(_init_pars.samples_per_pixel);
+    _samples_pp_sqrt = static_cast<uint32_t>(std::sqrt(_init_pars.samples_per_pixel));
+    _samples_pp_sqrt_inv = 1.f / static_cast<float>(_samples_pp_sqrt);
+    _sampling_scale = 1.f / static_cast<float>(_init_pars.samples_per_pixel);
 
     // camera frame transformations
     _move();
@@ -23,11 +23,11 @@ Camera::Camera(
     // image plane
     float h = std::tan(0.5f * Utils::degs_to_rads(_init_pars.vfov));
     float img_plane_height = 2.f * h * _init_pars.focus_dist;
-    float img_plane_width = img_plane_height * float(_init_pars.img_width) / float(_init_pars.img_height);
+    float img_plane_width = img_plane_height * static_cast<float>(_init_pars.img_width) / static_cast<float>(_init_pars.img_height);
     Vec3f img_plane_u = img_plane_width * _u;
     Vec3f img_plane_v = img_plane_height * (-_v);
-    _pixel_delta_u = img_plane_u / float(_init_pars.img_width);
-    _pixel_delta_v = img_plane_v / float(_init_pars.img_height);
+    _pixel_delta_u = img_plane_u / static_cast<float>(_init_pars.img_width);
+    _pixel_delta_v = img_plane_v / static_cast<float>(_init_pars.img_height);
     Vec3f img_plane_upper_left = _camera_center - 
                                     (_init_pars.focus_dist * _w) -
                                     0.5f * (img_plane_u + img_plane_v);
