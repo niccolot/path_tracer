@@ -1,6 +1,17 @@
 #include "triangle.h"
+#include "utils.h"
 
-Triangle::Triangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, const Color&col) {
+void Triangle::_set_bbox() {
+    Vec3f pmin(inf, inf, inf);
+    Vec3f pmax(-inf, -inf, -inf);
+    Utils::set_pmin_pmax(pmin, pmax, _v0.pos);
+    Utils::set_pmin_pmax(pmin, pmax, _v1.pos);
+    Utils::set_pmin_pmax(pmin, pmax, _v2.pos);
+
+    _bbox = BoundingBox{ pmin, pmax };    
+}
+
+Triangle::Triangle(const vertex_t& v0, const vertex_t& v1, const vertex_t& v2, const Color&col) {
     _v0 = v0;
     _v1 = v1;
     _v2 = v2;
@@ -8,6 +19,7 @@ Triangle::Triangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, const C
     _v0v2 = v2.pos - v0.pos;
     _face_normal = unit_vector(_v0.normal + _v1.normal + _v2.normal);
     _color = col;
+    _set_bbox();
 }
 
 bool Triangle::hit(const Ray& r_in, HitRecord& hitrec) const {

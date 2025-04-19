@@ -17,6 +17,7 @@
 #include "matrix.h"
 #include "logger.h"
 #include "triangle.h"
+#include "grid.h"
 
 class Mesh {
 private:
@@ -24,18 +25,14 @@ private:
     std::vector<Triangle> _triangles;
     Mat4 _transf;
     Mat4 _transf_inv;
-    Vec3f _p_min, _p_max;
-    std::vector<Vec3f> _bounds;
-
-    void _set_min_max(const Vec3f& v);
+    mutable Grid _grid;
 
 public:
     Mesh() = default;
     Mesh(const objl::Mesh& mesh, Mat4&& m, Mat4&& m_inv);
 
     const std::vector<Triangle>& get_triangles() const { return _triangles; }
-    const Vec3f& get_p_min() const { return _p_min; }
-    const Vec3f& get_p_max() const { return _p_max; }
+    Grid& grid() { return _grid; } 
 
     bool hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const;
 }; // class Mesh

@@ -6,9 +6,8 @@
 #include "utils.h"
 
 Mesh::Mesh(const objl::Mesh& mesh, Mat4&& m, Mat4&& m_inv) {
-    _bounds.resize(2);
-    _bounds[0] = Vec3f(inf, inf, inf);
-    _bounds[1] = Vec3f(-inf, -inf, -inf);
+    Vec3f pmin{ inf, inf, inf };
+    Vec3f pmax{ -inf, -inf, -inf };
 
     _transf = std::move(m);
     _transf_inv = std::move(m_inv);
@@ -38,9 +37,9 @@ Mesh::Mesh(const objl::Mesh& mesh, Mat4&& m, Mat4&& m_inv) {
         mat4_vec3_prod_inplace(_transf_inv, v1_normal);
         mat4_vec3_prod_inplace(_transf_inv, v2_normal);
 
-        _set_min_max(v0_pos);
-        _set_min_max(v1_pos);
-        _set_min_max(v2_pos);
+        Utils::set_pmin_pmax(pmin, pmax, v0_pos);
+        Utils::set_pmin_pmax(pmin, pmax, v1_pos);
+        Utils::set_pmin_pmax(pmin, pmax, v2_pos);
         
         _triangles.emplace_back(
             Vertex{v0_pos, v0_normal}, 
@@ -49,56 +48,14 @@ Mesh::Mesh(const objl::Mesh& mesh, Mat4&& m, Mat4&& m_inv) {
             _color
         );
     }
-}
 
-void Mesh::_set_min_max(const Vec3f& v) {
-    _bounds[0].set_x(std::min(_bounds[0].x(), v.x()));
-    _bounds[0].set_y(std::min(_bounds[0].y(), v.y()));
-    _bounds[0].set_z(std::min(_bounds[0].z(), v.z()));
-
-    _bounds[1].set_x(std::max(_bounds[1].x(), v.x()));
-    _bounds[1].set_y(std::max(_bounds[1].y(), v.y()));
-    _bounds[1].set_z(std::max(_bounds[1].z(), v.z()));
+    _grid = Grid{ BoundingBox(pmin, pmax), _triangles };
+    std::cout << "_grid.bbox().volume(): " << _grid.bbox().volume() << "\n";
 }
 
 bool Mesh::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const {
-    /**
-     * @brief: ray-mesh bounding box intersection algorithm
-     */
-    float t_min{ (_bounds[r_in.sign_x()].x() - r_in.origin().x()) * r_in.inv_dir().x() };
-    float t_max{ (_bounds[1 - r_in.sign_x()].x() - r_in.origin().x()) * r_in.inv_dir().x() };
-    float ty_min{ (_bounds[r_in.sign_y()].y() - r_in.origin().y()) * r_in.inv_dir().y() };
-    float ty_max{ (_bounds[1 - r_in.sign_y()].y() - r_in.origin().y()) * r_in.inv_dir().y() };
 
-    if ((t_min > ty_max) || (ty_min > t_max)) {
-        return false;
-    }
-
-    t_min = t_min > ty_min ? t_min : ty_min;
-    t_max = t_max < ty_max ? t_max : ty_max;
-
-    float tz_min{ (_bounds[r_in.sign_z()].z() - r_in.origin().z()) * r_in.inv_dir().z() };
-    float tz_max{ (_bounds[1 - r_in.sign_z()].z() - r_in.origin().z()) * r_in.inv_dir().z() };
-
-    if ((t_min > tz_max) || (tz_min > t_max)) {
-        return false;
-    }
-
-    t_min = t_min > tz_min ? t_min : tz_min;
-    t_max = t_max < tz_max ? t_max : tz_max;
-
-    t_min = t_min > 0 ? t_min : t_max;
-    if (t_min < 0) {
-            return false;
-    }
-
-    if (!ray_t.contains(t_min)) {
-        return false;
-    }
-
-    hitrec.set_t(t_min); 
-
-    return true;
+    return _grid.hit(r_in, ray_t, hitrec);
 }
 
 void MeshList::add(const objl::Loader& loader, const geometry_params_t& g) {
@@ -132,19 +89,12 @@ bool MeshList::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) co
         if (mesh.hit(
                 r_in, 
                 Interval(ray_t.min(), closest_so_far),
-                temp_rec)) 
+                temp_rec) && temp_rec.get_t() < closest_so_far) 
         {
-            for (const auto& tri : mesh.get_triangles()) {
-                _logger->add_ray_tri_int();
-                if (tri.hit(r_in, temp_rec) && temp_rec.get_t() < closest_so_far) {
-                    _logger->add_true_ray_tri_int();
-                    hit_anything = true;
-                    closest_so_far = temp_rec.get_t();
-                    hitrec = std::move(temp_rec);
-                    temp_rec = HitRecord();
-                }
-            }
-            
+            hit_anything = true;
+            closest_so_far = temp_rec.get_t();
+            hitrec = temp_rec;
+            temp_rec = HitRecord();
         }
     }
 
