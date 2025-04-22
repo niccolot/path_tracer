@@ -28,22 +28,3 @@ Interval Interval::expand(float delta) {
 
     return *this;
 }
-
-Interval operator+(const Interval& i, float a) {
-    /**
-     * @brief shifts the interval 
-     */
-    return Interval(i.min() + a, i.max() + a);
-}
-
-Interval operator+(float a, const Interval& i) {
-    return i + a;
-}
-
-Interval operator-(const Interval& i, float a) {
-    return i + (-a);
-}
-
-Interval operator-(float a, const Interval& i) {
-    return i - a;
-}

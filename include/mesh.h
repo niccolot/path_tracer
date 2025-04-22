@@ -19,6 +19,8 @@
 #include "triangle.h"
 #include "grid.h"
 
+class MeshList;
+
 class Mesh {
 private:
     Color _color;
@@ -29,7 +31,7 @@ private:
 
 public:
     Mesh() = default;
-    Mesh(const objl::Mesh& mesh, Mat4&& m, Mat4&& m_inv);
+    Mesh(const objl::Mesh& mesh, Mat4&& m, Mat4&& m_inv, MeshList& list);
 
     const std::vector<Triangle>& get_triangles() const { return _triangles; }
     Grid& grid() { return _grid; } 
@@ -50,5 +52,7 @@ public:
     void add(const objl::Loader& loader, const geometry_params_t& g);
 
     bool hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const;
+
+    friend Mesh;
 }; // class MeshList
 #endif

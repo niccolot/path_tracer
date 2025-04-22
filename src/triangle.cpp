@@ -31,7 +31,6 @@ bool Triangle::hit(const Ray& r_in, HitRecord& hitrec) const {
     Vec3f p_vec = cross(r_in.direction(), _v0v2);
     float det = dot(_v0v1, p_vec);
 
-    // use std::fabs(det) < tol to disable backface culling
     if (det < tol) {
         return false;
     }

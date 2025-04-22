@@ -20,6 +20,7 @@ private:
 public:
     Vec3f() : _e{0.f, 0.f, 0.f} {}
     Vec3f(float x, float y, float z) : _e{x, y, z} {}
+    Vec3f(float x) : Vec3f(x,x,x) {}
     Vec3f(const Vec3f&) = default;
     Vec3f(const objl::Vector3& v) : _e{v.X, v.Y, v.Z} {}
 

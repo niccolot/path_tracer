@@ -5,9 +5,9 @@
 #include "mesh.h"
 #include "utils.h"
 
-Mesh::Mesh(const objl::Mesh& mesh, Mat4&& m, Mat4&& m_inv) {
-    Vec3f pmin{ inf, inf, inf };
-    Vec3f pmax{ -inf, -inf, -inf };
+Mesh::Mesh(const objl::Mesh& mesh, Mat4&& m, Mat4&& m_inv, MeshList& list) {
+    Vec3f pmin{ inf };
+    Vec3f pmax{ -inf };
 
     _transf = std::move(m);
     _transf_inv = std::move(m_inv);
@@ -49,8 +49,7 @@ Mesh::Mesh(const objl::Mesh& mesh, Mat4&& m, Mat4&& m_inv) {
         );
     }
 
-    _grid = Grid{ BoundingBox(pmin, pmax), _triangles };
-    std::cout << "_grid.bbox().volume(): " << _grid.bbox().volume() << "\n";
+    _grid = Grid{ BoundingBox(pmin, pmax), _triangles, list._logger };
 }
 
 bool Mesh::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const {
@@ -75,7 +74,7 @@ void MeshList::add(const objl::Loader& loader, const geometry_params_t& g) {
             g.t);
 
         _logger->add_mesh_obj();
-        Mesh m(mesh, std::move(transformation), std::move(transformation_inv));
+        Mesh m(mesh, std::move(transformation), std::move(transformation_inv), *this);
         _logger->add_tris(m.get_triangles().size());
         _meshes.push_back(std::move(m));
     }
@@ -86,10 +85,8 @@ bool MeshList::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) co
     bool hit_anything{ false };
     float closest_so_far{ ray_t.max() };
     for (const auto& mesh : _meshes) {
-        if (mesh.hit(
-                r_in, 
-                Interval(ray_t.min(), closest_so_far),
-                temp_rec) && temp_rec.get_t() < closest_so_far) 
+        if (mesh.hit(r_in, Interval(ray_t.min(), closest_so_far), temp_rec) && 
+            temp_rec.get_t() < closest_so_far) 
         {
             hit_anything = true;
             closest_so_far = temp_rec.get_t();

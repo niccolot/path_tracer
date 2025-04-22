@@ -6,13 +6,13 @@
 const float inf = std::numeric_limits<float>::infinity();
 
 class Interval {
-
 private:
     float _min, _max;
 
 public:
     // empty interval
     Interval() : _min(inf), _max( inf) {}
+
     Interval(float min, float max) : _min(min), _max(max) {}
     Interval(const Interval& a, const Interval& b);
 
@@ -31,8 +31,14 @@ public:
     Interval expand(float delta);
 }; // class Interval
 
-Interval operator+(const Interval& i, float delta);
-Interval operator+(float delta, const Interval& i);
-Interval operator-(const Interval& i, float delta);
-Interval operator-(float delta, const Interval& i);
+inline Interval operator+(const Interval& i, float a) {
+    /**
+     * @brief shifts the interval 
+     */
+    return Interval(i.min() + a, i.max() + a);
+}
+
+inline Interval operator+(float a, const Interval& i) { return i + a; }
+inline Interval operator-(const Interval& i, float a) { return i + (-a); }
+inline Interval operator-(float a, const Interval& i) {return i - a; }
 #endif
