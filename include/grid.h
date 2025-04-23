@@ -14,7 +14,6 @@ class Grid;
 class Cell {
 private:
     std::vector<Triangle> _triangles;
-    //BoundingBox _bbox;
 
 public:
     Cell() = default;
