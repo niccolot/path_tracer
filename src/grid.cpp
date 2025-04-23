@@ -28,17 +28,18 @@ bool Grid::_dda(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) {
      */
     Vec3f ray_dir{ r_in.direction() };
     Vec3f ray_inv_dir{ r_in.inv_dir() };
-    Vec3f gridMin_rayO{ r_in.origin() - _bbox.bounds()[0] }; // vector from grid min point to ray origin
-    Vec3f cell_rayO{ gridMin_rayO / _cellsize }; // position of origin cell in terms of the number of cells
-
+    Vec3f ray_origin{ r_in.origin() };
+    Vec3f Ocell_Oray{ (ray_origin + ray_dir * hitrec.get_t()) - _bbox.bounds()[0] };
+    uint32_t cell[3];
     // compute ray path through the grid
     for (uint32_t i = 0; i < 3; ++i) {
+        cell[i] = std::clamp<uint32_t>(Ocell_Oray[i] / _cellsize[i], 0, _n[i] - 1);
         if (ray_dir[i] < 0) {
-            _dt[i] = -(_bbox.bounds()[1] - _bbox.bounds()[0])[i] * ray_inv_dir[i];
-            _t[i] = (std::floor(cell_rayO[i]) * _cellsize[i] - gridMin_rayO[i]) * ray_inv_dir[i];
-        } else {
-            _dt[i] = (_bbox.bounds()[1] - _bbox.bounds()[0])[i] * ray_inv_dir[i];
-            _t[i] = ((std::floor(cell_rayO[i]) + 1) * _cellsize[i] - gridMin_rayO[i]) * ray_inv_dir[i];
+            _dt[i] = -_cellsize[i] * ray_inv_dir[i];
+            _t[i] = hitrec.get_t() + (cell[i] * _cellsize[i] - Ocell_Oray[i]) * ray_inv_dir[i];
+        } else {;
+            _dt[i] = _cellsize[i] * ray_inv_dir[i];
+            _t[i] = hitrec.get_t() + ((cell[i] + 1) * _cellsize[i] - Ocell_Oray[i]) * ray_inv_dir[i];
         }
     }
 
@@ -58,7 +59,6 @@ bool Grid::_dda(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) {
 
         hit = _cells[cell_idx].hit(r_in, ray_t, hitrec, *this);
         t = _t[min_idx];
-        _t[min_idx] += _dt[min_idx];
         if (ray_dir[min_idx] < 0) {
             --_cell_index[min_idx];
         } else {
@@ -68,6 +68,7 @@ bool Grid::_dda(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) {
         if (hit && hitrec.get_t() < t) {
             break;
         }
+        _t[min_idx] += _dt[min_idx];
     }
 
     return hit;
@@ -121,7 +122,7 @@ Grid::Grid(const BoundingBox& bbox, const std::vector<Triangle> tris, std::share
     _n[1] = static_cast<uint32_t>(_bbox.size_y() * cbrt);
     _n[2] = static_cast<uint32_t>(_bbox.size_z() * cbrt);
     _cells.resize(_n[0] * _n[1] * _n[2]);
-    _cellsize = Vec3f(1/cbrt);
+    _cellsize = Vec3f(1.f/cbrt);
 
     _insert_triangles();
 }
