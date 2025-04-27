@@ -68,7 +68,7 @@ void from_json(const njson& j, init_params_t& p) {
     if (j.count("outfile_name") != 0) {
         j.at("outfile_name").get_to(p.outfile_name);
     } else {
-        p.outfile_name = "image.png";
+        p.outfile_name = "rendered_image.png";
     }
     if (j.count("depth") != 0) {
         j.at("depth").get_to(p.depth);

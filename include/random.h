@@ -6,7 +6,8 @@
 namespace RandomUtils {
 inline static std::mt19937 generate_engine() {
     std::random_device rd{};
-    std::seed_seq ss{rd(), rd(), rd(), rd(), rd(), rd(), rd(), rd()};
+    //std::seed_seq ss{rd(), rd(), rd(), rd(), rd(), rd(), rd(), rd()};
+    std::seed_seq ss{0};
 
     return std::mt19937{ss};
 }
@@ -38,7 +39,7 @@ inline float xor128_float() {
     return xor128() / 4294967296.0f;
 }
 
-inline float random_float(bool mt = false) {
+inline float random_float(bool mt = true) {
     /**
      * @brief returns a double in [0, 1)
      * @param mt wheter to use marsenne twister 

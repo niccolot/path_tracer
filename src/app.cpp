@@ -69,8 +69,8 @@ void App::_worker_task() {
     }
 
     auto t_end = std::chrono::steady_clock::now();
-    auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(t_end - t_start).count();
-    _logger->set_rendertime(elapsed);
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start).count();
+    _logger->set_rendertime(elapsed / 1000.f);
     _logger->log();
 }
 

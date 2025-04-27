@@ -2,13 +2,13 @@
 #include "utils.h"
 
 void Triangle::_set_bbox() {
-    Vec3f pmin(inf, inf, inf);
-    Vec3f pmax(-inf, -inf, -inf);
+    Vec3f pmin{ inf };
+    Vec3f pmax{ -inf };
     Utils::set_pmin_pmax(pmin, pmax, _v0.pos);
     Utils::set_pmin_pmax(pmin, pmax, _v1.pos);
     Utils::set_pmin_pmax(pmin, pmax, _v2.pos);
 
-    _bbox = BoundingBox{ pmin, pmax };    
+    _bbox = BoundingBox{ pmin, pmax };
 }
 
 Triangle::Triangle(const vertex_t& v0, const vertex_t& v1, const vertex_t& v2, const Color&col) {
@@ -19,18 +19,24 @@ Triangle::Triangle(const vertex_t& v0, const vertex_t& v1, const vertex_t& v2, c
     _v0v2 = v2.pos - v0.pos;
     _face_normal = unit_vector(_v0.normal + _v1.normal + _v2.normal);
     _color = col;
+    //_color = random_vector();
     _set_bbox();
 }
 
-bool Triangle::hit(const Ray& r_in, HitRecord& hitrec) const {
+bool Triangle::hit(const Ray &r_in, const Interval &ray_t, HitRecord &hitrec) const {
     /**
      * @brief: ray-triangle intersection method using moller-trumbore algorithm
      */
+    if (!_bbox.hit(r_in, ray_t, hitrec)) {
+        return false;
+    }
+
     const float tol = 1e-8;
 
     Vec3f p_vec = cross(r_in.direction(), _v0v2);
     float det = dot(_v0v1, p_vec);
 
+    // use std::fabs(det) to disable backface culling
     if (det < tol) {
         return false;
     }
@@ -55,6 +61,7 @@ bool Triangle::hit(const Ray& r_in, HitRecord& hitrec) const {
     hitrec.set_hit_point(r_in.at(t));
     hitrec.set_normal((1.f - u - v) * _v0.normal + u * _v1.normal + v * _v2.normal);
     hitrec.set_color(_color * std::fmax(0.f, -dot(hitrec.get_normal(), r_in.direction())));
+    //hitrec.set_color(_color);
 
     return true;
 }

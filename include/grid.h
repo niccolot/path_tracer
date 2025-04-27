@@ -45,7 +45,7 @@ private:
 
 public:
     Grid() = default;
-    Grid(const BoundingBox& bbox, const std::vector<Triangle> tris, std::shared_ptr<Logger> logger, float lambda = 10);
+    Grid(const BoundingBox& bbox, const std::vector<Triangle> tris, std::shared_ptr<Logger> logger, float lambda = 5);
 
     const BoundingBox& bbox() const { return _bbox; }
     void set_bbox(const BoundingBox& bbox) { _bbox = bbox; } 

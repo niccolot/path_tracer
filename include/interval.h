@@ -14,6 +14,7 @@ public:
     Interval() : _min(inf), _max( inf) {}
 
     Interval(float min, float max) : _min(min), _max(max) {}
+    Interval(float delta) : Interval(-0.5*delta, 0.5*delta) {}
     Interval(const Interval& a, const Interval& b);
 
     float min() const { return _min; }

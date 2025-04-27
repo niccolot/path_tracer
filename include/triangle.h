@@ -1,11 +1,14 @@
 #ifndef TRIANGLE_H
 #define TRIANGLE_H
 
+#include <memory> 
+
 #include "vec3.h"
 #include "color.h"
 #include "ray.h"
 #include "hitrecord.h"
 #include "boundingbox.h"
+#include "logger.h"
 
 typedef struct Vertex {
     Vec3f pos;
@@ -34,7 +37,7 @@ public:
     const Vec3f& get_face_normal() const { return _face_normal; }
     const BoundingBox& get_bbox() const { return _bbox; }
 
-    bool hit(const Ray& r_in, HitRecord& hitrec) const;
+    bool hit(const Ray &r_in, const Interval &ray_t, HitRecord &hitrec) const;
 }; // class Triangle
 
 inline std::ostream& operator<<(std::ostream& out, const Triangle& v) {
