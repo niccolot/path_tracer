@@ -25,6 +25,15 @@ void lowercase_keys(njson& j) {
     }
 }
 
+void validate_keys(njson& j, const std::set<std::string>& allowed_keys) {
+    lowercase_keys(j);
+    for (const auto& pair : j.items()) {
+        if (!allowed_keys.contains(pair.key())) {
+            throw std::runtime_error{ pair.key() };
+        }
+    }
+}
+
 void from_json(const njson& j, Vec3f& v) {
     if (!(j.is_array() && j.size() == 3)) {
         throw std::runtime_error("Invalid Vec3f format in json file");
@@ -120,6 +129,21 @@ void from_json(const njson& j, geometry_params_t& g) {
 }
 
 init_params_t init_from_json(const std::string& datapath) {
+    const std::set<std::string> init_keys{
+        "img_width",
+        "img_height",
+        "window_width",
+        "window_height",
+        "lookfrom",
+        "lookat",
+        "background",
+        "vfov",
+        "focus_dist",
+        "outfile_name",
+        "depth",
+        "samples_per_pixel"
+    };
+
     std::ifstream file(datapath);
     if (!file) {
         throw std::runtime_error{ std::format("Invalid input: file '{}' does not exists", datapath) };
@@ -127,13 +151,26 @@ init_params_t init_from_json(const std::string& datapath) {
 
     njson j;
     file >> j;
-    lowercase_keys(j);
+    try {
+        validate_keys(j, std::move(init_keys));
+    } catch (const std::runtime_error& err) {
+        throw std::runtime_error{ std::format("Invalid key in file '{}': {}", datapath, err.what()) };
+    }
+
     file.close();
 
     return j.get<init_params_t>();
 }
 
 camera_angles_t angles_from_json(const std::string& datapath) {
+    const std::set<std::string> angles_keys{
+        "tilt",
+        "pan",
+        "roll",
+        "theta",
+        "phi"
+    };
+
     std::ifstream file(datapath);
     if (!file) {
         std::clog << std::format("Camera angles file '{}' not found, setting angles to default values\n", datapath);
@@ -142,7 +179,12 @@ camera_angles_t angles_from_json(const std::string& datapath) {
 
     njson j;
     file >> j;
-    lowercase_keys(j);
+    try {
+        validate_keys(j, std::move(angles_keys));
+    } catch (const std::runtime_error& err) {
+        throw std::runtime_error{ std::format("Invalid key in file '{}': {}", datapath, err.what()) };
+    }
+
     file.close();
 
     return j.get<camera_angles_t>();
@@ -155,6 +197,15 @@ geometry_params_t get_geometry(njson& j) {
 }
 
 std::vector<geometry_params_t> geometries_from_json(const std::string& datapath) {
+    const std::set<std::string> geometry_keys{
+        "obj_file",
+        "alpha",
+        "beta",
+        "gamma",
+        "scale",
+        "t"
+    };
+
     std::ifstream file(datapath);
     if (!file) {
         throw std::runtime_error{ std::format("Invalid input: file '{}' does not exists", datapath) };
@@ -165,6 +216,11 @@ std::vector<geometry_params_t> geometries_from_json(const std::string& datapath)
     std::vector<geometry_params_t> g_vec;
     g_vec.reserve(geometries.size());
     for (auto& g : geometries) {
+        try {
+            validate_keys(g, std::move(geometry_keys));
+        } catch (const std::runtime_error& err) {
+            throw std::runtime_error{ std::format("Invalid key in file '{}': {}", datapath, err.what()) };
+        }
         g_vec.push_back(std::move(get_geometry(g)));
     }
 

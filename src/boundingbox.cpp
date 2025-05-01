@@ -1,29 +1,21 @@
 #include "boundingbox.h"
 
 BoundingBox::BoundingBox(const Vec3f& p_min, const Vec3f& p_max) {
+    /**
+     * @details: it pads every direction by a delta in order
+     * to avoid zero dimensional sides and to be slightly 
+     * larger than the object enclosed by the bbox
+     */
     const float delta = 0.0001;
     _bounds.resize(2);
-    _bounds[0] = p_min;
-    _bounds[1] = p_max;
+    _bounds[0] = p_min - 0.5 * delta;
+    _bounds[1] = p_max + 0.5 * delta;
     _span_x = Interval(p_min.x(), p_max.x());
     _span_y = Interval(p_min.y(), p_max.y());
     _span_z = Interval(p_min.z(), p_max.z());
-    if (_span_x.size() < delta) {
-        _span_x.expand(delta);
-        _bounds[0] -= Vec3f(0.5 * delta, 0, 0);
-        _bounds[1] += Vec3f(0.5 * delta, 0, 0);     
-    }
-    if (_span_y.size() < delta) {
-        _span_y.expand(delta);
-        _bounds[0] -= Vec3f(0, 0.5 * delta, 0);
-        _bounds[1] += Vec3f(0, 0.5 * delta, 0);     
-    }
-    if (_span_z.size() < delta) {
-        _span_z.expand(delta);
-        _bounds[0] -= Vec3f(0, 0, 0.5 * delta);
-        _bounds[1] += Vec3f(0, 0, 0.5 * delta);     
-    }
-
+    _span_x.expand(delta);
+    _span_y.expand(delta);
+    _span_z.expand(delta);
     _volume = _span_x.size() * _span_y.size() * _span_z.size();
 }
 

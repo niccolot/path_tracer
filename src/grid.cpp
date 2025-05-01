@@ -54,6 +54,7 @@ bool Grid::_dda(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) {
     // check if the ray hits a triangle in the cells traversed by the ray
     float t{};
     bool hit{ false };
+    HitRecord temp_rec;
     while (!_check_boundary()) {
         auto min_idx = static_cast<uint32_t>(std::distance(_t, std::min_element(_t, _t + 3)));
         uint32_t cell_idx{ std::clamp<uint32_t>(_cell_index[0] + _cell_index[1] * _n[0] + _cell_index[2] * _n[0] * _n[1], 0, _cells.size() - 1) };
@@ -67,6 +68,7 @@ bool Grid::_dda(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) {
         }
         
         if (hit && hitrec.get_t() < t) {
+            //hitrec = temp_rec;
             break;
         }
         
@@ -97,7 +99,7 @@ void Grid::_insert_triangles() {
         Vec3f max{};
         for (uint32_t i = 0; i < 3; ++i) {
             min[i] = std::floor((tri.get_bbox().bounds()[0][i] - _bbox.bounds()[0][i]) / _cellsize[i]);
-            max[i] = std::floor((tri.get_bbox().bounds()[1][i] - _bbox.bounds()[0][i]) / _cellsize[i]);
+            max[i] = std::ceil((tri.get_bbox().bounds()[1][i] - _bbox.bounds()[0][i]) / _cellsize[i]);
         }
 
         auto x_min = std::clamp<uint32_t>(min.x(), 0, _n[0] - 1);

@@ -2,6 +2,7 @@
 #define INPUT_H
 
 #include <string>
+#include <set>
 
 #include <nlohmann/json.hpp>
 
@@ -29,7 +30,7 @@ typedef struct CameraAngles {
     float tilt{}; // rotates camera around x
     float pan{}; // rotates camera around y
     float roll{}; // rotates camera around z
-    float theta{90.f}; // moves camera on the YZ plane
+    float theta{ 90.f }; // moves camera on the YZ plane
     float phi{}; // moves camera on the XZ plane
 } camera_angles_t;
 
@@ -46,6 +47,9 @@ void from_json(const njson& j, Vec3f& v);
 void from_json(const njson& j, init_params_t& p);
 void from_json(const njson& j, camera_angles_t& angles);
 void from_json(const njson& j, geometry_params_t& g);
+void to_lower(std::string& str);
+void lowercase_keys(njson& j);
+void validate_keys(njson& j, std::set<std::string>&& allowed_keys);
 init_params_t init_from_json(const std::string& datapath);
 camera_angles_t angles_from_json(const std::string& datapath);
 geometry_params_t get_geometry(njson& j);
