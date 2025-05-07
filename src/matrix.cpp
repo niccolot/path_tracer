@@ -97,5 +97,4 @@ Mat4 frame_transformation_inv(float a, float b, float c, float s, const Vec3f& t
     };
 
     return m;
-
 }

@@ -35,13 +35,10 @@ private:
     Vec3f _cellsize;
     float _lambda; // hyperparameter that determines the grid resolution
     uint32_t _n[3]{}; // grid resolution in each dimension
-    uint32_t _cell_index[3]; // used for dda traversal
-    float _t[3]{};
-    float _dt[3]{};
+    int32_t _cell_index[3]; // used for dda traversal
 
     void _insert_triangles();
     bool _dda(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec);
-    bool _check_boundary() const;
 
 public:
     Grid() = default;

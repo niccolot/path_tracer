@@ -10,7 +10,7 @@ bool Cell::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec, Grid& 
     float closest_so_far{ ray_t.max() };
     for (const auto& tri : _triangles) {
         g._logger->add_ray_tri_int();
-        if (tri.hit(r_in, ray_t, temp_rec) && temp_rec.get_t() < closest_so_far) {
+        if (tri.hit(r_in, Interval{ ray_t.min(), closest_so_far}, temp_rec) && temp_rec.get_t() < closest_so_far) {
             g._logger->add_true_ray_tri_int();
             hit_anything = true;
             closest_so_far = temp_rec.get_t();
@@ -20,7 +20,7 @@ bool Cell::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec, Grid& 
     }
     
     return hit_anything;
-}
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
 
 bool Grid::_dda(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) {
     /**
@@ -30,66 +30,49 @@ bool Grid::_dda(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) {
     Vec3f ray_dir{ r_in.direction() };
     Vec3f ray_inv_dir{ r_in.inv_dir() };
     Vec3f ray_origin{ r_in.origin() };
-    Vec3f Ocell_Oray{ ray_origin - _bbox.bounds()[0] };
-    Vec3f Ocell_oray_norm{ Ocell_Oray / _cellsize };
+    float t[3]{};
+    float dt[3]{};
+    int step[3]{};
+    int exit[3]{};
 
     // compute ray path through the grid
     for (uint32_t i = 0; i < 3; ++i) {
+        float ray_start_cell = ((ray_origin[i] + ray_dir[i] * hitrec.get_t()) - _bbox.bounds()[0][i]);
+        _cell_index[i] = std::clamp<uint32_t>(std::floor(ray_start_cell / _cellsize[i]), 0, _n[i] - 1);
         if (ray_dir[i] < 0) {
-            _dt[i] = -_cellsize[i] * ray_inv_dir[i];
-            _t[i] = (std::floor(Ocell_oray_norm[i]) * _cellsize[i] - Ocell_Oray[i]) * ray_inv_dir[i];
+            dt[i] = -_cellsize[i] * ray_inv_dir[i];
+            t[i] = hitrec.get_t() + (_cell_index[i] * _cellsize[i] - ray_start_cell) * ray_inv_dir[i];
+            exit[i] = -1;
+            step[i] = -1;
         } else {
-            _dt[i] = _cellsize[i] * ray_inv_dir[i];
-            _t[i] = (std::floor(Ocell_oray_norm[i] + 1) * _cellsize[i] - Ocell_Oray[i]) * ray_inv_dir[i];
+            dt[i] = _cellsize[i] * ray_inv_dir[i];
+            t[i] = hitrec.get_t() + ((_cell_index[i] + 1) * _cellsize[i] - ray_start_cell) * ray_inv_dir[i];
+            exit[i] = static_cast<int32_t>(_n[i]);
+            step[i] = 1;
         }
-    }
-
-    // get first hitted cell 
-    for (uint32_t i = 0; i < 3; ++i) {
-        float id = std::floor((r_in.origin()[i] + ray_dir[i] * hitrec.get_t() - _bbox.bounds()[0][i]) / _cellsize[i]);
-        auto idx = static_cast<uint32_t>(id);
-        _cell_index[i] = idx;
     }
 
     // check if the ray hits a triangle in the cells traversed by the ray
-    float t{};
     bool hit{ false };
-    HitRecord temp_rec;
-    while (!_check_boundary()) {
-        auto min_idx = static_cast<uint32_t>(std::distance(_t, std::min_element(_t, _t + 3)));
+    float closest_so_far{ ray_t.max() };
+    while (true) {
         uint32_t cell_idx{ std::clamp<uint32_t>(_cell_index[0] + _cell_index[1] * _n[0] + _cell_index[2] * _n[0] * _n[1], 0, _cells.size() - 1) };
-
         hit = _cells[cell_idx].hit(r_in, ray_t, hitrec, *this);
-        t = _t[min_idx];
-        if (ray_dir[min_idx] < 0) {
-            --_cell_index[min_idx];
-        } else {
-            ++_cell_index[min_idx];
+        auto min_idx = static_cast<uint32_t>(std::distance(t, std::min_element(t, t + 3)));
+        if (hit && hitrec.get_t() < t[min_idx]) {
+            break;
         }
-        
-        if (hit && hitrec.get_t() < t) {
-            //hitrec = temp_rec;
+
+        _cell_index[min_idx] += step[min_idx];
+        if (_cell_index[min_idx] == exit[min_idx]) {
             break;
         }
         
-        _t[min_idx] += _dt[min_idx];
+        t[min_idx] += dt[min_idx];
     }
 
     return hit;
 } 
-
-bool Grid::_check_boundary() const {
-    /**
-     * @brief: checks if a ray exited the grid. Since
-     * the indexes are uint32_t, if the ray exits backwards (negative indices),
-     * the check is still working since the index will overflow
-     */
-    bool out_of_bounds_x{ _cell_index[0] > _n[0] };
-    bool out_of_bounds_y{ _cell_index[1] > _n[1] };
-    bool out_of_bounds_z{ _cell_index[2] > _n[2] };
-
-    return out_of_bounds_x || out_of_bounds_y || out_of_bounds_z;
-}
 
 void Grid::_insert_triangles() {
     for (const auto& tri : _triangles) {
@@ -99,7 +82,7 @@ void Grid::_insert_triangles() {
         Vec3f max{};
         for (uint32_t i = 0; i < 3; ++i) {
             min[i] = std::floor((tri.get_bbox().bounds()[0][i] - _bbox.bounds()[0][i]) / _cellsize[i]);
-            max[i] = std::ceil((tri.get_bbox().bounds()[1][i] - _bbox.bounds()[0][i]) / _cellsize[i]);
+            max[i] = std::floor((tri.get_bbox().bounds()[1][i] - _bbox.bounds()[0][i]) / _cellsize[i]);
         }
 
         auto x_min = std::clamp<uint32_t>(min.x(), 0, _n[0] - 1);

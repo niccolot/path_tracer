@@ -1,6 +1,8 @@
 #ifndef BOUNDINGBOX_H
 #define BOUNDINGBOX_H
 
+#include  <array>
+
 #include "interval.h"
 #include "ray.h"
 #include "hitrecord.h"
@@ -11,7 +13,7 @@ private:
     Interval _span_x;
     Interval _span_y;
     Interval _span_z;
-    std::vector<Vec3f> _bounds;
+    std::array<Vec3f, 2> _bounds;
 
 public:
     BoundingBox() = default;
@@ -24,7 +26,7 @@ public:
     float size_y() const { return _span_y.size(); }
     float size_z() const { return _span_z.size(); }
     float volume() const { return _volume; }
-    const std::vector<Vec3f>& bounds() const { return _bounds; }
+    const std::array<Vec3f, 2>& bounds() const { return _bounds; }
 
     bool hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) const;
 }; // class BoundingBox

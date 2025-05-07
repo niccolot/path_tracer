@@ -85,9 +85,7 @@ bool MeshList::hit(const Ray& r_in, const Interval& ray_t, HitRecord& hitrec) co
     bool hit_anything{ false };
     float closest_so_far{ ray_t.max() };
     for (const auto& mesh : _meshes) {
-        if (mesh.hit(r_in, Interval(ray_t.min(), closest_so_far), temp_rec) && 
-            temp_rec.get_t() < closest_so_far) 
-        {
+        if (mesh.hit(r_in, Interval(ray_t.min(), closest_so_far), temp_rec) && temp_rec.get_t() < closest_so_far) {
             hit_anything = true;
             closest_so_far = temp_rec.get_t();
             hitrec = temp_rec;
